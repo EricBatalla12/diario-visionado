@@ -1,0 +1,2452 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}</style></head><body>
+<title>Diario de visionado</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Geist:wght@400..700&family=Geist+Mono:wght@400..700&display=swap">
+
+<style>
+/* ============================================================
+   Tokens
+   Tema claro en :root; el oscuro redefine solo los valores.
+   El jade es el color de la casa; el oro queda reservado al 10.
+   ============================================================ */
+:root {
+  color-scheme: light;
+  --paper:      #eef3f0;
+  --surface:    #fbfdfc;
+  --surface-2:  #e4ece8;
+  --glass:      rgba(251,253,252,.72);
+  --ink:        #0c1311;
+  --ink-2:      #44554f;
+  --ink-3:      #74867f;
+  --rule:       #d3dfda;
+  --rule-2:     #bfcec8;
+  --accent:     #0e8a5e;
+  --accent-2:   #19b37c;
+  --accent-ink: #ffffff;
+  --glow:       rgba(14,138,94,.20);
+
+  /* aurora de la cabecera */
+  --au-1: rgba(25,179,124,.30);
+  --au-2: rgba(92,86,230,.18);
+  --au-3: rgba(240,169,59,.16);
+
+  --n1: #a7e6cf;
+  --n2: #62d2aa;
+  --n3: #2fb584;
+  --n4: #1c8d64;
+
+  --e-visto:    #16a673;
+  --e-revisto:  #5b4bd0;
+  --e-viendo:   #2a78d6;
+  --e-porver:   #d99200;
+  --e-dropeado: #de5f8f;
+
+  /* El oro solo aparece con un 10: si sale en pantalla, es que algo lo ha merecido */
+  --oro-1: #f6c945;
+  --oro-2: #fff3c2;
+  --oro-3: #c7860f;
+  --oro-ink: #2a1c00;
+  --oro-glow: rgba(246,201,69,.45);
+  --velo: rgba(12,19,17,.45);
+
+  --r-xs: 4px;
+  --r-sm: 8px;
+  --r-md: 14px;
+  --r-lg: 22px;
+  --shadow: 0 1px 2px rgba(12,19,17,.06), 0 12px 32px -18px rgba(12,19,17,.28);
+
+  --display: "Bricolage Grotesque", ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+  --sans:    "Geist", ui-sans-serif, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono:    "Geist Mono", ui-monospace, "SF Mono", "DejaVu Sans Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper:      #0a0f0e;
+    --surface:    #111816;
+    --surface-2:  #18211e;
+    --glass:      rgba(12,18,16,.72);
+    --ink:        #edf4f1;
+    --ink-2:      #a2b3ad;
+    --ink-3:      #6f807a;
+    --rule:       #1f2a27;
+    --rule-2:     #2c3935;
+    --accent:     #46d19e;
+    --accent-2:   #7ce6bf;
+    --accent-ink: #04130d;
+    --glow:       rgba(70,209,158,.22);
+    --au-1: rgba(70,209,158,.20);
+    --au-2: rgba(110,98,255,.20);
+    --au-3: rgba(240,169,59,.10);
+    --n1: #235f4a; --n2: #2f8565; --n3: #3fae86; --n4: #62d6aa;
+    --e-visto: #2fc088; --e-revisto: #9a8cff; --e-viendo: #4f9bff;
+    --e-porver: #f0b43a; --e-dropeado: #ff7aa8;
+    --oro-1: #e8b93a; --oro-2: #fbe7a1; --oro-3: #b17808; --oro-glow: rgba(232,185,58,.32);
+    --velo: rgba(0,0,0,.62);
+    --shadow: 0 1px 2px rgba(0,0,0,.5), 0 16px 40px -22px rgba(0,0,0,.9);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper:      #0a0f0e;
+  --surface:    #111816;
+  --surface-2:  #18211e;
+  --glass:      rgba(12,18,16,.72);
+  --ink:        #edf4f1;
+  --ink-2:      #a2b3ad;
+  --ink-3:      #6f807a;
+  --rule:       #1f2a27;
+  --rule-2:     #2c3935;
+  --accent:     #46d19e;
+  --accent-2:   #7ce6bf;
+  --accent-ink: #04130d;
+  --glow:       rgba(70,209,158,.22);
+  --au-1: rgba(70,209,158,.20);
+  --au-2: rgba(110,98,255,.20);
+  --au-3: rgba(240,169,59,.10);
+  --n1: #235f4a; --n2: #2f8565; --n3: #3fae86; --n4: #62d6aa;
+  --e-visto: #2fc088; --e-revisto: #9a8cff; --e-viendo: #4f9bff;
+  --e-porver: #f0b43a; --e-dropeado: #ff7aa8;
+  --oro-1: #e8b93a; --oro-2: #fbe7a1; --oro-3: #b17808; --oro-glow: rgba(232,185,58,.32);
+  --velo: rgba(0,0,0,.62);
+  --shadow: 0 1px 2px rgba(0,0,0,.5), 0 16px 40px -22px rgba(0,0,0,.9);
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { background: var(--paper); }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+.wrap { max-width: 1120px; margin: 0 auto; padding-inline: 20px; padding-block: 0 96px; position: relative; }
+@media (max-width: 520px) { .wrap { padding-inline: 16px; } }
+
+/* ============================================================
+   Cabecera: aurora, nombre y mosaico de cifras
+   ============================================================ */
+.aurora {
+  position: absolute; left: 50%; top: 0; width: 100vw; height: 760px; transform: translateX(-50%);
+  pointer-events: none; overflow: hidden; z-index: 0;
+  -webkit-mask-image: linear-gradient(to bottom, #000 45%, transparent);
+          mask-image: linear-gradient(to bottom, #000 45%, transparent);
+}
+.aurora i {
+  position: absolute; border-radius: 50%; filter: blur(70px); opacity: 1;
+  animation: deriva 22s ease-in-out infinite alternate;
+}
+.aurora i:nth-child(1) { width: 620px; height: 420px; left: 4%;  top: -140px; background: var(--au-1); }
+.aurora i:nth-child(2) { width: 560px; height: 460px; right: 2%; top: -80px;  background: var(--au-2); animation-duration: 28s; animation-delay: -8s; }
+.aurora i:nth-child(3) { width: 420px; height: 300px; left: 38%; top: 120px;  background: var(--au-3); animation-duration: 34s; animation-delay: -15s; }
+@keyframes deriva {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(60px, 30px) scale(1.08); }
+  100% { transform: translate(-40px, 50px) scale(.95); }
+}
+/* grano fino por encima de la aurora, para que no parezca un degradado de plantilla */
+.aurora::after {
+  content: ""; position: absolute; inset: 0; opacity: .5; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5  0 0 0 0 .5  0 0 0 0 .5  0 0 0 .35 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.head { position: relative; z-index: 1; padding-block: 64px 30px; }
+.nombre-caja { display: flex; align-items: flex-end; gap: 12px; min-width: 0; }
+h1 {
+  font-family: var(--display); font-weight: 800; font-optical-sizing: auto;
+  font-size: clamp(3rem, 10vw, 7.2rem); line-height: .88; letter-spacing: -.045em;
+  margin: 0; text-wrap: balance;
+  background: linear-gradient(180deg, var(--ink) 30%, color-mix(in srgb, var(--ink) 55%, var(--accent)));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  padding-bottom: .06em;
+}
+#nombre { outline: none; border-radius: var(--r-sm); cursor: text; min-width: 1ch; overflow-wrap: anywhere; }
+#nombre[contenteditable="true"] {
+  -webkit-text-fill-color: var(--ink); color: var(--ink); background: none;
+  box-shadow: 0 3px 0 var(--accent);
+}
+#nombre:focus-visible { box-shadow: 0 3px 0 var(--accent); }
+.nombre-caja .icon { flex: none; opacity: 0; transition: opacity .15s; margin-bottom: .6em; }
+.nombre-caja:hover .icon, .nombre-caja .icon:focus-visible { opacity: 1; }
+@media (hover: none) { .nombre-caja .icon { opacity: .6; } }
+
+/* Mosaico: anillo de nota | terminados + en marcha | podio */
+.bento {
+  position: relative; z-index: 1;
+  display: grid; gap: 14px;
+  grid-template-columns: 1.05fr 1fr 1.15fr;
+  grid-template-areas: "media hechos podio" "media marcha podio";
+}
+@media (max-width: 900px) {
+  .bento { grid-template-columns: 1fr 1fr; grid-template-areas: "media hechos" "media marcha" "podio podio"; }
+}
+@media (max-width: 600px) {
+  .bento { grid-template-columns: 1fr; grid-template-areas: "media" "hechos" "marcha" "podio"; }
+}
+.panel {
+  position: relative; background: var(--glass); border: 1px solid var(--rule);
+  border-radius: var(--r-lg); padding: 20px 22px;
+  -webkit-backdrop-filter: blur(18px) saturate(1.2); backdrop-filter: blur(18px) saturate(1.2);
+  box-shadow: var(--shadow); min-width: 0;
+}
+.panel::before {
+  /* filo de luz arriba: da volumen sin usar otra sombra */
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--ink) 7%, transparent), transparent 40%);
+  -webkit-mask: linear-gradient(#000, #000) content-box, linear-gradient(#000, #000);
+  -webkit-mask-composite: xor; mask-composite: exclude; padding: 1px;
+}
+.p-media  { grid-area: media; display: grid; align-content: space-between; gap: 18px; }
+.p-hechos { grid-area: hechos; }
+.p-marcha { grid-area: marcha; }
+.p-podio  { grid-area: podio; display: grid; align-content: start; gap: 14px; }
+.lbl {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--ink-3); margin: 0; display: flex; justify-content: space-between; gap: 8px;
+}
+.big {
+  font-family: var(--display); font-weight: 700; font-size: 3rem; line-height: 1;
+  letter-spacing: -.035em; font-variant-numeric: tabular-nums;
+}
+.big small { font-size: .42em; font-weight: 600; color: var(--ink-3); letter-spacing: 0; margin-left: 4px; }
+
+/* anillo de la nota media, sobre 10 */
+.anillo { position: relative; width: min(230px, 100%); aspect-ratio: 1; margin: 4px auto 0; max-width: 100%; }
+.anillo svg { width: 100%; height: 100%; transform: rotate(-90deg); display: block; }
+.anillo .pista { fill: none; stroke: var(--surface-2); stroke-width: 12; }
+.anillo .arco {
+  fill: none; stroke: url(#grad-anillo); stroke-width: 12; stroke-linecap: round;
+  transition: stroke-dashoffset 1.1s cubic-bezier(.2,.8,.2,1);
+  filter: drop-shadow(0 0 10px var(--glow));
+}
+.anillo .marca { stroke: var(--ink-3); stroke-width: 1.5; }
+.anillo-centro {
+  position: absolute; inset: 0; display: grid; place-content: center; text-align: center; gap: 2px;
+}
+.anillo-centro .big { font-size: clamp(2.8rem, 6vw, 3.6rem); }
+.anillo-centro .de { font-family: var(--mono); font-size: 11px; color: var(--ink-3); letter-spacing: .1em; }
+.anios { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px; }
+.anio-c { display: grid; gap: 1px; }
+.anio-c:last-child { text-align: right; }
+.anio-c span { font-family: var(--mono); font-size: 10.5px; color: var(--ink-3); letter-spacing: .1em; }
+.anio-c b { font-family: var(--display); font-size: 1.45rem; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.delta {
+  font-family: var(--mono); font-size: 12px; font-weight: 600; padding: 4px 9px; border-radius: 999px;
+  white-space: nowrap;
+}
+.delta.sube { color: var(--e-visto); background: color-mix(in srgb, var(--e-visto) 14%, transparent); }
+.delta.baja { color: var(--e-dropeado); background: color-mix(in srgb, var(--e-dropeado) 14%, transparent); }
+
+/* barra de estados: cada tramo mide lo que pesa ese estado */
+.barra-est { display: flex; height: 10px; border-radius: 999px; overflow: hidden; gap: 2px; margin: 14px 0 12px; background: var(--surface-2); }
+.barra-est span { display: block; min-width: 3px; transition: flex-grow .6s; }
+.leyenda { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12.5px; color: var(--ink-2); }
+.leyenda span { display: inline-flex; align-items: center; gap: 6px; }
+.leyenda i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.leyenda b { font-family: var(--mono); font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+
+.hechos-fila { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-top: 8px; }
+.hechos-fila .sub2 { font-size: 12.5px; color: var(--ink-3); text-align: right; }
+
+.marcha-lista { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.marcha-lista span {
+  font-size: 12.5px; padding: 4px 10px; border-radius: 999px; color: var(--ink);
+  background: color-mix(in srgb, var(--e-viendo) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--e-viendo) 40%, transparent);
+  display: inline-flex; align-items: center; gap: 6px; max-width: 100%;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.marcha-lista span::before {
+  content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--e-viendo); flex: none;
+  animation: latido 1.8s ease-in-out infinite;
+}
+@keyframes latido { 50% { opacity: .3; } }
+.marcha-pie { margin-top: 12px; font-size: 12.5px; color: var(--ink-3); }
+.marcha-pie b { color: var(--e-porver); font-family: var(--mono); }
+
+/* podio: el primero grande, los otros dos debajo */
+.oro-1 { display: grid; gap: 10px; }
+.oro-1 .fav-titulo {
+  font-family: var(--display); font-weight: 700; font-size: clamp(1.5rem, 2.6vw, 2rem);
+  line-height: 1.05; letter-spacing: -.025em; text-wrap: balance; overflow-wrap: anywhere;
+}
+.oro-1 .fav-com {
+  margin: 0; font-size: 13.5px; color: var(--ink-2); line-height: 1.5;
+  border-left: 2px solid var(--accent); padding-left: 12px; max-width: 48ch;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+.fav-cab { display: flex; align-items: center; gap: 12px; }
+.fav-cab .score { width: 64px; flex: none; font-size: 1.25rem; padding: 8px 0; }
+.medalla {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--ink-3);
+}
+.podio-resto { display: grid; gap: 2px; border-top: 1px solid var(--rule); padding-top: 10px; }
+.podio-resto div {
+  display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center;
+  padding: 6px 0; font-size: 13.5px; min-width: 0;
+}
+.podio-resto .pos { font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
+.podio-resto .t { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.podio-resto .n { font-family: var(--mono); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* ============================================================
+   Graficas
+   ============================================================ */
+.charts { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding-block: 14px 8px; position: relative; z-index: 1; }
+@media (max-width: 760px) { .charts { grid-template-columns: 1fr; } }
+.card {
+  background: var(--surface); border: 1px solid var(--rule);
+  border-radius: var(--r-lg); padding: 20px 20px 14px;
+}
+.card h2 {
+  font-family: var(--display); font-size: 1.15rem; font-weight: 700; letter-spacing: -.015em; margin: 0 0 2px;
+}
+.card .sub { font-size: 12.5px; color: var(--ink-3); margin: 0 0 16px; }
+.plot { width: 100%; overflow-x: auto; }
+svg { display: block; max-width: 100%; }
+.grid-line { stroke: var(--rule); stroke-width: 1; }
+.axis-t { font-family: var(--mono); font-size: 10px; fill: var(--ink-3); }
+.bar { transition: opacity .12s; cursor: pointer; }
+.bar:hover { opacity: .78; }
+.bar.apagado { opacity: .25; }
+.punto-sel { stroke: var(--ink); stroke-width: 2.5; }
+.dot-line { stroke: var(--accent); stroke-width: 2.5; fill: none; filter: drop-shadow(0 4px 8px var(--glow)); }
+.sel-chip {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: var(--ink); color: var(--paper); border: none;
+  font-size: 12.5px; font-weight: 600; padding: 6px 10px 6px 12px; border-radius: 999px;
+}
+.sel-chip::after { content: "\00d7"; font-size: 15px; line-height: 1; opacity: .8; }
+.sel-chip.oculto { display: none; }
+
+/* ============================================================
+   Barra de filtros (fija arriba, translucida)
+   ============================================================ */
+.controls {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
+  margin-top: 26px; padding: 12px 0;
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+}
+.controls::before {
+  content: ""; position: absolute; inset: 0 -100vw; z-index: -1;
+  background: var(--glass); border-bottom: 1px solid var(--rule);
+  -webkit-backdrop-filter: blur(16px) saturate(1.3); backdrop-filter: blur(16px) saturate(1.3);
+}
+input[type="search"], select, input[type="text"], input[type="number"], textarea {
+  font: inherit; font-size: 13.5px; color: var(--ink); background: var(--surface);
+  border: 1px solid var(--rule); border-radius: 999px; padding: 7px 12px;
+  transition: border-color .12s;
+}
+textarea, .editor input, .editor select { border-radius: var(--r-sm); }
+input:hover, select:hover, textarea:hover { border-color: var(--rule-2); }
+input[type="search"] { flex: 1 1 220px; min-width: 160px; padding-left: 34px;
+  background: var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%237f918a' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") no-repeat 12px 50%; }
+select { cursor: pointer; }
+:is(input, select, textarea, button, [contenteditable]):focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.count { font-family: var(--mono); font-size: 12px; color: var(--ink-3); margin-left: auto; font-variant-numeric: tabular-nums; }
+button {
+  font: inherit; font-size: 13px; cursor: pointer; border-radius: 999px;
+  border: 1px solid var(--rule); background: var(--surface); color: var(--ink);
+  padding: 7px 14px; transition: border-color .12s, background-color .12s;
+}
+button:hover { border-color: var(--rule-2); }
+button.primary { background: var(--accent); color: var(--accent-ink); border-color: transparent; font-weight: 650; }
+
+.add-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--accent); color: var(--accent-ink); border: none;
+  font-weight: 650; font-size: 13.5px; padding: 8px 14px 8px 10px; border-radius: 999px;
+  box-shadow: 0 1px 0 rgba(255,255,255,.25) inset, 0 8px 22px -8px var(--accent);
+  transition: transform .15s, box-shadow .15s, filter .15s;
+}
+.add-btn:hover { filter: brightness(1.07); transform: translateY(-1px); box-shadow: 0 1px 0 rgba(255,255,255,.25) inset, 0 14px 28px -10px var(--accent); }
+.add-btn:active { transform: translateY(0); }
+.add-btn .mas {
+  width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center;
+  background: color-mix(in srgb, var(--accent-ink) 18%, transparent); font-size: 17px; line-height: 1;
+}
+.add-btn kbd {
+  font-family: var(--mono); font-size: 10.5px; font-weight: 500; opacity: .75;
+  border: 1px solid color-mix(in srgb, var(--accent-ink) 40%, transparent); border-radius: 5px; padding: 0 5px;
+}
+@media (max-width: 560px) { .add-btn kbd { display: none; } }
+
+/* En el movil los filtros van en una sola fila que se desliza de lado (fija arriba
+   ocupaban media pantalla) y "Añadir" pasa a boton flotante, siempre a mano.
+   Sin backdrop-filter aqui: crearia un contenedor y el boton fijo dejaria de flotar. */
+@media (max-width: 640px) {
+  .controls {
+    flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none;
+    margin-inline: -16px; padding: 10px 16px; background: var(--paper); border-bottom: 1px solid var(--rule);
+  }
+  .controls::-webkit-scrollbar { display: none; }
+  .controls::before { display: none; }
+  .controls > * { flex: none; }
+  .controls input[type="search"] { flex: 0 0 210px; }
+  .count { display: none; }
+  .add-btn {
+    position: fixed; right: 16px; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); z-index: 30;
+    padding: 13px 18px 13px 13px; font-size: 15px;
+  }
+}
+
+.aviso {
+  display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+  background: var(--surface); border: 1px solid var(--rule);
+  border-radius: var(--r-md); padding: 10px 10px 10px 16px; margin-top: 18px; font-size: 13px; color: var(--ink-2);
+}
+.aviso::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px var(--glow); }
+.aviso .sp { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+.aviso.oculto { display: none; }
+
+/* ============================================================
+   Listado como linea de tiempo
+   ============================================================ */
+.group { margin-top: 44px; position: relative; }
+.group > h3 {
+  margin: 0 0 6px; padding-bottom: 12px; border-bottom: 1px solid var(--rule);
+  display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap;
+}
+.g-nombre { display: flex; align-items: baseline; gap: 12px; min-width: 0; }
+.g-mes {
+  font-family: var(--display); font-weight: 800; font-size: clamp(1.8rem, 4.2vw, 2.6rem);
+  letter-spacing: -.04em; line-height: 1; color: var(--ink);
+}
+.g-anio { font-family: var(--mono); font-size: 12px; color: var(--ink-3); letter-spacing: .1em; }
+.g-datos { display: flex; gap: 8px; align-items: center; font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); }
+.g-datos .pill {
+  padding: 3px 9px; border-radius: 999px; border: 1px solid var(--rule); color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+.g-datos .pill.media { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+
+.row {
+  display: grid; grid-template-columns: 68px 1fr auto; gap: 18px;
+  padding: 16px 12px; margin-inline: -12px; border-radius: var(--r-md);
+  align-items: start; transition: background-color .15s;
+  border-bottom: 1px solid var(--rule);
+}
+.row:hover { background: color-mix(in srgb, var(--surface) 80%, transparent); }
+@media (max-width: 520px) { .row { grid-template-columns: 54px 1fr; gap: 12px; } .row .acts { grid-column: 2; justify-self: start; margin-left: -6px; } }
+.acts { display: flex; gap: 2px; align-items: center; opacity: .45; transition: opacity .15s; }
+.row:hover .acts, .acts:focus-within { opacity: 1; }
+@media (hover: none) { .acts { opacity: 1; } }
+.icon {
+  width: 32px; height: 32px; padding: 0; display: grid; place-items: center;
+  border: 1px solid transparent; background: transparent; color: var(--ink-3);
+  border-radius: 50%; cursor: pointer;
+}
+.icon svg { width: 15px; height: 15px; display: block; }
+.icon:hover { color: var(--ink); border-color: var(--rule); background: var(--surface); }
+.icon.del:hover { color: var(--e-dropeado); border-color: currentColor; }
+.row.editando { background: var(--surface); border: 1px solid var(--rule); }
+.editor { display: grid; gap: 10px; }
+.editor .line { display: flex; flex-wrap: wrap; gap: 8px; }
+.editor label { font-size: 11.5px; color: var(--ink-2); display: grid; gap: 3px; }
+.editor input[type="text"] { min-width: min(240px, 100%); }
+.editor textarea { min-height: 60px; resize: vertical; width: 100%; font-size: 13.5px; }
+.editor .acciones { display: flex; gap: 8px; align-items: center; }
+
+.score {
+  font-family: var(--mono); font-variant-numeric: tabular-nums;
+  font-size: 16px; font-weight: 700; text-align: center;
+  padding: 9px 0; border-radius: var(--r-sm); color: #06140e; letter-spacing: -.02em;
+}
+.score.s1 { background: var(--n1); }
+.score.s2 { background: var(--n2); }
+.score.s3 { background: var(--n3); }
+.score.s4 { background: var(--n4); color: #ffffff; box-shadow: 0 6px 16px -8px var(--n4); }
+.score.none { background: var(--surface-2); color: var(--ink-3); font-size: 13px; }
+:root[data-theme="dark"] .score.s1, :root[data-theme="dark"] .score.s2 { color: #eaf5f0; }
+:root[data-theme="dark"] .score.s4 { color: #04130d; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .score.s1,
+  :root:not([data-theme="light"]) .score.s2 { color: #eaf5f0; }
+  :root:not([data-theme="light"]) .score.s4 { color: #04130d; }
+}
+.title { font-family: var(--display); font-weight: 650; font-size: 1.12rem; letter-spacing: -.015em; line-height: 1.25; text-wrap: balance; overflow-wrap: anywhere; }
+.note { color: var(--ink-2); font-size: 14px; margin: 5px 0 0; max-width: 70ch; }
+.meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 9px; }
+.chip {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase;
+  padding: 3px 8px; border-radius: 999px; border: 1px solid currentColor; line-height: 1.3;
+}
+.chip.visto    { color: var(--e-visto); }
+.chip.revisto  { color: var(--e-revisto); }
+.chip.viendo   { color: var(--e-viendo); }
+.chip.porver   { color: var(--e-porver); }
+.chip.dropeado { color: var(--e-dropeado); }
+.chip.visto, .chip.revisto, .chip.viendo, .chip.porver, .chip.dropeado { background: color-mix(in srgb, currentColor 10%, transparent); border-color: color-mix(in srgb, currentColor 45%, transparent); }
+.chip.year { color: var(--ink-3); border-color: var(--rule); }
+.chip.nuevo { color: var(--accent); border-style: dashed; }
+.chip.tipo { color: var(--ink-2); background: var(--surface-2); border-color: transparent; }
+.chip.gen  { color: var(--ink-2); border-color: var(--rule); text-transform: none; letter-spacing: .02em; font-family: var(--sans); font-size: 11.5px; }
+.empty { padding: 80px 0; text-align: center; color: var(--ink-3); font-family: var(--display); font-size: 1.3rem; }
+
+/* ---------- el 10 ----------
+   Un 10 no es un 9.9 con mas nota: la casilla se vuelve de oro con un brillo
+   que la recorre y el titulo lleva el mismo degradado. Nada mas en la pagina
+   usa estos colores, asi que se ve de un vistazo en cualquier listado. */
+.score.s5 {
+  position: relative; overflow: hidden; color: var(--oro-ink);
+  background: linear-gradient(135deg, var(--oro-3), var(--oro-1) 35%, var(--oro-2) 50%, var(--oro-1) 65%, var(--oro-3));
+  background-size: 220% 220%;
+  box-shadow: 0 0 0 1px var(--oro-3), 0 0 22px var(--oro-glow);
+  animation: oro-fluye 5s ease-in-out infinite;
+}
+.score.s5::after {
+  content: ""; position: absolute; inset: -40% auto -40% -60%; width: 40%;
+  background: linear-gradient(100deg, transparent, rgba(255,255,255,.85), transparent);
+  transform: skewX(-18deg); animation: oro-destello 3.2s ease-in-out infinite;
+}
+.row.diez { background: linear-gradient(90deg, color-mix(in srgb, var(--oro-1) 9%, transparent), transparent 60%); }
+.row.diez .title {
+  background: linear-gradient(90deg, var(--oro-3), var(--oro-1), var(--oro-3), var(--oro-1));
+  background-size: 300% 100%; -webkit-background-clip: text; background-clip: text;
+  color: transparent; animation: oro-fluye 6s linear infinite;
+}
+.row.diez .title::after {
+  content: " \2726"; color: var(--oro-1); -webkit-text-fill-color: var(--oro-1);
+  display: inline-block; animation: chispa 2.4s ease-in-out infinite;
+}
+.fav-titulo.diez {
+  background: linear-gradient(90deg, var(--oro-3), var(--oro-1), var(--oro-3));
+  background-size: 300% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: oro-fluye 6s linear infinite;
+}
+.chip.diez { color: var(--oro-3); border-color: var(--oro-1); background: color-mix(in srgb, var(--oro-1) 16%, transparent); }
+@keyframes oro-fluye { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+@keyframes oro-destello { 0%, 55% { left: -60%; } 100% { left: 130%; } }
+@keyframes chispa { 0%, 100% { transform: scale(1) rotate(0); opacity: 1; } 50% { transform: scale(.7) rotate(45deg); opacity: .55; } }
+#confeti { position: fixed; inset: 0; pointer-events: none; z-index: 90; width: 100%; height: 100%; }
+
+/* ============================================================
+   Hoja de anadir
+   ============================================================ */
+.eyebrow {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .16em;
+  text-transform: uppercase; color: var(--ink-3); margin: 0 0 14px;
+}
+.modal { position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; padding: 16px; }
+.modal-fondo { position: absolute; inset: 0; background: var(--velo); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); animation: aparece .18s ease-out; }
+.hoja {
+  position: relative; width: min(640px, 100%); max-height: calc(100% - 8px); overflow: auto;
+  background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r-lg);
+  box-shadow: 0 40px 100px -30px rgba(0,0,0,.6); display: grid; gap: 22px; padding: 28px 28px 22px;
+  animation: sube .26s cubic-bezier(.2,.9,.3,1.15);
+}
+@keyframes aparece { from { opacity: 0; } }
+@keyframes sube { from { opacity: 0; transform: translateY(18px) scale(.98); } }
+@media (max-width: 560px) {
+  .modal { place-items: end stretch; padding: 0; }
+  .hoja { width: 100%; border-radius: 22px 22px 0 0; padding: 22px 16px calc(18px + env(safe-area-inset-bottom, 0px)); max-height: 92%; }
+}
+.hoja-cab { display: flex; justify-content: space-between; align-items: start; gap: 12px; }
+.hoja-cab .eyebrow { margin: 0 0 4px; }
+.hoja-cab h2 { font-family: var(--display); font-size: 2rem; font-weight: 800; letter-spacing: -.035em; margin: 0; line-height: 1.05; }
+.cerrar { flex: none; }
+.f-titulo {
+  width: 100%; font-family: var(--display) !important; font-size: 1.6rem !important; font-weight: 700;
+  padding: 10px 2px !important; border: none !important; border-bottom: 2px solid var(--rule) !important;
+  border-radius: 0 !important; background: transparent !important; letter-spacing: -.02em;
+}
+.f-titulo:focus-visible { outline: none; border-bottom-color: var(--accent) !important; }
+.campo { display: grid; gap: 8px; border: 0; margin: 0; padding: 0; min-width: 0; }
+.campo > .rot, .campo > legend {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .13em; text-transform: uppercase;
+  color: var(--ink-3); padding: 0; margin-bottom: 8px;
+}
+.campo > .rot { margin-bottom: 0; }
+.nota-bloque { display: grid; grid-template-columns: 100px 1fr; gap: 18px; align-items: center; }
+.dial {
+  height: 76px; display: grid; place-items: center; font-size: 2rem !important; border-radius: var(--r-md) !important;
+  transition: background-color .2s, color .2s;
+}
+.nota-ctl { display: grid; gap: 8px; }
+.nota-ctl input[type="range"] { width: 100%; accent-color: var(--accent); margin: 0; }
+.nota-ctl.diez input[type="range"] { accent-color: var(--oro-1); }
+.escala { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 10px; color: var(--ink-3); }
+.nota-fila { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 12.5px; color: var(--ink-2); }
+.nota-fila input[type="number"] { width: 90px; }
+.enlace { background: none; border: none; padding: 0; color: var(--ink-3); text-decoration: underline; text-underline-offset: 3px; font-size: 12.5px; border-radius: 0; }
+.enlace:hover { color: var(--ink); }
+.diez-aviso { color: var(--oro-3); font-weight: 600; }
+.pildoras { display: flex; flex-wrap: wrap; gap: 6px; }
+.pildoras input { position: absolute; opacity: 0; pointer-events: none; }
+.pildora {
+  display: inline-flex; align-items: center; gap: 7px; cursor: pointer; user-select: none;
+  font-size: 13px; padding: 6px 12px; border-radius: 999px;
+  border: 1px solid var(--rule); background: var(--surface); color: var(--ink-2);
+  transition: background-color .12s, border-color .12s, color .12s;
+}
+.pildora:hover { border-color: var(--ink-3); color: var(--ink); }
+.pildora .pt { width: 8px; height: 8px; border-radius: 50%; background: var(--c, var(--ink-3)); }
+input:checked + .pildora {
+  border-color: var(--c, var(--accent)); color: var(--ink);
+  background: color-mix(in srgb, var(--c, var(--accent)) 14%, var(--surface));
+  box-shadow: 0 0 0 1px var(--c, var(--accent)) inset;
+}
+input:focus-visible + .pildora { outline: 2px solid var(--accent); outline-offset: 2px; }
+.pildora.gen { font-size: 12.5px; padding: 4px 10px; }
+.gen-otro { display: flex; gap: 6px; }
+.gen-otro input { flex: 1; min-width: 0; }
+.dos { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.dos select { width: 100%; }
+.hoja textarea { width: 100%; min-height: 80px; resize: vertical; }
+.hoja-pie { display: flex; justify-content: flex-end; gap: 10px; padding-top: 4px; }
+.hoja-pie .primary { padding: 10px 20px; }
+
+/* ============================================================
+   Pie, tooltip y aviso flotante
+   ============================================================ */
+.foot {
+  margin-top: 56px; padding-top: 22px; border-top: 1px solid var(--rule); color: var(--ink-3); font-size: 12.5px;
+  display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; justify-content: space-between;
+}
+.foot p { margin: 0; max-width: 70ch; }
+.tt {
+  position: fixed; pointer-events: none; z-index: 60; background: var(--surface);
+  border: 1px solid var(--rule); border-radius: var(--r-sm); box-shadow: var(--shadow);
+  padding: 8px 11px; font-size: 12.5px; opacity: 0; transition: opacity .1s;
+}
+.tt.on { opacity: 1; }
+.tt b { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.toast {
+  position: fixed; left: 50%; bottom: calc(26px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%) translateY(8px);
+  background: var(--ink); color: var(--paper); border-radius: 999px;
+  padding: 10px 18px; font-size: 13px; font-weight: 500; z-index: 70; box-shadow: var(--shadow);
+  opacity: 0; pointer-events: none; transition: opacity .16s, transform .16s;
+}
+.toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* Entrada de la cabecera: parte de su sitio final visible y solo se desliza un poco */
+@keyframes asoma { from { transform: translateY(10px); } }
+.head, .panel { animation: asoma .6s cubic-bezier(.2,.8,.2,1) both; }
+.p-hechos { animation-delay: .05s; } .p-marcha { animation-delay: .1s; } .p-podio { animation-delay: .15s; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+  .score.s5::after { display: none; }
+}
+</style>
+<style>
+/* ============================================================
+   Carteles generados
+   La pagina no puede cargar imagenes de fuera, asi que cada titulo lleva un
+   cartel propio hecho con degradados: color y dibujo salen de su nombre.
+   ============================================================ */
+.poster {
+  position: relative; overflow: hidden; border-radius: var(--r-sm); aspect-ratio: 2 / 3;
+  background: linear-gradient(var(--a, 160deg), hsl(var(--h1) 56% 45%), hsl(var(--h2) 62% 16%));
+  color: #fff; isolation: isolate; max-width: 100%;
+}
+.poster::before { content: ""; position: absolute; inset: 0; z-index: -1; }
+.poster.pat-0::before { background: repeating-linear-gradient(var(--a2), rgba(255,255,255,.13) 0 2px, transparent 2px 11px); }
+.poster.pat-1::before { background: radial-gradient(circle at var(--sx) var(--sy), hsl(var(--h3) 80% 70%) 0 21%, hsl(var(--h3) 80% 70% / .22) 21.5% 27%, transparent 27.5%); }
+.poster.pat-2::before { background: repeating-radial-gradient(circle at var(--sx) var(--sy), rgba(255,255,255,.17) 0 1.5px, transparent 2px 13px); }
+.poster.pat-3::before {
+  background: radial-gradient(rgba(255,255,255,.3) 1.1px, transparent 1.5px) 0 0 / 9px 9px;
+  -webkit-mask-image: linear-gradient(var(--a2), #000, transparent 75%); mask-image: linear-gradient(var(--a2), #000, transparent 75%);
+}
+.poster::after {
+  content: ""; position: absolute; inset: 0; z-index: -1;
+  background: linear-gradient(180deg, rgba(255,255,255,.16), transparent 32%, transparent 55%, rgba(0,0,0,.5));
+}
+.p-ini {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  font-family: var(--display); font-weight: 800; font-size: 1.05rem; letter-spacing: -.04em;
+  text-shadow: 0 1px 8px rgba(0,0,0,.35);
+}
+.p-tipo { position: absolute; top: 7%; left: 9%; font-family: var(--mono); font-size: 9px; letter-spacing: .16em; opacity: .85; }
+.p-txt {
+  position: absolute; left: 9%; right: 9%; bottom: 7%;
+  font-family: var(--display); font-weight: 800; font-size: var(--fs, 1.05rem);
+  line-height: .95; letter-spacing: -.035em; text-wrap: balance; overflow-wrap: anywhere;
+  text-shadow: 0 2px 14px rgba(0,0,0,.4);
+  display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;
+}
+.poster.grande { --fs: 1.7rem; }
+.poster.oro { box-shadow: 0 0 0 2px var(--oro-1), 0 0 28px var(--oro-glow); }
+
+/* cartel pequeño en cada fila de la lista */
+.row { grid-template-columns: 68px 46px 1fr auto; }
+.row.editando { grid-template-columns: 68px 1fr auto; }
+.row .mini { width: 46px; }
+@media (max-width: 520px) { .row .mini { display: none; } .row, .row.editando { grid-template-columns: 54px 1fr; } }
+.row .title {
+  display: inline; background: none; border: 0; padding: 0; text-align: left; border-radius: 3px;
+  color: inherit; cursor: pointer; font: inherit; font-family: var(--display); font-weight: 650;
+  font-size: 1.12rem; letter-spacing: -.015em; line-height: 1.25;
+}
+.row:not(.diez) .title:hover { color: var(--accent); }
+
+/* brillo que sigue al raton sobre paneles y graficas */
+.card { position: relative; }
+.panel::after, .card::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  opacity: 0; transition: opacity .35s;
+  background: radial-gradient(380px circle at var(--mx, 50%) var(--my, 50%), color-mix(in srgb, var(--accent) 11%, transparent), transparent 65%);
+}
+.panel:hover::after, .card:hover::after { opacity: 1; }
+
+/* ============================================================
+   Cabecera: boton del resumen del año y de la ruleta
+   ============================================================ */
+.head { display: flex; justify-content: space-between; align-items: flex-end; gap: 18px; flex-wrap: wrap; }
+.wr-btn {
+  display: inline-flex; align-items: center; gap: 10px; padding: 11px 18px 11px 14px;
+  font-weight: 650; font-size: 14px; color: var(--ink); position: relative; overflow: hidden;
+  background: var(--glass); border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--rule));
+  -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+  box-shadow: 0 10px 30px -14px var(--accent); margin-bottom: 6px;
+}
+.wr-btn::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(105deg, transparent 35%, color-mix(in srgb, var(--accent) 30%, transparent), transparent 65%);
+  transform: translateX(-100%); animation: barrido 4.5s ease-in-out infinite;
+}
+@keyframes barrido { 0%, 60% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+.wr-btn:hover { border-color: var(--accent); }
+.wr-btn .sp { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px var(--glow); animation: latido 1.8s ease-in-out infinite; }
+.p-marcha { display: flex; flex-direction: column; }
+.dado {
+  margin-top: auto; align-self: flex-start; display: inline-flex; align-items: center; gap: 8px;
+  font-size: 13px; font-weight: 600; padding: 7px 14px 7px 11px;
+  background: color-mix(in srgb, var(--e-porver) 14%, var(--surface)); border-color: color-mix(in srgb, var(--e-porver) 45%, transparent);
+}
+.dado svg { width: 16px; height: 16px; color: var(--e-porver); }
+.dado:hover { border-color: var(--e-porver); }
+.marcha-pie { margin-bottom: 12px; }
+
+/* ============================================================
+   Selector de vista
+   ============================================================ */
+.vistas { display: inline-flex; padding: 3px; gap: 2px; border: 1px solid var(--rule); border-radius: 999px; background: var(--surface); }
+.vistas button { border: 0; padding: 5px 11px; font-size: 12.5px; color: var(--ink-2); background: transparent; display: inline-flex; gap: 6px; align-items: center; }
+.vistas button:hover { color: var(--ink); }
+.vistas button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.vistas svg { width: 14px; height: 14px; }
+
+/* ============================================================
+   Galeria
+   ============================================================ */
+.galeria { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 26px 18px; margin-top: 30px; }
+@media (max-width: 520px) { .galeria { grid-template-columns: repeat(2, 1fr); gap: 20px 12px; } }
+.g-card { position: relative; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.g-abrir {
+  display: grid; gap: 10px; padding: 0; border: 0; background: none; text-align: left; color: inherit;
+  border-radius: var(--r-md); cursor: pointer; font: inherit;
+}
+.g-abrir .poster {
+  border-radius: var(--r-md); box-shadow: var(--shadow);
+  transition: transform .3s cubic-bezier(.2,.8,.2,1), box-shadow .3s;
+}
+.g-abrir:hover .poster { transform: translateY(-5px) rotate(-.8deg); box-shadow: 0 26px 44px -22px rgba(0,0,0,.65); }
+.g-abrir:hover .poster.oro { box-shadow: 0 0 0 2px var(--oro-1), 0 26px 50px -18px var(--oro-glow); }
+.g-t {
+  font-family: var(--display); font-weight: 650; font-size: 1rem; line-height: 1.2; letter-spacing: -.015em;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.g-card > .score {
+  position: absolute; top: 8px; right: 8px; min-width: 46px; padding: 5px 8px; font-size: 14px;
+  box-shadow: 0 6px 16px -6px rgba(0,0,0,.5); pointer-events: none;
+}
+.g-sub { display: flex; gap: 6px; align-items: center; font-family: var(--mono); font-size: 11px; color: var(--ink-3); flex-wrap: wrap; }
+.g-card > .edit {
+  position: absolute; top: 8px; left: 8px; background: var(--glass); border-color: var(--rule);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); opacity: 0; transition: opacity .15s;
+}
+.g-card:hover > .edit, .g-card > .edit:focus-visible { opacity: 1; }
+@media (hover: none) { .g-card > .edit { opacity: .9; } }
+
+/* ============================================================
+   Tier list
+   ============================================================ */
+.tiers { display: grid; gap: 10px; margin-top: 30px; }
+.tier {
+  display: grid; grid-template-columns: 92px 1fr; min-height: 132px;
+  background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r-md); overflow: hidden;
+}
+.tier-lbl {
+  display: grid; place-content: center; text-align: center; gap: 4px; padding: 10px 4px;
+  background: color-mix(in srgb, var(--tc) 17%, var(--surface)); color: var(--tc);
+  border-right: 1px solid color-mix(in srgb, var(--tc) 30%, var(--rule));
+}
+.tier-lbl b { font-family: var(--display); font-weight: 800; font-size: 2.6rem; line-height: .9; letter-spacing: -.05em; }
+.tier-lbl span { font-family: var(--mono); font-size: 10px; letter-spacing: .06em; color: var(--ink-3); }
+.tier-lbl .cnt { color: var(--tc); font-weight: 600; }
+.tier.ex { border-color: var(--oro-1); box-shadow: 0 0 30px -12px var(--oro-glow); }
+.tier.ex .tier-lbl {
+  background: linear-gradient(135deg, var(--oro-3), var(--oro-1) 45%, var(--oro-2) 60%, var(--oro-1));
+  background-size: 220% 220%; animation: oro-fluye 5s ease-in-out infinite; color: var(--oro-ink);
+}
+.tier.ex .tier-lbl span { color: var(--oro-ink); opacity: .75; }
+.tier-items { display: flex; flex-wrap: wrap; gap: 12px; padding: 12px; align-content: flex-start; }
+.t-item { width: 78px; }
+.t-abrir { display: grid; gap: 5px; width: 100%; padding: 0; border: 0; background: none; color: inherit; text-align: left; font: inherit; border-radius: var(--r-sm); position: relative; cursor: pointer; }
+.t-abrir .poster { transition: transform .2s; }
+.t-abrir:hover .poster { transform: translateY(-3px) scale(1.03); }
+.t-abrir .p-ini { font-size: 1.35rem; }
+.t-abrir .n {
+  position: absolute; top: 4px; right: 4px; font-family: var(--mono); font-size: 11px; font-weight: 700;
+  background: rgba(0,0,0,.6); color: #fff; border-radius: 4px; padding: 1px 5px; font-variant-numeric: tabular-nums;
+}
+.t-abrir .t {
+  font-size: 11px; line-height: 1.25; color: var(--ink-2);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.tier-vacio { align-self: center; font-size: 12.5px; color: var(--ink-3); padding-left: 4px; }
+.tier-nota { font-size: 12.5px; color: var(--ink-3); margin: 12px 0 0; }
+@media (max-width: 520px) {
+  .tier { grid-template-columns: 58px 1fr; }
+  .tier-lbl b { font-size: 1.9rem; }
+  .t-item { width: 66px; }
+}
+
+/* ============================================================
+   Ficha de un titulo
+   ============================================================ */
+.ficha { width: min(780px, 100%); grid-template-columns: 230px 1fr; gap: 28px; align-items: start; }
+.ficha .poster { width: 100%; border-radius: var(--r-md); box-shadow: 0 30px 60px -28px rgba(0,0,0,.7); }
+.ficha-info { display: grid; gap: 14px; min-width: 0; }
+.ficha-info h2 {
+  font-family: var(--display); font-weight: 800; font-size: clamp(1.8rem, 4vw, 2.5rem);
+  line-height: 1; letter-spacing: -.04em; margin: 0; text-wrap: balance; overflow-wrap: anywhere;
+}
+.ficha-nota { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.ficha-nota .score { font-size: 1.6rem; padding: 10px 16px; border-radius: var(--r-md); }
+.ficha-rank { font-size: 13px; color: var(--ink-2); line-height: 1.45; }
+.ficha-rank b { color: var(--ink); font-family: var(--mono); }
+.ficha-com {
+  margin: 0; font-size: 15.5px; line-height: 1.6; color: var(--ink);
+  border-left: 2px solid var(--accent); padding-left: 16px; max-width: 58ch;
+}
+.ficha-com.vacio { color: var(--ink-3); font-style: italic; border-color: var(--rule); }
+.ficha-top { display: flex; justify-content: space-between; gap: 12px; align-items: start; }
+.ficha .hoja-pie { justify-content: flex-start; }
+@media (max-width: 560px) {
+  .ficha { grid-template-columns: 1fr; }
+  .ficha .poster { width: 150px; }
+}
+
+/* ============================================================
+   Ruleta: ¿que veo ahora?
+   ============================================================ */
+.ruleta { width: min(480px, 100%); }
+.reel {
+  position: relative; height: 168px; overflow: hidden; border-radius: var(--r-md);
+  background: var(--surface-2); border: 1px solid var(--rule);
+}
+.reel::before, .reel::after { content: ""; position: absolute; left: 0; right: 0; height: 56px; z-index: 2; pointer-events: none; }
+.reel::before { top: 0; background: linear-gradient(var(--surface-2), transparent); }
+.reel::after { bottom: 0; background: linear-gradient(transparent, var(--surface-2)); }
+.reel-marco {
+  position: absolute; left: 10px; right: 10px; top: 56px; height: 56px; z-index: 3; pointer-events: none;
+  border: 1.5px solid var(--e-porver); border-radius: var(--r-sm);
+  box-shadow: 0 0 26px -6px var(--e-porver), inset 0 0 20px -10px var(--e-porver);
+}
+.reel-cinta { position: absolute; left: 0; right: 0; top: 0; will-change: transform; }
+.reel-cinta div {
+  height: 56px; display: grid; place-items: center; padding: 0 22px;
+  font-family: var(--display); font-weight: 700; font-size: 1.2rem; letter-spacing: -.02em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.ruleta-res { min-height: 1.6em; margin: 0; font-size: 14px; color: var(--ink-2); text-align: center; }
+.ruleta-res b { color: var(--ink); font-family: var(--display); font-size: 1.05rem; }
+
+/* ============================================================
+   Tu año: historias a pantalla completa
+   Mundo propio y oscuro a proposito, igual en los dos temas.
+   ============================================================ */
+.wr {
+  position: fixed; inset: 0; z-index: 85; display: grid; place-items: center;
+  background: rgba(3,7,6,.86); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  animation: aparece .25s ease-out;
+}
+.wr-story {
+  position: relative; width: min(430px, 100vw); height: min(780px, 100%);
+  border-radius: 26px; overflow: hidden; background: #06100c; color: #f2faf6;
+  box-shadow: 0 50px 120px -30px rgba(0,0,0,.9); user-select: none; -webkit-user-select: none;
+  touch-action: manipulation; cursor: pointer;
+}
+@media (max-width: 480px) { .wr-story { border-radius: 0; height: 100%; } }
+.wr-bg {
+  position: absolute; inset: -25%;
+  background:
+    radial-gradient(40% 35% at 25% 25%, var(--c1, #46d19e), transparent 70%),
+    radial-gradient(45% 40% at 80% 70%, var(--c2, #6e62ff), transparent 70%),
+    radial-gradient(30% 30% at 60% 20%, var(--c3, #f0a93b), transparent 70%);
+  opacity: .55; filter: blur(30px); animation: deriva 16s ease-in-out infinite alternate;
+  transition: opacity .5s;
+}
+.wr-story::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .35; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5  0 0 0 0 .5  0 0 0 0 .5  0 0 0 .4 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.wr-barras { position: absolute; top: 14px; left: 14px; right: 14px; display: flex; gap: 4px; z-index: 4; }
+.wr-barras span { flex: 1; height: 3px; border-radius: 3px; background: rgba(255,255,255,.22); overflow: hidden; }
+.wr-barras i { display: block; height: 100%; width: 0; background: #fff; border-radius: 3px; }
+.wr-cerrar {
+  position: absolute; top: 28px; right: 12px; z-index: 5; color: #fff; background: rgba(255,255,255,.1);
+  border-color: transparent;
+}
+.wr-cerrar:hover { background: rgba(255,255,255,.2); color: #fff; border-color: transparent; }
+.wr-slide {
+  position: absolute; inset: 0; z-index: 3; padding: 78px 30px 56px;
+  display: flex; flex-direction: column; justify-content: center; gap: 16px;
+}
+.wr-slide > * { animation: wr-in .75s cubic-bezier(.2,.8,.2,1) both; }
+.wr-slide > :nth-child(2) { animation-delay: .12s; }
+.wr-slide > :nth-child(3) { animation-delay: .24s; }
+.wr-slide > :nth-child(4) { animation-delay: .36s; }
+.wr-slide > :nth-child(5) { animation-delay: .48s; }
+@keyframes wr-in { from { opacity: 0; transform: translateY(26px); filter: blur(6px); } }
+.wr-k { font-family: var(--mono); font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: rgba(242,250,246,.72); margin: 0; }
+.wr-gigante {
+  font-family: var(--display); font-weight: 800; font-size: clamp(5rem, 27vw, 8.4rem);
+  line-height: .82; letter-spacing: -.07em; font-variant-numeric: tabular-nums;
+  background: linear-gradient(180deg, #ffffff 35%, var(--c1, #46d19e));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.wr-grande { font-family: var(--display); font-weight: 800; font-size: 2.5rem; line-height: .95; letter-spacing: -.045em; text-wrap: balance; overflow-wrap: anywhere; margin: 0; }
+.wr-slide p.t { font-size: 16px; line-height: 1.5; color: rgba(242,250,246,.86); margin: 0; max-width: 32ch; }
+.wr-slide p.t b { color: #fff; }
+.wr-cita { font-size: 15px; line-height: 1.55; font-style: italic; color: rgba(242,250,246,.8); border-left: 2px solid var(--c1, #46d19e); padding-left: 14px; margin: 0; max-width: 34ch; }
+.wr-slide .poster { width: 150px; box-shadow: 0 30px 60px -20px rgba(0,0,0,.8); border-radius: 12px; }
+.wr-meses { display: flex; align-items: flex-end; gap: 7px; height: 110px; margin-top: 6px; }
+.wr-meses div { flex: 1; display: grid; gap: 6px; justify-items: center; align-self: stretch; align-content: end; }
+.wr-meses i { width: 100%; border-radius: 5px 5px 2px 2px; background: rgba(255,255,255,.22); min-height: 4px; }
+.wr-meses div.top i { background: var(--c1, #46d19e); box-shadow: 0 0 22px var(--c1, #46d19e); }
+.wr-meses span { font-family: var(--mono); font-size: 9.5px; color: rgba(242,250,246,.6); }
+.wr-accion {
+  align-self: flex-start; background: #fff; color: #06100c; border: 0; font-weight: 700; font-size: 14px;
+  padding: 11px 18px; margin-top: 6px;
+}
+.wr-accion:hover { background: var(--c1, #46d19e); }
+.wr-pie { position: absolute; bottom: 16px; left: 0; right: 0; text-align: center; z-index: 4; font-family: var(--mono); font-size: 10px; letter-spacing: .08em; color: rgba(242,250,246,.5); margin: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .wr-btn::after { display: none; }
+}
+</style>
+
+<div class="wrap">
+  <div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+  <header class="head">
+    <div class="nombre-caja">
+      <h1 id="nombre" title="Pulsa para cambiar el nombre">Diario de visionado</h1>
+      <button type="button" class="icon" id="nombre-edit" aria-label="Cambiar el nombre" title="Cambiar el nombre">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+      </button>
+    </div>
+    <button type="button" class="wr-btn" id="wr-abrir"><span class="sp" aria-hidden="true"></span><span id="wr-btn-txt">Tu año</span></button>
+  </header>
+
+  <section class="bento" aria-label="Resumen">
+    <article class="panel p-media">
+      <p class="lbl"><span>Nota media</span><span id="m-cuantas"></span></p>
+      <div class="anillo">
+        <svg viewBox="0 0 200 200" aria-hidden="true">
+          <defs>
+            <linearGradient id="grad-anillo" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="var(--n2)"/>
+              <stop offset="1" stop-color="var(--accent)"/>
+            </linearGradient>
+          </defs>
+          <circle class="pista" cx="100" cy="100" r="84"/>
+          <circle class="arco" id="m-arco" cx="100" cy="100" r="84" stroke-dasharray="527.8" stroke-dashoffset="527.8"/>
+        </svg>
+        <div class="anillo-centro">
+          <span class="big" id="m-media">—</span>
+          <span class="de">SOBRE 10</span>
+        </div>
+      </div>
+      <div class="anios">
+        <div class="anio-c"><span>2025</span><b id="m-25">—</b></div>
+        <span class="delta" id="m-delta"></span>
+        <div class="anio-c"><span>2026</span><b id="m-26">—</b></div>
+      </div>
+    </article>
+
+    <article class="panel p-hechos">
+      <p class="lbl"><span>Terminados</span><span id="h-total"></span></p>
+      <div class="hechos-fila">
+        <span class="big" id="h-num">—</span>
+        <span class="sub2" id="h-sub"></span>
+      </div>
+      <div class="barra-est" id="h-barra"></div>
+      <div class="leyenda" id="h-leyenda"></div>
+    </article>
+
+    <article class="panel p-marcha">
+      <p class="lbl"><span>Viendo ahora</span></p>
+      <div class="marcha-lista" id="v-lista"></div>
+      <p class="marcha-pie" id="v-pie"></p>
+      <button type="button" class="dado" id="ruleta-abrir">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.3" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.3" fill="currentColor"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/></svg>
+        ¿Qué veo ahora?
+      </button>
+    </article>
+
+    <article class="panel p-podio">
+      <p class="lbl"><span>Tu podio</span><span class="medalla">Nº 1</span></p>
+      <div class="oro-1" id="p-uno"></div>
+      <div class="podio-resto" id="p-resto"></div>
+    </article>
+  </section>
+
+  <section class="charts">
+    <div class="card">
+      <h2>Cómo puntúas</h2>
+      <p class="sub">Reparto de tus notas, en tramos de medio punto</p>
+      <div class="plot"><svg id="hist" viewBox="0 0 460 200" role="img" aria-label="Distribución de notas"></svg></div>
+    </div>
+    <div class="card">
+      <h2>Mes a mes</h2>
+      <p class="sub">Nota media por mes en 2026 · debajo, cuántos terminaste</p>
+      <div class="plot"><svg id="meses" viewBox="0 0 460 200" role="img" aria-label="Media por mes"></svg></div>
+    </div>
+  </section>
+
+  <div class="controls">
+    <input type="search" id="q" placeholder="Buscar por título o comentario…" aria-label="Buscar">
+    <select id="anio" aria-label="Año"><option value="">Todos los años</option><option>2025</option><option>2026</option></select>
+    <select id="estado" aria-label="Estado"><option value="">Todos los estados</option></select>
+    <select id="tipo" aria-label="Tipo"><option value="">Anime y todo lo demás</option></select>
+    <select id="genero" aria-label="Género"><option value="">Todos los géneros</option></select>
+    <select id="min" aria-label="Nota mínima">
+      <option value="">Cualquier nota</option><option value="9">9 o más</option>
+      <option value="8">8 o más</option><option value="7">7 o más</option><option value="0">Solo con nota</option>
+    </select>
+    <select id="orden" aria-label="Orden">
+      <option value="crono">Cronológico</option>
+      <option value="alta">Nota, de mayor a menor</option>
+      <option value="baja">Nota, de menor a mayor</option>
+      <option value="az">Alfabético</option>
+    </select>
+    <button type="button" id="sel-chip" class="sel-chip oculto"></button>
+    <div class="vistas" id="vistas" role="group" aria-label="Vista">
+      <button type="button" data-v="lista" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>Lista</button>
+      <button type="button" data-v="galeria" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="9" rx="1.5"/><rect x="3" y="15" width="7" height="6" rx="1.5"/><rect x="14" y="15" width="7" height="6" rx="1.5"/></svg>Galería</button>
+      <button type="button" data-v="tiers" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 5h18M3 12h12M3 19h6"/></svg>Tiers</button>
+    </div>
+    <span class="count" id="count"></span>
+    <button type="button" class="add-btn" id="abrir" aria-haspopup="dialog">
+      <span class="mas" aria-hidden="true">+</span>Añadir <kbd>N</kbd>
+    </button>
+  </div>
+
+  <div class="aviso oculto" id="aviso">
+    <span id="aviso-txt"></span>
+    <span class="sp">
+      <button type="button" id="deshacer">Deshacer lo último</button>
+      <button type="button" id="restablecer">Restablecer todo</button>
+    </span>
+  </div>
+
+  <main id="lista"></main>
+
+  <footer class="foot">
+    <p id="foot"></p>
+    <button type="button" id="exportar">Descargar todo en JSON</button>
+  </footer>
+</div>
+
+<div class="modal" id="modal" hidden>
+  <div class="modal-fondo" data-cerrar></div>
+  <form class="hoja" id="form" role="dialog" aria-modal="true" aria-labelledby="hoja-t" autocomplete="off">
+    <header class="hoja-cab">
+      <div>
+        <p class="eyebrow">Nueva entrada</p>
+        <h2 id="hoja-t">¿Qué has visto?</h2>
+      </div>
+      <button type="button" class="icon cerrar" data-cerrar aria-label="Cerrar" title="Cerrar (Esc)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </header>
+
+    <input type="text" id="f-titulo" class="f-titulo" required placeholder="Frieren S3" aria-label="Título">
+
+    <div class="campo">
+      <span class="rot" id="rot-nota">Nota</span>
+      <div class="nota-bloque">
+        <div class="score dial none" id="f-dial" aria-live="polite">—</div>
+        <div class="nota-ctl" id="f-nota-ctl">
+          <input type="range" id="f-rango" min="0" max="10" step="0.1" value="8" aria-labelledby="rot-nota">
+          <div class="escala" aria-hidden="true"><span>0</span><span>5</span><span>7</span><span>8</span><span>9</span><span>10</span></div>
+          <div class="nota-fila">
+            <input type="number" id="f-nota" min="0" max="10" step="0.1" placeholder="—" aria-label="Nota exacta">
+            <button type="button" class="enlace" id="f-sin-nota">Sin nota todavía</button>
+            <span class="diez-aviso" id="f-diez" hidden>✦ Esto es un 10. Se verá en oro.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <fieldset class="campo">
+      <legend>Estado</legend>
+      <div class="pildoras" id="f-estado"></div>
+    </fieldset>
+
+    <fieldset class="campo">
+      <legend>Tipo</legend>
+      <div class="pildoras" id="f-tipo"></div>
+    </fieldset>
+
+    <div class="dos">
+      <label class="campo"><span class="rot">Año</span>
+        <select id="f-anio"><option>2026</option><option>2025</option></select>
+      </label>
+      <label class="campo"><span class="rot">Mes</span>
+        <select id="f-mes"></select>
+      </label>
+    </div>
+
+    <fieldset class="campo">
+      <legend>Géneros</legend>
+      <div class="pildoras" id="f-generos"></div>
+      <div class="gen-otro">
+        <input type="text" id="f-gen" list="lista-generos" placeholder="Otro género y Enter" aria-label="Añadir otro género">
+      </div>
+    </fieldset>
+
+    <label class="campo"><span class="rot">Comentario</span>
+      <textarea id="f-com" placeholder="Qué te ha parecido"></textarea>
+    </label>
+
+    <footer class="hoja-pie">
+      <button type="button" data-cerrar>Cancelar</button>
+      <button type="submit" class="primary">Guardar en el diario</button>
+    </footer>
+  </form>
+</div>
+
+<div class="modal capa" id="ficha" hidden>
+  <div class="modal-fondo" data-cerrar-capa></div>
+  <div class="hoja ficha" id="ficha-cuerpo" role="dialog" aria-modal="true" aria-labelledby="ficha-t"></div>
+</div>
+
+<div class="modal capa" id="ruleta" hidden>
+  <div class="modal-fondo" data-cerrar-capa></div>
+  <div class="hoja ruleta" role="dialog" aria-modal="true" aria-labelledby="ruleta-t">
+    <header class="hoja-cab">
+      <div>
+        <p class="eyebrow">De tu lista de pendientes</p>
+        <h2 id="ruleta-t">¿Qué veo ahora?</h2>
+      </div>
+      <button type="button" class="icon cerrar" data-cerrar-capa aria-label="Cerrar" title="Cerrar (Esc)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </header>
+    <div class="reel"><div class="reel-cinta" id="reel"></div><div class="reel-marco"></div></div>
+    <p class="ruleta-res" id="ruleta-res" aria-live="polite"></p>
+    <footer class="hoja-pie">
+      <button type="button" id="ruleta-otra">Girar otra vez</button>
+      <button type="button" class="primary" id="ruleta-empezar" disabled>Empezar a verla</button>
+    </footer>
+  </div>
+</div>
+
+<div class="wr capa" id="wrapped" hidden role="dialog" aria-modal="true" aria-label="Resumen del año">
+  <div class="wr-story" id="wr-story">
+    <div class="wr-bg" id="wr-bg"></div>
+    <div class="wr-barras" id="wr-barras"></div>
+    <button type="button" class="icon wr-cerrar" data-cerrar-capa aria-label="Cerrar" title="Cerrar (Esc)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+    <div id="wr-slide"></div>
+    <p class="wr-pie">Toca a los lados para avanzar · mantén pulsado para pausar</p>
+  </div>
+</div>
+
+<canvas id="confeti" hidden></canvas>
+
+<datalist id="lista-generos"></datalist>
+
+<div class="tt" id="tt"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script id="datos" type="application/json">[{"titulo":"Hibike (Sound! Euphonium)","nota":9.4,"comentario":"Relaciones interpersonales, animación y banda sonora brutales.","estado":"Visto","mes":null,"anio":2025,"tipo":"Anime","generos":[]},{"titulo":"Pseudo Harem","nota":7.0,"comentario":"Buen romance, corto, conciso y muy gracioso.","estado":"Visto","mes":null,"anio":2025,"tipo":"Anime","generos":[]},{"titulo":"Blue lock s2","nota":8.6,"comentario":"SIN PALABRAS.","estado":"Visto","mes":null,"anio":2025,"tipo":"Anime","generos":[]},{"titulo":"Call of the night s1","nota":7.5,"comentario":"Perfecto para ver por la noche.","estado":"Visto","mes":null,"anio":2025,"tipo":"Anime","generos":[]},{"titulo":"Bleach parte 3","nota":9.1,"comentario":"No sé qué poner, es bleach.","estado":"Visto","mes":null,"anio":2025,"tipo":"Anime","generos":[]},{"titulo":"Juego del calamar 1 y 2","nota":8.0,"comentario":"Momentos muy inesperados y mucha tensión","estado":"Visto","mes":null,"anio":2025,"tipo":"Serie","generos":[]},{"titulo":"Cowboy bebop","nota":8.5,"comentario":"No me van las series que son de capitulos sueltos con historias separadas pero ahí va la crítica: personajes, soundtrack y ESTILO GRÁFICO espectaculares. Además, te van intruduciendo la historia de cada uno poco a poco para que en los capitulos 24-26 flipes pero bien. Por último, esta serie no te toma por tonto, deja que pienses lo que acabas de ver y saques tú las conclusiones. En conclusión, le pondría más nota pero digo lo del principio.","estado":"Visto","mes":null,"anio":2025,"tipo":"Anime","generos":[]},{"titulo":"Kaiji (gambling el anime)","nota":7.5,"comentario":"El narrador es brutal y es un anime que cada vez se pone mejor y con giros que no te esperas. Va de GAMBLING qué más quieres.","estado":"Visto","mes":null,"anio":2025,"tipo":"Anime","generos":[]},{"titulo":"Beast games","nota":8.0,"comentario":"Esto tiene que verlo todo el mundo","estado":"Visto","mes":null,"anio":2025,"tipo":"Serie","generos":[]},{"titulo":"Invencible S3","nota":9.0,"comentario":"Si te gusta The Boys te gusta esto, y si no te gusta The Boys da igual, mira INVENCIBLE, miralo YA.","estado":"Visto","mes":null,"anio":2025,"tipo":"Serie","generos":[]},{"titulo":"Devil may cry","nota":7.5,"comentario":"Buen ost","estado":"Visto","mes":null,"anio":2025,"tipo":"Serie","generos":[]},{"titulo":"Solo leveling S2","nota":8.2,"comentario":"Shonen y más shonen","estado":"Visto","mes":null,"anio":2025,"tipo":"Anime","generos":[]},{"titulo":"Re:zero S3","nota":8.3,"comentario":"El final te deja roto","estado":"Visto","mes":null,"anio":2025,"tipo":"Anime","generos":[]},{"titulo":"Shangri-la S2","nota":7.8,"comentario":"Cliff hanger asqueroso","estado":"Visto","mes":null,"anio":2025,"tipo":"Anime","generos":[]},{"titulo":"Orb","nota":8.3,"comentario":"Una pena el final, podría haber segunda temporada tranquilamente contando la historia de Galileo","estado":"Visto","mes":null,"anio":2025,"tipo":"Anime","generos":[]},{"titulo":"I want to eat your pancreas","nota":9.1,"comentario":"Peliculón, el plot es inesperado","estado":"Visto","mes":null,"anio":2025,"tipo":"Película","generos":[]},{"titulo":"G20 peli","nota":4.0,"comentario":"Malísima","estado":"Visto","mes":null,"anio":2025,"tipo":"Película","generos":[]},{"titulo":"Oshi no ko","nota":7.9,"comentario":"Todo bastante inesperado, muy bueno","estado":"Visto","mes":null,"anio":2025,"tipo":"Anime","generos":[]},{"titulo":"Noche de caza","nota":5.0,"comentario":"Al director le da miedo explicar las cosas","estado":"Visto","mes":null,"anio":2025,"tipo":"Película","generos":[]},{"titulo":"Niña rusa loca","nota":7.5,"comentario":"Guapa si te apetece pium pium bum bum","estado":"Visto","mes":null,"anio":2025,"tipo":"Película","generos":[]},{"titulo":"Boticaria ❤️❤️❤️❤️❤️","nota":9.4,"comentario":"Maomao es mi razón de existencia.","estado":"Visto","mes":null,"anio":2025,"tipo":"Anime","generos":[]},{"titulo":"Gurren Lagan","nota":8.5,"comentario":"La determinación si fuera un anime, KAMINA!!!! SIMON!!!! NIA!!!!","estado":"Visto","mes":null,"anio":2025,"tipo":"Anime","generos":[]},{"titulo":"Sakamoto days","nota":8.0,"comentario":"Mejora bastante a partir del cap 12","estado":"Visto","mes":null,"anio":2025,"tipo":"Anime","generos":[]},{"titulo":"Takopi","nota":8.5,"comentario":"Muy top","estado":"Visto","mes":null,"anio":2025,"tipo":"Anime","generos":[]},{"titulo":"Dandadan s2","nota":8.2,"comentario":"Mejor que la primera","estado":"Visto","mes":null,"anio":2025,"tipo":"Anime","generos":[]},{"titulo":"Kaiju 8","nota":7.7,"comentario":"Buen shonen (best ending)","estado":"Visto","mes":null,"anio":2025,"tipo":"Anime","generos":[]},{"titulo":"Sono Bisque Doll s2","nota":7.4,"comentario":"Desarrollo de la relación Gojo-Marin, buen final, menos por lo del abrazo","estado":"Visto","mes":null,"anio":2025,"tipo":"Anime","generos":[]},{"titulo":"Hikaru","nota":7.5,"comentario":"La pordrían haber acabado pero han decidido hacer un cliff-hunger terrible","estado":"Visto","mes":null,"anio":2025,"tipo":"Anime","generos":[]},{"titulo":"Chainsaw man Reze arc","nota":9.0,"comentario":"Reze es una genocida y un demonio? La perdono.","estado":"Visto","mes":null,"anio":2025,"tipo":"Anime","generos":[]},{"titulo":"Kimetsu Castillo infinito","nota":8.7,"comentario":"Wow, pero se siente como un capitulo muy largo.","estado":"Visto","mes":null,"anio":2025,"tipo":"Anime","generos":[]},{"titulo":"Lord of the misterys","nota":9.5,"comentario":"PEaK","estado":"Visto","mes":null,"anio":2025,"tipo":"Anime","generos":[]},{"titulo":"Fragant Flower","nota":9.3,"comentario":"PeAK","estado":"Visto","mes":null,"anio":2025,"tipo":"Anime","generos":[]},{"titulo":"El mejor ingeniero","nota":9.6,"comentario":"Tremendo, todo tremendo, mejor que el que nivelea solo","estado":"Visto","mes":null,"anio":2025,"tipo":"Anime","generos":[]},{"titulo":"Call of the night s2","nota":8.0,"comentario":"Bastante chulo el romance y la historia de la detective.","estado":"Visto","mes":null,"anio":2025,"tipo":"Anime","generos":[]},{"titulo":"Gachiakuta","nota":8.2,"comentario":"Muy original en todos los aspectos.","estado":"Visto","mes":null,"anio":2025,"tipo":"Anime","generos":[]},{"titulo":"To be hero X","nota":8.8,"comentario":"Poderes muy guapos, plot twist y un heroe que es el AURA hecha persona.","estado":"Visto","mes":null,"anio":2025,"tipo":"Anime","generos":[]},{"titulo":"Dr Stone S4","nota":9.2,"comentario":"Suika, Suika, Suika!","estado":"Visto","mes":null,"anio":2025,"tipo":"Anime","generos":[]},{"titulo":"Boku no hero final season","nota":9.3,"comentario":"Bueno, hay que verlo para entender la obra maestra que es.","estado":"Visto","mes":null,"anio":2025,"tipo":"Anime","generos":[]},{"titulo":"Record of Ragnarok","nota":7.9,"comentario":"Puño puño y historia que te hace llorar, toma.","estado":"Visto","mes":null,"anio":2025,"tipo":"Anime","generos":[]},{"titulo":"Show de Truman","nota":8.5,"comentario":"no decepciona","estado":"Revisto","mes":null,"anio":2025,"tipo":"Película","generos":[]},{"titulo":"28 días después","nota":7.0,"comentario":"buena peli de zombies","estado":"Revisto","mes":null,"anio":2025,"tipo":"Película","generos":[]},{"titulo":"28 semanas después","nota":7.5,"comentario":"mejor peli aún de zombies","estado":"Revisto","mes":null,"anio":2025,"tipo":"Película","generos":[]},{"titulo":"Gintama","nota":null,"comentario":"","estado":"Dropeado","mes":null,"anio":2025,"tipo":"Anime","generos":[]},{"titulo":"Kindom (CGI el anime)","nota":null,"comentario":"","estado":"Dropeado","mes":null,"anio":2025,"tipo":"Anime","generos":[]},{"titulo":"Blue Box","nota":null,"comentario":"","estado":"Dropeado","mes":null,"anio":2025,"tipo":"Anime","generos":[]},{"titulo":"Cómo conocí a vuestra madre","nota":null,"comentario":"","estado":"Dropeado","mes":null,"anio":2025,"tipo":"Serie","generos":[]},{"titulo":"Spice & Wolf","nota":null,"comentario":"","estado":"Por ver","mes":null,"anio":2025,"tipo":"Anime","generos":[]},{"titulo":"Wind breaker","nota":null,"comentario":"","estado":"Por ver","mes":null,"anio":2025,"tipo":"Anime","generos":[]},{"titulo":"Dead dead demons","nota":null,"comentario":"","estado":"Por ver","mes":null,"anio":2025,"tipo":"Anime","generos":[]},{"titulo":"Tower of god season 2","nota":null,"comentario":"","estado":"Por ver","mes":null,"anio":2025,"tipo":"Anime","generos":[]},{"titulo":"Kekkai sensen","nota":null,"comentario":"","estado":"Por ver","mes":null,"anio":2025,"tipo":"Anime","generos":[]},{"titulo":"Oregairu (romance)","nota":null,"comentario":"","estado":"Por ver","mes":null,"anio":2025,"tipo":"Anime","generos":[]},{"titulo":"Toradora (romance)","nota":null,"comentario":"","estado":"Por ver","mes":null,"anio":2025,"tipo":"Anime","generos":[]},{"titulo":"Iron man 3","nota":null,"comentario":"","estado":"Por ver","mes":null,"anio":2025,"tipo":"Anime","generos":[]},{"titulo":"Black lagoon","nota":null,"comentario":"","estado":"Por ver","mes":null,"anio":2025,"tipo":"Anime","generos":[]},{"titulo":"Afro samurai","nota":null,"comentario":"","estado":"Por ver","mes":null,"anio":2025,"tipo":"Anime","generos":[]},{"titulo":"Drifters","nota":null,"comentario":"","estado":"Por ver","mes":null,"anio":2025,"tipo":"Anime","generos":[]},{"titulo":"Zenshuu MAPPA","nota":null,"comentario":"","estado":"Por ver","mes":null,"anio":2025,"tipo":"Anime","generos":[]},{"titulo":"Ameku Takao (Dr House)","nota":null,"comentario":"","estado":"Por ver","mes":null,"anio":2025,"tipo":"Anime","generos":[]},{"titulo":"Dr Stone","nota":null,"comentario":"","estado":"Por ver","mes":null,"anio":2025,"tipo":"Anime","generos":[]},{"titulo":"Silent Witch","nota":null,"comentario":"","estado":"Por ver","mes":null,"anio":2025,"tipo":"Anime","generos":[]},{"titulo":"Massamune-kun","nota":null,"comentario":"","estado":"Por ver","mes":null,"anio":2025,"tipo":"Anime","generos":[]},{"titulo":"Kaguya-sama: Love Is War -Stairway to Adulthood","nota":8.5,"comentario":"2 capitulos perfectos.","estado":"Visto","mes":"Enero","anio":2026,"tipo":"Anime","generos":[]},{"titulo":"100 meter (película)","nota":5.0,"comentario":"Animación que parece hecha con rotoscopía, historia pobre y final aún peor.","estado":"Visto","mes":"Enero","anio":2026,"tipo":"Película","generos":[]},{"titulo":"Dr.House (carne)","nota":8.4,"comentario":"177 capitulos de no es lupus y si eres negro robas, CINE.","estado":"Visto","mes":"Enero","anio":2026,"tipo":"Serie","generos":[]},{"titulo":"Grimgar","nota":7.0,"comentario":"Empieza original pero luego es genérico.","estado":"Visto","mes":"Enero","anio":2026,"tipo":"Anime","generos":[]},{"titulo":"I am a Hero! (manga)","nota":8.2,"comentario":"Apocalipsis ZQN vivido de manera muy real, decisiones y momentos muy crudos, sistema de zombies original. Le pongo un 8.0 porque el final es malo, no se concluye nada, en el epílogo algo más se dice pero nada muy importante.","estado":"Visto","mes":"Enero","anio":2026,"tipo":"Manga","generos":[]},{"titulo":"Mikadono Sisters","nota":6.5,"comentario":"Romance basurilla para pasar el rato.","estado":"Visto","mes":"Enero","anio":2026,"tipo":"Anime","generos":[]},{"titulo":"Angel next to my door","nota":7.0,"comentario":"AAAAAAAICBYWUVIJBEFIBUFEBYIFEFEYVUFYUV angel next to nonchalant, el 80% del tiempo están en casa y ocurre poco.","estado":"Visto","mes":"Enero","anio":2026,"tipo":"Anime","generos":[]},{"titulo":"Married but not lovers","nota":8.1,"comentario":"Triangulo brutal, la premisa es inverosímil pero da igual, las relaciones de después son intensas y reales","estado":"Visto","mes":"Febrero","anio":2026,"tipo":"Anime","generos":[]},{"titulo":"Toradora","nota":7.2,"comentario":"Buena complejidad de personajes, animación, mucho drama, desarollo bueno, sobretodo el de Ami-chan. Quizá se merece más nota y aquí le estoy poninendo menos de lo que se merece porque llevo 4 romances en 6 días.","estado":"Visto","mes":"Febrero","anio":2026,"tipo":"Anime","generos":[]},{"titulo":"Golden time","nota":8.0,"comentario":"Buen romance en general, con un drama muy original relacionado con la memoria, romance + comedia + drama original + personajes peculiares.","estado":"Visto","mes":"Febrero","anio":2026,"tipo":"Anime","generos":[]},{"titulo":"Beast Games S2","nota":6.5,"comentario":"La primera es mucho mejor, en esta no hay protagonistas, escenas emotivas o juegos mentales guapos, pero está bien","estado":"Visto","mes":"Febrero","anio":2026,"tipo":"Serie","generos":[]},{"titulo":"Oregairu","nota":8.8,"comentario":"Para pensar señores.","estado":"Visto","mes":"Marzo","anio":2026,"tipo":"Anime","generos":[]},{"titulo":"Tsure-dure children","nota":7.1,"comentario":"Perfecto para después de oregairu. Anime de romance sencillo, varias historias, muy corto y muy muy gracioso. Una pareja tiene un dilema bastante interesante. Muy recomendado si te apetece un anime con dibujo e historia desenfadada.","estado":"Visto","mes":"Marzo","anio":2026,"tipo":"Anime","generos":[]},{"titulo":"Fire Force S3","nota":8.0,"comentario":"Empieza flojo, pero solo va a mejor. Arthur the GOAT.","estado":"Visto","mes":"Marzo","anio":2026,"tipo":"Anime","generos":[]},{"titulo":"Oshi no ko S3","nota":8.5,"comentario":"Te cambia la perspectiva del mundo del espectáculo y el último cap es tremendo.","estado":"Visto","mes":"Marzo","anio":2026,"tipo":"Anime","generos":[]},{"titulo":"Polar opposites","nota":7.6,"comentario":"La chica hace gracia pero la pareja del Yamaja mola más.","estado":"Visto","mes":"Marzo","anio":2026,"tipo":"Anime","generos":[]},{"titulo":"JJK S3","nota":9.2,"comentario":"Animación de 10, peleas de 10, personajes muy guapos, diseños brutales, nada malo, me he quedado lleno MAPPA","estado":"Visto","mes":"Marzo","anio":2026,"tipo":"Anime","generos":[]},{"titulo":"Maito slave","nota":7.0,"comentario":"Polno guapo.","estado":"Visto","mes":"Marzo","anio":2026,"tipo":"Anime","generos":[]},{"titulo":"Juego juegos mortales para ganarme el pan","nota":6.0,"comentario":"La dirección del anime es muy rara.","estado":"Visto","mes":"Abril","anio":2026,"tipo":"Anime","generos":[]},{"titulo":"Amor a través de un prisma","nota":8.5,"comentario":"Vaya sorpresa, si tengo que definir este anime con una palabra es \"HERMOSO\".","estado":"Visto","mes":"Abril","anio":2026,"tipo":"Anime","generos":[]},{"titulo":"Fire Force final season","nota":8.0,"comentario":"Buen final, buenos combates, y un cambio de trama muy original. No le pongo más nota por los primeros caps que le cuesta un poco arrancar.","estado":"Visto","mes":"Abril","anio":2026,"tipo":"Anime","generos":[]},{"titulo":"Frieren S2","nota":8.4,"comentario":"Es Frieren, solo caminando ya le pondría un 10, pero solo 10 caps me mata, lo que se viene tiene buena pinta. La cita de Fern y Stark, PEAK.","estado":"Visto","mes":"Abril","anio":2026,"tipo":"Anime","generos":[]},{"titulo":"Jigokuraku S2","nota":7.7,"comentario":"Al principio un poco meh, pero luego está muy guapo, lo peor es el final porque no hay.","estado":"Visto","mes":"Abril","anio":2026,"tipo":"Anime","generos":[]},{"titulo":"Sentenced to be a hero","nota":8.4,"comentario":"Tremendo final, plot twist muy guapos, muy crudo.","estado":"Visto","mes":"Mayo","anio":2026,"tipo":"Anime","generos":[]},{"titulo":"Boku no hero epílogo","nota":8.0,"comentario":"Solo un cap pero nos dan lo que queríamos GRACIAS.","estado":"Visto","mes":"Mayo","anio":2026,"tipo":"Anime","generos":[]},{"titulo":"Hajime","nota":8.7,"comentario":"Risas, emoción y drama asegurados","estado":"Visto","mes":"Mayo","anio":2026,"tipo":"Anime","generos":[]},{"titulo":"Slime T3","nota":8.0,"comentario":"Muy buena, se explica el mundo, sus gentes, la economía, también hay guerras, todo muy guapo. Si te gustó la gestión del principio esto también.","estado":"Visto","mes":"Mayo","anio":2026,"tipo":"Anime","generos":[]},{"titulo":"The Boys final season","nota":7.0,"comentario":"En general la temporada mantiene la esencia The Boys, pero hay muchas inconsistencias y el final se sinte muy forzado.","estado":"Visto","mes":"Mayo","anio":2026,"tipo":"Serie","generos":[]},{"titulo":"Masamune-kun revenge","nota":7.5,"comentario":"Buen romcom, ni brutal ni malo. Te ries bastante, el final es emotivo aunque un poco raro, aún no sé si me ha gustado cómo han hecho los plot twist pero mola.","estado":"Visto","mes":"Mayo","anio":2026,"tipo":"Anime","generos":[]},{"titulo":"Invencible S3","nota":8.3,"comentario":"Alguna patinada con la consistencia de los poderes y la animación pero da igual comparado con las maravilla que hay: historia, soundtrack, peleas terribles...","estado":"Visto","mes":"Mayo","anio":2026,"tipo":"Serie","generos":[]},{"titulo":"Yamada-kun lvl 999","nota":7.7,"comentario":"Buen romcom, mola el prota","estado":"Visto","mes":"Mayo","anio":2026,"tipo":"Anime","generos":[]},{"titulo":"Classrom of the elite s4","nota":7.8,"comentario":"Bastante guapa, tiene más taijitsu que otra cosa","estado":"Visto","mes":"Junio","anio":2026,"tipo":"Anime","generos":[]},{"titulo":"Dr. Stone final season","nota":9.0,"comentario":"","estado":"Visto","mes":"Junio","anio":2026,"tipo":"Anime","generos":[]},{"titulo":"Wistoria s1 y s2","nota":9.0,"comentario":"","estado":"Visto","mes":"Junio","anio":2026,"tipo":"Anime","generos":[]},{"titulo":"Me enamoro de la segunda más guapa","nota":8.1,"comentario":"Buen romance, buenas risas, hay besuqueo y mola la subtrama","estado":"Visto","mes":"Julio","anio":2026,"tipo":"Anime","generos":[]},{"titulo":"Gals can´t be that kind with otaku","nota":7.0,"comentario":"","estado":"Visto","mes":"Julio","anio":2026,"tipo":"Anime","generos":[]},{"titulo":"One piece Elbaph parte 1","nota":8.0,"comentario":"","estado":"Visto","mes":"Julio","anio":2026,"tipo":"Anime","generos":[]},{"titulo":"Witch hat atelier","nota":8.8,"comentario":"","estado":"Visto","mes":"Julio","anio":2026,"tipo":"Anime","generos":[]},{"titulo":"Rompiendo el hielo","nota":7.9,"comentario":"","estado":"Visto","mes":"Julio","anio":2026,"tipo":"Anime","generos":[]},{"titulo":"Gnosia","nota":null,"comentario":"","estado":"Por ver","mes":null,"anio":2026,"tipo":"Anime","generos":[]},{"titulo":"Betrothed to my Sister´s Ex","nota":null,"comentario":"","estado":"Por ver","mes":null,"anio":2026,"tipo":"Anime","generos":[]},{"titulo":"Journal with witch","nota":null,"comentario":"","estado":"Por ver","mes":null,"anio":2026,"tipo":"Anime","generos":[]},{"titulo":"Trigun","nota":null,"comentario":"","estado":"Por ver","mes":null,"anio":2026,"tipo":"Anime","generos":[]},{"titulo":"Veil manga","nota":null,"comentario":"","estado":"Por ver","mes":null,"anio":2026,"tipo":"Manga","generos":[]},{"titulo":"Fruits Basket (2019)","nota":null,"comentario":"","estado":"Viendo","mes":null,"anio":2026,"tipo":"Anime","generos":[]},{"titulo":"Daedemons","nota":null,"comentario":"","estado":"Viendo","mes":null,"anio":2026,"tipo":"Anime","generos":[]},{"titulo":"Radiant","nota":null,"comentario":"","estado":"Dropeado","mes":null,"anio":2026,"tipo":"Anime","generos":[]}]</script>
+<script>
+(function () {
+  "use strict";
+  const MESES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio",
+                 "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+  const ESTADOS = ["Visto","Revisto","Viendo","Por ver","Dropeado"];
+  const TIPOS = ["Anime","Serie","Película","Manga","Otro"];
+  // Sugerencias del desplegable; puedes escribir cualquier otra separada por comas
+  const GENEROS = ["Shonen","Seinen","Shojo","Josei","Isekai","Romance","Comedia",
+                   "Drama","Acción","Aventura","Spokon","Psicológico","Terror",
+                   "Misterio","Ciencia ficción","Fantasía","Slice of life",
+                   "Sobrenatural","Mecha", "Ecchi", "Histórico", "Musical"];
+  const CLAVE = "diario-visionado-v1";
+
+  /* Modelo de datos
+     El listado original viaja incrustado en la pagina y no se toca nunca. Lo que
+     tu cambias se guarda aparte, en la base de datos del artifact (documento
+     "diario/cambios"), en tres cajones:
+       ediciones {id: campos}  campos sobrescritos de una entrada original
+       borrados  [id]          entradas ocultadas
+       nuevos    [entrada]     las que anades desde el formulario
+     Asi un borrado o una edicion siempre se puede deshacer, porque el original
+     sigue intacto debajo.
+     El navegador guarda una copia (localStorage) para pintar al instante al abrir
+     y como respaldo si la base de datos no esta disponible en esa vista. */
+  const idDe = (x, i) => "b" + i + "-" + slugId(x.titulo);
+  function slugId(t) {
+    return String(t).toLowerCase().normalize("NFD")
+      .replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").slice(0, 40);
+  }
+
+  const base = JSON.parse(document.getElementById("datos").textContent)
+    .map((x, i) => Object.assign({}, x, { id: idDe(x, i) }));
+
+  const vacio = () => ({ ediciones: {}, borrados: [], nuevos: [] });
+  let est = vacio();
+  try {
+    const crudo = JSON.parse(localStorage.getItem(CLAVE) || "null");
+    if (Array.isArray(crudo)) est.nuevos = crudo;                 // formato anterior
+    else if (crudo && typeof crudo === "object") est = Object.assign(vacio(), crudo);
+  } catch (e) { est = vacio(); }
+  est.nuevos.forEach((n, i) => { if (!n.id) n.id = "n" + i + "-" + slugId(n.titulo); });
+
+  let historial = [];   // para el boton de deshacer, solo en esta sesion
+
+  // Guardado en la nube: null hasta que la base de datos responde (o si no hay)
+  let refNube = null;
+  let enNube = false;
+  let refAjustes = null;
+
+  // Nombre del diario; vacio = el de siempre
+  const NOMBRE_DEF = "Diario de visionado";
+  const CLAVE_NOMBRE = CLAVE + "-nombre";
+  let nombre = "";
+  try { nombre = localStorage.getItem(CLAVE_NOMBRE) || ""; } catch (e) {}
+  let editandoNombre = false;
+  const MIGRADO = CLAVE + "-migrado";
+
+  function guardaLocal() {
+    try { localStorage.setItem(CLAVE, JSON.stringify(est)); } catch (e) {}
+  }
+
+  function guarda() {
+    guardaLocal();
+    if (!refNube) return;
+    refNube.set(JSON.parse(JSON.stringify(est))).catch(e => {
+      // Un fallo transitorio se reintenta una vez; si no, queda en el navegador
+      if (e && e.code === "unavailable") {
+        setTimeout(() => refNube.set(JSON.parse(JSON.stringify(est)))
+          .catch(() => nota("No se pudo guardar en la nube; queda en este navegador.")),
+          800 + Math.random() * 800);
+      } else {
+        nota("No se pudo guardar en la nube; queda en este navegador.");
+      }
+    });
+  }
+
+  // Junta dos estados sin perder nada: une añadidos y borrados por id y, en
+  // las ediciones, gana la de "b" cuando las dos tocan la misma entrada.
+  function fusiona(a, b) {
+    const nuevos = a.nuevos.slice();
+    const ids = new Set(nuevos.map(n => n.id));
+    b.nuevos.forEach(n => { if (!ids.has(n.id)) nuevos.push(n); });
+    return {
+      ediciones: Object.assign({}, a.ediciones, b.ediciones),
+      borrados: [...new Set([...a.borrados, ...b.borrados])],
+      nuevos
+    };
+  }
+
+  // JSON con las claves ordenadas: la base de datos devuelve los campos en otro
+  // orden y, sin esto, un mismo estado pareceria distinto
+  function firma(o) {
+    return JSON.stringify(o, (k, v) => v && typeof v === "object" && !Array.isArray(v)
+      ? Object.keys(v).sort().reduce((a, c) => (a[c] = v[c], a), {}) : v);
+  }
+
+  async function conectaNube() {
+    const db = window.claude && claude.use ? await claude.use("db") : null;
+    if (!db) { pintaAviso(); pintaFoot(); return; }
+    // El nombre va en su propio documento: no es un cambio del listado, y asi
+    // "Deshacer" y "Restablecer todo" no lo tocan
+    refAjustes = db.doc("diario/ajustes");
+    let primerAjuste = true;
+    refAjustes.onSnapshot(snap => {
+      const n = snap.exists ? snap.data().nombre : null;
+      if (primerAjuste && !snap.exists && nombre) guardaNombre();   // sube el que hubiera en local
+      primerAjuste = false;
+      if (typeof n === "string" && n !== nombre && !editandoNombre) {
+        nombre = n;
+        try { localStorage.setItem(CLAVE_NOMBRE, nombre); } catch (e) {}
+        pintaNombre();
+      }
+    }, () => { refAjustes = null; });
+
+    const ref = db.doc("diario/cambios");
+    let primero = true;
+    ref.onSnapshot(snap => {
+      // La base de datos entrega los datos congelados (solo lectura): se copian
+      // enteros antes de usarlos, o editar/borrar/anadir fallaria en silencio.
+      const remoto = snap.exists
+        ? Object.assign(vacio(), JSON.parse(JSON.stringify(snap.data())))
+        : vacio();
+      if (primero) {
+        primero = false;
+        refNube = ref; enNube = true;
+        // La primera vez, lo que hubiera solo en este navegador se sube
+        let yaMigrado = false;
+        try { yaMigrado = localStorage.getItem(MIGRADO) === "1"; } catch (e) {}
+        const local = est;
+        est = (!yaMigrado && cambios()) ? fusiona(remoto, local) : remoto;
+        if (!yaMigrado && cambios() && firma(est) !== firma(remoto)) guarda();
+        else guardaLocal();
+        try { localStorage.setItem(MIGRADO, "1"); } catch (e) {}
+        redibuja();
+        return;
+      }
+      // Cambios hechos desde otro dispositivo; los propios llegan iguales y se ignoran
+      if (firma(remoto) === firma(est)) return;
+      est = remoto; guardaLocal();
+      if (!editando) redibuja();
+    }, () => { refNube = null; enNube = false; pintaAviso(); pintaFoot(); });
+  }
+
+  function todo() {
+    const borrados = new Set(est.borrados);
+    const out = [];
+    base.forEach(x => {
+      if (borrados.has(x.id)) return;
+      const e = est.ediciones[x.id];
+      out.push(e ? Object.assign({}, x, e, { editado: true }) : x);
+    });
+    est.nuevos.forEach(n => {
+      if (borrados.has(n.id)) return;
+      const e = est.ediciones[n.id];
+      out.push(e ? Object.assign({}, n, e, { editado: true }) : n);
+    });
+    return out;
+  }
+
+  const cambios = () =>
+    Object.keys(est.ediciones).length + est.borrados.length + est.nuevos.length;
+
+  const slug = (s) => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const claseEstado = (e) => slug(e).replace(/\s+/g, "");
+  const tramo = (n) => n == null ? "none" : n < 7 ? "s1" : n < 8 ? "s2" : n < 9 ? "s3" : n < 10 ? "s4" : "s5";
+
+  // "romance, shonen" -> ["Romance","Shonen"]; quita vacios y repetidos
+  function aGeneros(txt) {
+    const vistos = new Set();
+    return String(txt || "").split(",")
+      .map(s => s.trim())
+      .filter(Boolean)
+      .map(s => s.charAt(0).toUpperCase() + s.slice(1))
+      .filter(s => { const k = slug(s); if (vistos.has(k)) return false; vistos.add(k); return true; });
+  }
+
+  /* ---------------- cifras ---------------- */
+  /* ---------------- cabecera: anillo, terminados, viendo y podio ---------------- */
+  const fmtNota = (n) => n >= 10 ? "10" : n.toFixed(1);
+  function pintaTiles() {
+    const d = todo();
+    const conNota = d.filter(x => x.nota != null);
+    const vistos = d.filter(x => x.estado === "Visto" || x.estado === "Revisto");
+    const avg = (l) => l.length ? l.reduce((a, x) => a + x.nota, 0) / l.length : null;
+    const media = avg(conNota);
+    const m25 = avg(conNota.filter(x => x.anio === 2025));
+    const m26 = avg(conNota.filter(x => x.anio === 2026));
+
+    // Anillo: la nota media sobre 10, con el mismo radio que el circulo del SVG
+    const C = 2 * Math.PI * 84;
+    ponCifra($("m-media"), media, 2);
+    $("m-cuantas").textContent = `${conNota.length} notas`;
+    requestAnimationFrame(() => {
+      $("m-arco").style.strokeDashoffset = media == null ? C : C * (1 - media / 10);
+    });
+    $("m-25").textContent = m25 == null ? "—" : m25.toFixed(2);
+    $("m-26").textContent = m26 == null ? "—" : m26.toFixed(2);
+    const dl = $("m-delta");
+    if (m25 != null && m26 != null) {
+      const dif = m26 - m25;
+      dl.className = "delta " + (dif >= 0 ? "sube" : "baja");
+      dl.textContent = (dif >= 0 ? "▲ +" : "▼ ") + dif.toFixed(2);
+      dl.title = dif >= 0 ? "2026 va por encima de 2025" : "2026 va por debajo de 2025";
+    } else { dl.className = "delta"; dl.textContent = ""; }
+
+    // Terminados y reparto por estado: cada tramo de la barra pesa lo que su estado
+    ponCifra($("h-num"), vistos.length, 0);
+    $("wr-btn-txt").textContent = `Tu ${anioResumen()}`;
+    $("h-total").textContent = `${d.length} títulos`;
+    const tipos = {};
+    vistos.forEach(x => { const t = x.tipo || "Anime"; tipos[t] = (tipos[t] || 0) + 1; });
+    $("h-sub").textContent = Object.entries(tipos).sort((a, b) => b[1] - a[1]).slice(0, 3)
+      .map(([t, n]) => `${n} ${t.toLowerCase()}`).join(" · ");
+    const cuenta = ESTADOS.map(e => [e, d.filter(x => x.estado === e).length]).filter(([, n]) => n);
+    $("h-barra").innerHTML = cuenta.map(([e, n]) =>
+      `<span style="flex-grow:${n};background:var(--e-${claseEstado(e)})" title="${e}: ${n}"></span>`).join("");
+    $("h-leyenda").innerHTML = cuenta.map(([e, n]) =>
+      `<span><i style="background:var(--e-${claseEstado(e)})"></i>${e} <b>${n}</b></span>`).join("");
+
+    // Viendo ahora y lo que espera turno
+    const viendo = d.filter(x => x.estado === "Viendo");
+    const porVer = d.filter(x => x.estado === "Por ver").length;
+    $("v-lista").innerHTML = viendo.length
+      ? viendo.map(x => `<span title="${esc(x.titulo)}">${esc(x.titulo)}</span>`).join("")
+      : `<p class="marcha-pie" style="margin:0">Nada a medias ahora mismo.</p>`;
+    $("v-pie").innerHTML = `<b>${porVer}</b> ${porVer === 1 ? "título espera" : "títulos esperan"} turno en tu lista`;
+
+    // Podio: las tres mejores notas; en empate, gana la mas reciente
+    const orden = conNota.map((x, i) => [x, i]).sort((a, b) => b[0].nota - a[0].nota || b[1] - a[1]).map(([x]) => x);
+    const [uno, ...resto] = orden.slice(0, 3);
+    if (!uno) { $("p-uno").innerHTML = `<p class="marcha-pie">Pon notas y aquí saldrá tu favorito.</p>`; $("p-resto").innerHTML = ""; return; }
+    const diez = uno.nota >= 10;
+    $("p-uno").innerHTML = `
+      <div class="fav-cab">
+        <div class="score ${tramo(uno.nota)}">${fmtNota(uno.nota)}</div>
+        <div class="fav-titulo${diez ? " diez" : ""}">${esc(uno.titulo)}</div>
+      </div>
+      ${uno.comentario ? `<p class="fav-com">${esc(uno.comentario)}</p>` : ""}`;
+    $("p-resto").innerHTML = resto.map((x, i) =>
+      `<div><span class="pos">Nº ${i + 2}</span><span class="t" title="${esc(x.titulo)}">${esc(x.titulo)}</span>` +
+      `<span class="n">${fmtNota(x.nota)}</span></div>`).join("");
+  }
+
+  const esc = (s) => String(s == null ? "" : s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+  /* ---------------- tooltip ---------------- */
+  const tt = document.getElementById("tt");
+  function muestra(html, ev) {
+    tt.innerHTML = html; tt.classList.add("on");
+    const r = tt.getBoundingClientRect();
+    let x = ev.clientX + 14, y = ev.clientY - r.height - 10;
+    if (x + r.width > innerWidth - 8) x = ev.clientX - r.width - 14;
+    if (y < 8) y = ev.clientY + 16;
+    tt.style.left = x + "px"; tt.style.top = y + "px";
+  }
+  const oculta = () => tt.classList.remove("on");
+
+  function nota(t) {
+    const el = document.getElementById("toast");
+    el.textContent = t; el.classList.add("on");
+    clearTimeout(nota.id);
+    nota.id = setTimeout(() => el.classList.remove("on"), 3200);
+  }
+
+  /* ---------------- histograma ---------------- */
+  function pintaHist() {
+    const svg = document.getElementById("hist");
+    const notas = todo().filter(x => x.nota != null).map(x => x.nota);
+    const lo = 4, hi = 10, paso = 0.5;
+    const cubos = [];
+    for (let v = lo; v < hi; v += paso) {
+      cubos.push({ a: v, b: v + paso, n: notas.filter(x => x >= v && x < v + paso + (v + paso >= hi ? .001 : 0)).length });
+    }
+    const W = 460, H = 200, ml = 26, mr = 8, mt = 12, mb = 28;
+    const iw = W - ml - mr, ih = H - mt - mb;
+    const max = Math.max(...cubos.map(c => c.n), 1);
+    const bw = iw / cubos.length;
+    let s = "";
+    for (let i = 0; i <= 4; i++) {
+      const y = mt + ih - (ih * i / 4);
+      s += `<line class="grid-line" x1="${ml}" y1="${y}" x2="${W - mr}" y2="${y}"/>`;
+      s += `<text class="axis-t" x="${ml - 6}" y="${y + 3}" text-anchor="end">${Math.round(max * i / 4)}</text>`;
+    }
+    cubos.forEach((c, i) => {
+      const h = c.n / max * ih;
+      const x = ml + i * bw + 1.5, y = mt + ih - h;
+      const cls = tramo(c.a + .01);
+      if (c.n) {
+        s += `<rect class="bar" data-i="${i}" x="${x}" y="${y}" width="${bw - 3}" height="${h}"
+               rx="3" fill="var(--${cls === 's1' ? 'n1' : cls === 's2' ? 'n2' : cls === 's3' ? 'n3' : 'n4'})"/>`;
+      }
+      if (Math.abs(c.a % 1) < .01) {
+        s += `<text class="axis-t" x="${x + bw / 2 - 1.5}" y="${H - 9}" text-anchor="middle">${c.a}</text>`;
+      }
+    });
+    svg.innerHTML = s;
+    svg.querySelectorAll(".bar").forEach(r => {
+      const c = cubos[+r.dataset.i];
+      const activa = seleccion && seleccion.clase === "nota" && seleccion.a === c.a;
+      if (seleccion && seleccion.clase === "nota" && !activa) r.classList.add("apagado");
+      r.addEventListener("mousemove", e => muestra(
+        `<b>${c.n}</b> ${c.n === 1 ? "título" : "títulos"}<br>entre ${c.a} y ${c.b}` +
+        `<br><span style="color:var(--ink-3)">${activa ? "pulsa para quitar el filtro" : "pulsa para verlos"}</span>`, e));
+      r.addEventListener("mouseleave", oculta);
+      r.addEventListener("click", () => { oculta(); marca({ clase: "nota", a: c.a, b: c.b }); });
+    });
+  }
+
+  /* ---------------- meses ---------------- */
+  function pintaMeses() {
+    const svg = document.getElementById("meses");
+    const d = todo().filter(x => x.anio === 2026 && x.mes && x.nota != null);
+    const datos = MESES.map(m => {
+      const l = d.filter(x => x.mes === m);
+      return { mes: m, n: l.length, media: l.length ? l.reduce((a, x) => a + x.nota, 0) / l.length : null };
+    }).filter(x => x.n > 0);
+
+    const W = 460, H = 200, ml = 26, mr = 12, mt = 14, mb = 34;
+    const iw = W - ml - mr, ih = H - mt - mb;
+    if (!datos.length) { svg.innerHTML = ""; return; }
+
+    // Una sola medida: la nota media. El numero de titulos va como etiqueta y
+    // en el tooltip, nunca como segundo eje (dos escalas en un marco enganan).
+    const LO = 6, HI = 9.5;
+    const paso = iw / datos.length;
+    const cx = (i) => ml + paso * i + paso / 2;
+    const cy = (v) => mt + ih - ((v - LO) / (HI - LO)) * ih;
+
+    let s = "";
+    for (let v = LO; v <= HI; v += 0.5) {
+      const y = cy(v), mayor = Math.abs(v % 1) < .01;
+      s += `<line class="grid-line" x1="${ml}" y1="${y.toFixed(1)}" x2="${W - mr}" y2="${y.toFixed(1)}"
+             ${mayor ? "" : 'opacity=".45"'}/>`;
+      if (mayor) s += `<text class="axis-t" x="${ml - 6}" y="${(y + 3).toFixed(1)}" text-anchor="end">${v}</text>`;
+    }
+    const pts = datos.map((x, i) => [cx(i), cy(Math.min(HI, Math.max(LO, x.media)))]);
+    s += `<path d="${pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ")}
+           L ${pts[pts.length - 1][0].toFixed(1)} ${mt + ih} L ${pts[0][0].toFixed(1)} ${mt + ih} Z"
+           fill="var(--accent)" opacity=".10"/>`;
+    s += `<path class="dot-line" d="${pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ")}"/>`;
+    datos.forEach((x, i) => {
+      const p = pts[i], ultimo = i === datos.length - 1;
+      const act = seleccion && seleccion.clase === "mes" && seleccion.mes === x.mes;
+      s += `<circle class="${act ? "punto-sel" : ""}" cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}"
+             r="${act ? 6 : ultimo ? 5 : 4}"
+             fill="${act || ultimo ? "var(--accent)" : "var(--surface)"}"
+             ${act ? "" : 'stroke="var(--accent)" stroke-width="2"'}/>`;
+      s += `<text class="axis-t" x="${cx(i)}" y="${H - 20}" text-anchor="middle">${x.mes.slice(0, 3)}</text>`;
+      s += `<text class="axis-t" x="${cx(i)}" y="${H - 7}" text-anchor="middle" opacity=".75">${x.n}</text>`;
+      if (ultimo) s += `<text class="axis-t" x="${(p[0] - 8).toFixed(1)}" y="${(p[1] - 9).toFixed(1)}"
+             text-anchor="end" fill="var(--ink-2)">${x.media.toFixed(1)}</text>`;
+      s += `<rect class="bar" data-i="${i}" x="${ml + paso * i}" y="${mt}" width="${paso}"
+             height="${ih}" fill="transparent"/>`;
+    });
+    svg.innerHTML = s;
+    svg.querySelectorAll(".bar").forEach(r => {
+      const x = datos[+r.dataset.i];
+      const act = seleccion && seleccion.clase === "mes" && seleccion.mes === x.mes;
+      r.addEventListener("mousemove", e => muestra(
+        `<strong>${x.mes}</strong><br>media <b>${x.media.toFixed(2)}</b> · <b>${x.n}</b> ${x.n === 1 ? "título" : "títulos"}` +
+        `<br><span style="color:var(--ink-3)">${act ? "pulsa para quitar el filtro" : "pulsa para verlos"}</span>`, e));
+      r.addEventListener("mouseleave", oculta);
+      r.addEventListener("click", () => { oculta(); marca({ clase: "mes", mes: x.mes }); });
+    });
+  }
+
+  /* ---------------- listado ---------------- */
+  const $ = (id) => document.getElementById(id);
+  function pintaLista() {
+    const q = slug($("q").value.trim());
+    const fa = $("anio").value, fe = $("estado").value, fm = $("min").value, ord = $("orden").value;
+    const ft = $("tipo").value, fg = $("genero").value;
+    let d = todo().filter(x => {
+      if (fa && String(x.anio) !== fa) return false;
+      if (fe && x.estado !== fe) return false;
+      if (ft && (x.tipo || "Anime") !== ft) return false;
+      if (fg && !(x.generos || []).some(g => g === fg)) return false;
+      if (fm !== "" && (x.nota == null || x.nota < +fm)) return false;
+      if (seleccion && seleccion.clase === "nota") {
+        if (x.nota == null) return false;
+        // el ultimo tramo incluye el 10, el resto son [a, b)
+        const dentro = seleccion.b >= 10 ? x.nota >= seleccion.a : (x.nota >= seleccion.a && x.nota < seleccion.b);
+        if (!dentro) return false;
+      }
+      if (seleccion && seleccion.clase === "mes" && (x.anio !== 2026 || x.mes !== seleccion.mes)) return false;
+      if (q && !slug(x.titulo + " " + (x.comentario || "") + " " + (x.generos || []).join(" ")).includes(q)) return false;
+      return true;
+    });
+
+    const idxMes = (m) => m ? MESES.indexOf(m) : -1;
+    if (ord === "alta") d.sort((a, b) => (b.nota ?? -1) - (a.nota ?? -1));
+    else if (ord === "baja") d.sort((a, b) => (a.nota ?? 99) - (b.nota ?? 99));
+    else if (ord === "az") d.sort((a, b) => a.titulo.localeCompare(b.titulo, "es"));
+    else d.sort((a, b) => b.anio - a.anio || idxMes(b.mes) - idxMes(a.mes));
+
+    $("count").textContent = `${d.length} de ${todo().length}`;
+
+    if (!d.length) {
+      $("lista").innerHTML = `<p class="empty">Nada coincide con esos filtros.</p>`;
+      return;
+    }
+
+    // Las tres vistas comparten filtros y orden; solo cambia como se pinta
+    if (vista === "galeria") { $("lista").innerHTML = `<div class="galeria">${d.map(carta).join("")}</div>`; return; }
+    if (vista === "tiers") { $("lista").innerHTML = tierList(d); return; }
+
+    let html = "";
+    if (ord === "crono") {
+      const grupos = new Map();
+      d.forEach(x => {
+        const k = x.anio + (x.mes ? " · " + x.mes : "");
+        if (!grupos.has(k)) grupos.set(k, []);
+        grupos.get(k).push(x);
+      });
+      grupos.forEach((items, k) => {
+        const cn = items.filter(i => i.nota != null);
+        const med = cn.length ? (cn.reduce((a, i) => a + i.nota, 0) / cn.length).toFixed(2) : "—";
+        // "2026 · Mayo" -> Mayo en grande y el año al lado; sin mes, el año solo
+        const [anio, mes] = k.split(" · ");
+        html += `<section class="group"><h3>
+          <span class="g-nombre"><span class="g-mes">${esc(mes || anio)}</span>${mes ? `<span class="g-anio">${esc(anio)}</span>` : ""}</span>
+          <span class="g-datos"><span class="pill">${items.length} ${items.length === 1 ? "título" : "títulos"}</span>` +
+          `${cn.length ? `<span class="pill media">media ${med}</span>` : ""}</span></h3>${items.map(pinta).join("")}</section>`;
+      });
+    } else {
+      html = `<section class="group">${d.map(pinta).join("")}</section>`;
+    }
+    $("lista").innerHTML = html;
+  }
+
+  const pinta = (x) => (x.id === editando ? editor(x) : fila(x));
+
+  const SVG_LAPIZ = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
+    'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
+  const SVG_EQUIS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
+    'stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>';
+
+  function fila(x) {
+    const n = x.nota != null ? (x.nota >= 10 ? "10" : x.nota.toFixed(1)) : "—";
+    const diez = x.nota != null && x.nota >= 10;
+    return `<article class="row${diez ? " diez" : ""}" data-id="${esc(x.id)}">
+      <div class="score ${tramo(x.nota)}">${n}</div>
+      <div class="mini">${poster(x, "mini")}</div>
+      <div>
+        <button type="button" class="title" data-a="ficha" title="Ver ficha">${esc(x.titulo)}</button>
+        ${x.comentario ? `<p class="note">${esc(x.comentario)}</p>` : ""}
+        <div class="meta">
+          ${diez ? `<span class="chip diez">Obra maestra</span>` : ""}
+          <span class="chip ${claseEstado(x.estado)}">${esc(x.estado)}</span>
+          ${x.tipo && x.tipo !== "Anime" ? `<span class="chip tipo">${esc(x.tipo)}</span>` : ""}
+          ${(x.generos || []).map(g => `<span class="chip gen">${esc(g)}</span>`).join("")}
+          <span class="chip year">${x.anio}${x.mes ? " · " + esc(x.mes) : ""}</span>
+          ${x.nuevo ? `<span class="chip nuevo">añadido aquí</span>` : ""}
+          ${x.editado ? `<span class="chip nuevo">editado</span>` : ""}
+        </div>
+      </div>
+      <div class="acts">
+        <button class="icon edit" data-a="edit" title="Editar" aria-label="Editar ${esc(x.titulo)}">${SVG_LAPIZ}</button>
+        <button class="icon del" data-a="del" title="Eliminar" aria-label="Eliminar ${esc(x.titulo)}">${SVG_EQUIS}</button>
+      </div>
+    </article>`;
+  }
+
+  /* ---------------- editar y eliminar ---------------- */
+  function editor(x) {
+    const opt = (l, v) => l.map(o => `<option${o === v ? " selected" : ""}>${esc(o)}</option>`).join("");
+    return `<article class="row editando" data-id="${esc(x.id)}">
+      <div class="score ${tramo(x.nota)}">${x.nota != null ? x.nota.toFixed(1) : "—"}</div>
+      <form class="editor" data-id="${esc(x.id)}">
+        <div class="line">
+          <label>Título<input type="text" name="titulo" value="${esc(x.titulo)}" required></label>
+          <label>Nota<input type="number" name="nota" min="0" max="10" step="0.1"
+            value="${x.nota != null ? x.nota : ""}" style="width:88px"></label>
+        </div>
+        <div class="line">
+          <label>Año<select name="anio"><option${x.anio === 2026 ? " selected" : ""}>2026</option><option${x.anio === 2025 ? " selected" : ""}>2025</option></select></label>
+          <label>Mes<select name="mes"><option value=""${!x.mes ? " selected" : ""}>Sin mes</option>${opt(MESES, x.mes)}</select></label>
+          <label>Estado<select name="estado">${opt(ESTADOS, x.estado)}</select></label>
+          <label>Tipo<select name="tipo">${opt(TIPOS, x.tipo || "Anime")}</select></label>
+        </div>
+        <label>Géneros<input type="text" name="generos" list="lista-generos"
+          value="${esc((x.generos || []).join(", "))}" placeholder="Romance, Shonen…"></label>
+        <label>Comentario<textarea name="comentario">${esc(x.comentario || "")}</textarea></label>
+        <div class="acciones">
+          <button type="submit" class="primary">Guardar cambios</button>
+          <button type="button" data-a="cancelar">Cancelar</button>
+        </div>
+      </form>
+      <div class="acts"></div>
+    </article>`;
+  }
+
+  let editando = null;
+
+  /* Seleccion cruzada: al pulsar una barra o un mes, el listado de abajo se
+     filtra a esos titulos. Volver a pulsar lo mismo lo quita. */
+  let seleccion = null;   // {clase:"nota", a, b} | {clase:"mes", mes}
+
+  function marca(sel) {
+    const igual = seleccion && sel && seleccion.clase === sel.clase &&
+      (sel.clase === "nota" ? seleccion.a === sel.a : seleccion.mes === sel.mes);
+    seleccion = igual ? null : sel;
+    redibuja();
+    if (seleccion) {
+      const c = document.querySelector(".controls");
+      const y = c.getBoundingClientRect().top + scrollY - 4;
+      scrollTo({ top: y, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+    }
+  }
+
+  function pintaSelChip() {
+    const b = document.getElementById("sel-chip");
+    b.classList.toggle("oculto", !seleccion);
+    if (!seleccion) return;
+    b.textContent = seleccion.clase === "nota"
+      ? `Nota ${seleccion.a} – ${seleccion.b}`
+      : `${seleccion.mes} de 2026`;
+  }
+  document.getElementById("sel-chip").addEventListener("click", () => { seleccion = null; redibuja(); });
+
+  document.getElementById("lista").addEventListener("click", (ev) => {
+    const b = ev.target.closest("button[data-a]");
+    if (!b) return;
+    const row = b.closest("[data-id]");
+    const id = row && row.dataset.id;
+    if (!id) return;
+
+    if (b.dataset.a === "ficha") { abreFicha(id); return; }
+    if (b.dataset.a === "edit") { editaEnLista(id); return; }
+    if (b.dataset.a === "cancelar") { editando = null; pintaLista(); return; }
+    if (b.dataset.a === "del") {
+      const x = todo().find(i => i.id === id);
+      if (!x) return;
+      historial.push(JSON.parse(JSON.stringify(est)));
+      est.borrados.push(id);
+      guarda(); redibuja();
+      nota(`Eliminado «${x.titulo}».`);
+    }
+  });
+
+  document.getElementById("lista").addEventListener("submit", (ev) => {
+    const f = ev.target.closest("form.editor");
+    if (!f) return;
+    ev.preventDefault();
+    const id = f.dataset.id;
+    const d = new FormData(f);
+    const nota_ = d.get("nota") === "" ? null : Math.min(10, Math.max(0, +d.get("nota")));
+    const eraDiez = (todo().find(i => i.id === id) || {}).nota >= 10;
+    historial.push(JSON.parse(JSON.stringify(est)));
+    est.ediciones[id] = {
+      titulo: String(d.get("titulo")).trim(),
+      nota: nota_,
+      comentario: String(d.get("comentario")).trim(),
+      estado: d.get("estado"),
+      tipo: d.get("tipo"),
+      generos: aGeneros(d.get("generos")),
+      mes: d.get("mes") || null,
+      anio: +d.get("anio")
+    };
+    guarda(); editando = null; redibuja();
+    if (nota_ != null && nota_ >= 10 && !eraDiez) { confeti(); nota("Sube a 10. Obra maestra."); }
+    else nota("Cambios guardados.");
+  });
+
+  document.getElementById("deshacer").addEventListener("click", () => {
+    if (!historial.length) { nota("No queda nada que deshacer en esta sesión."); return; }
+    est = historial.pop();
+    guarda(); editando = null; redibuja();
+    nota("Deshecho.");
+  });
+
+  document.getElementById("restablecer").addEventListener("click", () => {
+    if (!cambios()) return;
+    // El visor de artifacts no muestra confirm(): se confirma pulsando dos veces
+    const b = $("restablecer");
+    if (!b.dataset.armado) {
+      b.dataset.armado = "1"; b.textContent = "¿Seguro? Pulsa otra vez";
+      setTimeout(() => { delete b.dataset.armado; b.textContent = "Restablecer todo"; }, 4000);
+      return;
+    }
+    delete b.dataset.armado; b.textContent = "Restablecer todo";
+    historial.push(JSON.parse(JSON.stringify(est)));
+    est = vacio(); guarda(); editando = null; redibuja();
+    nota("Lista original restaurada.");
+  });
+
+  function pintaAviso() {
+    const a = document.getElementById("aviso");
+    const n = cambios();
+    a.classList.toggle("oculto", n === 0);
+    if (!n) return;
+    const p = [];
+    const ed = Object.keys(est.ediciones).length;
+    if (ed) p.push(`${ed} editado${ed > 1 ? "s" : ""}`);
+    if (est.borrados.length) p.push(`${est.borrados.length} eliminado${est.borrados.length > 1 ? "s" : ""}`);
+    if (est.nuevos.length) p.push(`${est.nuevos.length} añadido${est.nuevos.length > 1 ? "s" : ""}`);
+    document.getElementById("aviso-txt").textContent =
+      p.join(" · ") + (enNube
+        ? " — guardado en la página; lo verás en cualquier dispositivo."
+        : " — guardado solo en este navegador. Descarga el JSON para conservarlo.");
+  }
+
+  /* ---------------- formulario ---------------- */
+  // Cada estado lleva el mismo color que su chip en el listado
+  const pildora = (grupo, valor, i, color) =>
+    `<input type="radio" name="${grupo}" id="${grupo}-${i}" value="${esc(valor)}">` +
+    `<label class="pildora" for="${grupo}-${i}"${color ? ` style="--c:var(${color})"` : ""}>` +
+    `${color ? '<span class="pt"></span>' : ""}${esc(valor)}</label>`;
+
+  function rellenaSelects() {
+    const se = $("estado"), fm = $("f-mes"), st = $("tipo");
+    ESTADOS.forEach(e => se.insertAdjacentHTML("beforeend", `<option>${e}</option>`));
+    TIPOS.forEach(t => st.insertAdjacentHTML("beforeend", `<option>${t}</option>`));
+    $("f-estado").innerHTML = ESTADOS.map((e, i) =>
+      pildora("f-est", e, i, "--e-" + claseEstado(e))).join("");
+    $("f-tipo").innerHTML = TIPOS.map((t, i) => pildora("f-tip", t, i)).join("");
+    fm.insertAdjacentHTML("beforeend", `<option value="">Sin mes</option>`);
+    MESES.forEach(m => fm.insertAdjacentHTML("beforeend", `<option>${m}</option>`));
+  }
+
+  /* ---------------- hoja de anadir ---------------- */
+  let fNota = null;            // null = sin nota todavia
+  let fGen = new Set();        // generos marcados en la hoja
+  let focoPrevio = null;
+
+  function pintaDial() {
+    const dial = $("f-dial"), diez = fNota != null && fNota >= 10;
+    dial.className = "score dial " + tramo(fNota);
+    dial.textContent = fNota == null ? "—" : diez ? "10" : fNota.toFixed(1);
+    $("f-diez").hidden = !diez;
+    $("f-nota-ctl").classList.toggle("diez", diez);
+    $("f-sin-nota").hidden = fNota == null;
+    if (fNota != null) $("f-rango").value = fNota;
+    if (document.activeElement !== $("f-nota")) $("f-nota").value = fNota == null ? "" : fNota;
+  }
+  const fijaNota = (v) => {
+    fNota = (v === "" || v == null || isNaN(+v)) ? null : Math.round(Math.min(10, Math.max(0, +v)) * 10) / 10;
+    pintaDial();
+  };
+  $("f-rango").addEventListener("input", e => fijaNota(e.target.value));
+  $("f-nota").addEventListener("input", e => fijaNota(e.target.value));
+  $("f-nota").addEventListener("blur", pintaDial);
+  $("f-sin-nota").addEventListener("click", () => fijaNota(null));
+
+  // Si aun no lo has terminado, lo normal es que no tenga nota
+  $("f-estado").addEventListener("change", e => {
+    if ((e.target.value === "Por ver" || e.target.value === "Viendo") && fNota != null) fijaNota(null);
+  });
+
+  function pintaGenForm() {
+    const usados = new Set();
+    todo().forEach(x => (x.generos || []).forEach(g => usados.add(g)));
+    const lista = [...new Set([...GENEROS, ...usados, ...fGen])].sort((a, b) => a.localeCompare(b, "es"));
+    $("f-generos").innerHTML = lista.map((g, i) =>
+      `<input type="checkbox" id="f-g-${i}" value="${esc(g)}"${fGen.has(g) ? " checked" : ""}>` +
+      `<label class="pildora gen" for="f-g-${i}">${esc(g)}</label>`).join("");
+  }
+  $("f-generos").addEventListener("change", e => {
+    if (e.target.checked) fGen.add(e.target.value); else fGen.delete(e.target.value);
+  });
+  $("f-gen").addEventListener("keydown", e => {
+    if (e.key !== "Enter" && e.key !== ",") return;
+    e.preventDefault();
+    aGeneros(e.target.value).forEach(g => fGen.add(g));
+    e.target.value = "";
+    pintaGenForm();
+  });
+
+  function abreHoja() {
+    focoPrevio = document.activeElement;
+    $("form").reset();
+    fNota = null; fGen = new Set();
+    $("f-est-0").checked = true;           // Visto
+    $("f-tip-0").checked = true;           // Anime
+    $("f-anio").value = String(new Date().getFullYear() >= 2026 ? 2026 : 2025);
+    $("f-mes").value = MESES[new Date().getMonth()];
+    pintaDial(); pintaGenForm();
+    $("modal").hidden = false;
+    document.body.style.overflow = "hidden";
+    setTimeout(() => $("f-titulo").focus(), 30);
+  }
+  function cierraHoja() {
+    if ($("modal").hidden) return;
+    $("modal").hidden = true;
+    document.body.style.overflow = "";
+    if (focoPrevio && focoPrevio.focus) focoPrevio.focus();
+  }
+  $("abrir").addEventListener("click", abreHoja);
+  $("modal").addEventListener("click", e => { if (e.target.closest("[data-cerrar]")) cierraHoja(); });
+  addEventListener("keydown", e => {
+    if (e.key === "Escape") { cierraHoja(); return; }
+    const t = e.target, escribiendo = t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName));
+    if (!escribiendo && !e.metaKey && !e.ctrlKey && !e.altKey && (e.key === "n" || e.key === "N") && $("modal").hidden && !capaAbierta()) {
+      e.preventDefault(); abreHoja();
+    }
+  });
+
+  /* Confeti dorado: solo cuando guardas un 10. Dura poco y no tapa nada. */
+  function confeti() {
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const cv = $("confeti"), ctx = cv.getContext("2d");
+    const dpr = devicePixelRatio || 1;
+    cv.hidden = false;
+    cv.width = innerWidth * dpr; cv.height = innerHeight * dpr;
+    ctx.scale(dpr, dpr);
+    const css = getComputedStyle(document.documentElement);
+    const cols = ["--oro-1", "--oro-2", "--oro-3", "--accent"].map(v => css.getPropertyValue(v).trim() || "#f6c945");
+    const ps = Array.from({ length: 140 }, () => ({
+      x: innerWidth / 2, y: innerHeight * .55,
+      vx: (Math.random() - .5) * 16, vy: -Math.random() * 16 - 5,
+      r: Math.random() * Math.PI, vr: (Math.random() - .5) * .35,
+      w: 5 + Math.random() * 6, h: 3 + Math.random() * 4,
+      c: cols[Math.floor(Math.random() * cols.length)]
+    }));
+    const t0 = performance.now();
+    (function paso(t) {
+      const dt = t - t0;
+      ctx.clearRect(0, 0, innerWidth, innerHeight);
+      ps.forEach(p => {
+        p.vy += .42; p.vx *= .99; p.x += p.vx; p.y += p.vy; p.r += p.vr;
+        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r);
+        ctx.globalAlpha = Math.max(0, 1 - dt / 2200);
+        ctx.fillStyle = p.c; ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+        ctx.restore();
+      });
+      if (dt < 2200) requestAnimationFrame(paso);
+      else { ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, cv.width, cv.height); cv.hidden = true; }
+    })(t0);
+  }
+
+  // El desplegable de generos y las sugerencias salen de lo que ya has usado,
+  // mas la lista base. Asi crece contigo sin tocar el codigo.
+  function rellenaGeneros() {
+    const usados = new Set();
+    todo().forEach(x => (x.generos || []).forEach(g => usados.add(g)));
+    const sel = $("genero"), previo = sel.value;
+    sel.innerHTML = `<option value="">Todos los géneros</option>` +
+      [...usados].sort((a, b) => a.localeCompare(b, "es"))
+        .map(g => `<option${g === previo ? " selected" : ""}>${esc(g)}</option>`).join("");
+    const todos = new Set([...GENEROS, ...usados]);
+    document.getElementById("lista-generos").innerHTML =
+      [...todos].sort((a, b) => a.localeCompare(b, "es")).map(g => `<option value="${esc(g)}">`).join("");
+  }
+
+  $("form").addEventListener("submit", (ev) => {
+    ev.preventDefault();
+    const t = $("f-titulo").value.trim();
+    if (!t) { $("f-titulo").focus(); return; }
+    // Lo escrito en "otro genero" sin pulsar Enter tambien cuenta
+    aGeneros($("f-gen").value).forEach(g => fGen.add(g));
+    const marcado = (n) => (document.querySelector(`input[name="${n}"]:checked`) || {}).value;
+    const n = fNota;
+    historial.push(JSON.parse(JSON.stringify(est)));
+    est.nuevos.push({
+      id: "n" + Date.now().toString(36) + "-" + slugId(t),
+      titulo: t, nota: n, comentario: $("f-com").value.trim(),
+      estado: marcado("f-est") || "Visto", tipo: marcado("f-tip") || "Anime",
+      generos: [...fGen],
+      mes: $("f-mes").value || null,
+      anio: +$("f-anio").value, nuevo: true
+    });
+    guarda();
+    cierraHoja();
+    redibuja();
+    if (n != null && n >= 10) { confeti(); nota(`«${t}» entra con un 10. Obra maestra.`); }
+    else nota(`«${t}» añadido.`);
+  });
+
+  $("exportar").addEventListener("click", async () => {
+    // Se exporta la lista efectiva (con tus ediciones aplicadas y sin lo borrado),
+    // sin los campos internos que solo sirven para pintar.
+    const limpio = todo().map(x => ({
+      titulo: x.titulo, nota: x.nota, comentario: x.comentario,
+      estado: x.estado, tipo: x.tipo || "Anime", generos: x.generos || [],
+      mes: x.mes, anio: x.anio
+    }));
+    const dl = window.claude && claude.use ? await claude.use("downloads") : null;
+    if (!dl) { nota("La descarga no está disponible en esta vista."); return; }
+    try {
+      await dl.save({ filename: "diario-visionado.json", data: JSON.stringify(limpio, null, 1) });
+      nota(`Descargados ${limpio.length} títulos.`);
+    } catch (e) {
+      nota("No se descargó: " + (e && e.code ? e.code : "cancelado"));
+    }
+  });
+
+  function redibuja() {
+    pintaTiles(); pintaHist(); pintaMeses(); rellenaGeneros();
+    pintaSelChip(); pintaLista(); pintaAviso(); pintaFoot();
+  }
+  function pintaFoot() {
+    $("foot").textContent = enNube
+      ? "Edita con el lápiz, elimina con la X y añade títulos abajo. Todo se guarda en la página y se sincroniza entre tus dispositivos."
+      : cambios()
+        ? "Tus cambios viven en este navegador, no en el archivo original. Descarga el JSON para conservarlos o llevártelos a otro sitio."
+        : "Edita con el lápiz, elimina con la X y añade títulos abajo. Todo se guarda en este navegador; descarga el JSON para conservarlo.";
+  }
+
+  ["q", "anio", "estado", "tipo", "genero", "min", "orden"].forEach(id =>
+    $(id).addEventListener("input", pintaLista));
+
+  /* ---------------- nombre del diario ---------------- */
+  function pintaNombre() {
+    const t = nombre || NOMBRE_DEF;
+    if (!editandoNombre) $("nombre").textContent = t;
+    document.title = t;
+  }
+  function guardaNombre() {
+    try { localStorage.setItem(CLAVE_NOMBRE, nombre); } catch (e) {}
+    if (refAjustes) refAjustes.set({ nombre }).catch(() =>
+      nota("No se pudo guardar el nombre en la nube; queda en este navegador."));
+  }
+  function editaNombre() {
+    if (editandoNombre) return;
+    const h = $("nombre");
+    editandoNombre = true;
+    h.contentEditable = "true";
+    h.focus();
+    const r = document.createRange(); r.selectNodeContents(h);
+    const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+  }
+  function terminaNombre(guardar) {
+    if (!editandoNombre) return;
+    const h = $("nombre");
+    editandoNombre = false;
+    h.contentEditable = "false";
+    if (guardar) {
+      const t = h.textContent.replace(/\s+/g, " ").trim().slice(0, 60);
+      const nuevo = t === NOMBRE_DEF ? "" : t;
+      if (nuevo !== nombre) { nombre = nuevo; guardaNombre(); nota("Nombre cambiado."); }
+    }
+    pintaNombre();
+  }
+  $("nombre").addEventListener("click", editaNombre);
+  $("nombre-edit").addEventListener("click", editaNombre);
+  $("nombre").addEventListener("keydown", e => {
+    if (e.key === "Enter") { e.preventDefault(); terminaNombre(true); $("nombre").blur(); }
+    else if (e.key === "Escape") { e.stopPropagation(); terminaNombre(false); $("nombre").blur(); }
+  });
+  $("nombre").addEventListener("blur", () => terminaNombre(true));
+  // Pegar trae formato de otras webs: solo se admite el texto
+  $("nombre").addEventListener("paste", e => {
+    e.preventDefault();
+    document.execCommand("insertText", false, (e.clipboardData.getData("text/plain") || "").replace(/\s+/g, " "));
+  });
+
+  /* ================================================================
+     Carteles generados
+     El nombre de la serie (sin "S2", "T3", "parte 1", "final season"...) decide
+     color, angulo y dibujo, asi que todas las temporadas comparten cartel.
+     ================================================================ */
+  const CORTE_TEMPORADA = /^(s\d+|t\d+|season|temporada|parte|part|final|epilogo|arc|\d+)$/;
+  function raizSerie(t) {
+    const w = slug(String(t)).replace(/\(.*?\)/g, " ").replace(/[^a-z0-9]+/g, " ").trim().split(" ");
+    const corte = w.findIndex((x, i) => i > 0 && CORTE_TEMPORADA.test(x));
+    return (corte > 0 ? w.slice(0, corte) : w).join(" ");
+  }
+  function hashDe(s) {
+    let h = 2166136261;
+    for (const c of s) { h ^= c.codePointAt(0); h = Math.imul(h, 16777619); }
+    return h >>> 0;
+  }
+  function iniciales(t) {
+    const w = String(t).replace(/[^\p{L}\p{N}\s]/gu, " ").trim().split(/\s+/).filter(Boolean);
+    if (!w.length) return "?";
+    return (w[0][0] + (w[1] ? w[1][0] : (w[0][1] || ""))).toUpperCase();
+  }
+  function poster(x, modo) {
+    const h = hashDe(raizSerie(x.titulo) || slug(x.titulo));
+    const h1 = h % 360, h2 = (h1 + 25 + (h >>> 9) % 80) % 360, h3 = (h1 + 150 + (h >>> 5) % 60) % 360;
+    const estilo = `--h1:${h1};--h2:${h2};--h3:${h3};--a:${110 + (h >>> 12) % 140}deg;` +
+      `--a2:${(h >>> 16) % 180}deg;--sx:${18 + (h >>> 20) % 64}%;--sy:${14 + (h >>> 24) % 46}%`;
+    const oro = x.nota != null && x.nota >= 10 ? " oro" : "";
+    const dentro = modo === "mini"
+      ? `<span class="p-ini">${esc(iniciales(x.titulo))}</span>`
+      : `<span class="p-tipo">${esc((x.tipo || "Anime").toUpperCase())}</span><span class="p-txt">${esc(x.titulo)}</span>`;
+    return `<div class="poster pat-${(h >>> 3) % 4} ${modo}${oro}" style="${estilo}" aria-hidden="true">${dentro}</div>`;
+  }
+
+  /* ================================================================
+     Vistas: lista, galeria y tier list
+     ================================================================ */
+  let vista = "lista";
+  try { vista = localStorage.getItem(CLAVE + "-vista") || "lista"; } catch (e) {}
+  if (!["lista", "galeria", "tiers"].includes(vista)) vista = "lista";
+  function marcaVista() {
+    document.querySelectorAll("#vistas button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.v === vista)));
+  }
+  function ponVista(v) {
+    vista = v;
+    try { localStorage.setItem(CLAVE + "-vista", v); } catch (e) {}
+    marcaVista(); pintaLista();
+  }
+  $("vistas").addEventListener("click", e => { const b = e.target.closest("button[data-v]"); if (b) ponVista(b.dataset.v); });
+
+  // Editar siempre se hace en la lista: desde galeria o tiers se cambia de vista y se baja a la fila
+  function editaEnLista(id) {
+    if (vista !== "lista") { vista = "lista"; try { localStorage.setItem(CLAVE + "-vista", "lista"); } catch (e) {} marcaVista(); }
+    editando = id; pintaLista();
+    const el = document.querySelector(`.row[data-id="${CSS.escape(id)}"]`);
+    if (el) el.scrollIntoView({ block: "center", behavior: reduceMov() ? "auto" : "smooth" });
+  }
+
+  const carta = (x) => `<article class="g-card" data-id="${esc(x.id)}">
+      <button type="button" class="g-abrir" data-a="ficha" aria-label="Ver ficha de ${esc(x.titulo)}">
+        ${poster(x, "carta")}<span class="g-t">${esc(x.titulo)}</span>
+      </button>
+      ${x.nota != null ? `<div class="score ${tramo(x.nota)}">${fmtNota(x.nota)}</div>` : ""}
+      <div class="g-sub"><span class="chip ${claseEstado(x.estado)}">${esc(x.estado)}</span>
+        <span>${x.mes ? esc(x.mes.slice(0, 3)) + " " : ""}${x.anio}</span></div>
+      <button type="button" class="icon edit" data-a="edit" title="Editar" aria-label="Editar ${esc(x.titulo)}">${SVG_LAPIZ}</button>
+    </article>`;
+
+  // EX solo existe si hay algun 10; el resto de filas siempre, aunque esten vacias
+  const TIERS = [
+    ["EX", n => n >= 10, "var(--oro-1)", "10"],
+    ["S", n => n >= 9 && n < 10, "var(--accent)", "9 – 9.9"],
+    ["A", n => n >= 8 && n < 9, "var(--n3)", "8 – 8.9"],
+    ["B", n => n >= 7 && n < 8, "var(--e-viendo)", "7 – 7.9"],
+    ["C", n => n >= 6 && n < 7, "var(--e-porver)", "6 – 6.9"],
+    ["D", n => n < 6, "var(--e-dropeado)", "menos de 6"]
+  ];
+  function tierList(d) {
+    const con = d.filter(x => x.nota != null).sort((a, b) => b.nota - a.nota);
+    const sin = d.length - con.length;
+    if (!con.length) return `<p class="empty">Ninguno de estos tiene nota todavía.</p>`;
+    const filas = TIERS.map(([l, f, c, r]) => {
+      const it = con.filter(x => f(x.nota));
+      if (l === "EX" && !it.length) return "";
+      const items = it.length ? it.map(x => `<div class="t-item" data-id="${esc(x.id)}">
+          <button type="button" class="t-abrir" data-a="ficha" title="${esc(x.titulo)} · ${fmtNota(x.nota)}">
+            ${poster(x, "mini")}<span class="n">${fmtNota(x.nota)}</span><span class="t">${esc(x.titulo)}</span>
+          </button></div>`).join("")
+        : `<span class="tier-vacio">Nadie aquí todavía.</span>`;
+      return `<section class="tier${l === "EX" ? " ex" : ""}" style="--tc:${c}">
+        <div class="tier-lbl"><b>${l}</b><span>${r}</span><span class="cnt">${it.length}</span></div>
+        <div class="tier-items">${items}</div></section>`;
+    }).join("");
+    return `<div class="tiers">${filas}</div>` +
+      (sin ? `<p class="tier-nota">${sin} ${sin === 1 ? "título sin nota no entra" : "títulos sin nota no entran"} en la tier list.</p>` : "");
+  }
+
+  /* ================================================================
+     Capas (ficha, ruleta y resumen del año)
+     ================================================================ */
+  const reduceMov = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const capaAbierta = () => document.querySelector(".capa:not([hidden])");
+  let focoCapa = null;
+  function abreCapa(id) {
+    focoCapa = document.activeElement;
+    $(id).hidden = false;
+    document.body.style.overflow = "hidden";
+  }
+  function cierraCapa(id) {
+    const el = $(id);
+    if (!el || el.hidden) return;
+    el.hidden = true;
+    if (id === "wrapped") wr.activo = false;
+    if (!capaAbierta() && $("modal").hidden) document.body.style.overflow = "";
+    if (focoCapa && focoCapa.focus && document.contains(focoCapa)) focoCapa.focus();
+  }
+  document.addEventListener("click", e => {
+    const c = e.target.closest("[data-cerrar-capa]");
+    if (c) cierraCapa(c.closest(".capa").id);
+  });
+  addEventListener("keydown", e => {
+    const abierta = capaAbierta();
+    if (!abierta) {
+      // "/" lleva al buscador, como en casi todas las webs
+      const t = e.target, escribiendo = t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName));
+      if (e.key === "/" && !escribiendo && $("modal").hidden) { e.preventDefault(); $("q").focus(); }
+      return;
+    }
+    if (e.key === "Escape") { cierraCapa(abierta.id); return; }
+    if (abierta.id === "wrapped") {
+      if (e.key === "ArrowRight" || e.key === " ") { e.preventDefault(); wrIr(wr.i + 1); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); wrIr(wr.i - 1); }
+    }
+  });
+
+  /* ---------------- ficha ---------------- */
+  function abreFicha(id) {
+    const d = todo();
+    const x = d.find(i => i.id === id);
+    if (!x) return;
+    const con = d.filter(i => i.nota != null);
+    let rank = "";
+    if (x.nota != null) {
+      const pos = con.filter(i => i.nota > x.nota).length + 1;
+      const empate = con.filter(i => i.nota === x.nota).length - 1;
+      const peores = con.filter(i => i.nota < x.nota).length;
+      const pct = con.length > 1 ? Math.round(peores / (con.length - 1) * 100) : 100;
+      rank = `<b>Nº ${pos}</b> de ${con.length} con nota${empate > 0 ? ` (empatado con ${empate})` : ""}.<br>` +
+        `Por encima del <b>${pct}%</b> de todo lo que has puntuado.`;
+      const mismos = con.filter(i => i.anio === x.anio && i.mes && i.mes === x.mes);
+      if (mismos.length > 1) {
+        const med = mismos.reduce((a, i) => a + i.nota, 0) / mismos.length;
+        const dif = x.nota - med;
+        rank += `<br>${Math.abs(dif) < .05 ? "Justo en" : dif > 0 ? `<b>+${dif.toFixed(1)}</b> sobre` : `<b>${dif.toFixed(1)}</b> bajo`} la media de ${x.mes.toLowerCase()} (${med.toFixed(2)}).`;
+      }
+    }
+    const fecha = x.mes ? `${x.mes} ${x.anio}` : String(x.anio);
+    $("ficha-cuerpo").dataset.id = id;
+    $("ficha-cuerpo").innerHTML = `
+      ${poster(x, "grande")}
+      <div class="ficha-info">
+        <div class="ficha-top">
+          <p class="eyebrow" style="margin:0">${esc(x.tipo || "Anime")} · ${esc(fecha)}</p>
+          <button type="button" class="icon cerrar" data-cerrar-capa aria-label="Cerrar" title="Cerrar (Esc)">${SVG_EQUIS}</button>
+        </div>
+        <h2 id="ficha-t"${x.nota >= 10 ? ' class="fav-titulo diez"' : ""}>${esc(x.titulo)}</h2>
+        <div class="ficha-nota">
+          <div class="score ${tramo(x.nota)}">${x.nota != null ? fmtNota(x.nota) : "—"}</div>
+          ${rank ? `<div class="ficha-rank">${rank}</div>` : `<div class="ficha-rank">Sin nota todavía.</div>`}
+        </div>
+        <div class="meta" style="margin:0">
+          ${x.nota >= 10 ? `<span class="chip diez">Obra maestra</span>` : ""}
+          <span class="chip ${claseEstado(x.estado)}">${esc(x.estado)}</span>
+          ${(x.generos || []).map(g => `<span class="chip gen">${esc(g)}</span>`).join("")}
+        </div>
+        ${x.comentario ? `<p class="ficha-com">${esc(x.comentario)}</p>` : `<p class="ficha-com vacio">Sin comentario. Edítalo para contar qué te pareció.</p>`}
+        <footer class="hoja-pie">
+          <button type="button" class="primary" id="ficha-editar">Editar</button>
+          <button type="button" data-cerrar-capa>Cerrar</button>
+        </footer>
+      </div>`;
+    abreCapa("ficha");
+    setTimeout(() => $("ficha-editar").focus(), 30);
+  }
+  $("ficha-cuerpo").addEventListener("click", e => {
+    if (e.target.closest("#ficha-editar")) {
+      const id = $("ficha-cuerpo").dataset.id;
+      cierraCapa("ficha"); editaEnLista(id);
+    }
+  });
+
+  /* ---------------- ruleta: ¿que veo ahora? ----------------
+     La cinta repite tu lista de pendientes varias veces desordenada y frena
+     sobre el elegido, como una tragaperras. */
+  let ruletaElegido = null, ruletaTurno = 0;
+  const ALTO_REEL = 56;
+  function gira() {
+    const turno = ++ruletaTurno;
+    const pend = todo().filter(x => x.estado === "Por ver");
+    const reel = $("reel");
+    $("ruleta-empezar").disabled = true; ruletaElegido = null;
+    if (!pend.length) {
+      reel.style.transition = "none"; reel.style.transform = `translateY(${ALTO_REEL}px)`;
+      reel.innerHTML = `<div>Lista vacía</div>`;
+      $("ruleta-res").textContent = "Marca algo como «Por ver» y vuelve a probar.";
+      return;
+    }
+    const baraja = () => pend.slice().sort(() => Math.random() - .5);
+    const items = [];
+    const vueltas = Math.max(3, Math.ceil(40 / pend.length));
+    for (let v = 0; v < vueltas; v++) items.push(...baraja());
+    const elegido = pend[Math.floor(Math.random() * pend.length)];
+    const idx = items.length;
+    items.push(elegido, ...baraja().slice(0, 2));
+    reel.innerHTML = items.map(x => `<div>${esc(x.titulo)}</div>`).join("");
+    reel.style.transition = "none"; reel.style.transform = `translateY(${ALTO_REEL}px)`;
+    void reel.offsetHeight;
+    const fin = () => {
+      if (turno !== ruletaTurno) return;
+      ruletaElegido = elegido;
+      $("ruleta-res").innerHTML = `Te toca: <b>${esc(elegido.titulo)}</b>`;
+      $("ruleta-empezar").disabled = false;
+    };
+    $("ruleta-res").textContent = "Girando…";
+    const destino = `translateY(${-(idx - 1) * ALTO_REEL}px)`;
+    if (reduceMov()) { reel.style.transform = destino; fin(); return; }
+    reel.style.transition = "transform 3.4s cubic-bezier(.1,.75,.12,1)";
+    reel.style.transform = destino;
+    setTimeout(fin, 3450);
+  }
+  function abreRuleta() { abreCapa("ruleta"); gira(); setTimeout(() => $("ruleta-otra").focus(), 30); }
+  $("ruleta-abrir").addEventListener("click", abreRuleta);
+  $("ruleta-otra").addEventListener("click", gira);
+  $("ruleta-empezar").addEventListener("click", () => {
+    const x = ruletaElegido;
+    if (!x) return;
+    historial.push(JSON.parse(JSON.stringify(est)));
+    est.ediciones[x.id] = {
+      titulo: x.titulo, nota: x.nota, comentario: x.comentario || "", estado: "Viendo",
+      tipo: x.tipo || "Anime", generos: x.generos || [], mes: x.mes || null, anio: x.anio
+    };
+    guarda(); cierraCapa("ruleta"); redibuja();
+    nota(`«${x.titulo}» pasa a Viendo. A disfrutarla.`);
+  });
+
+  /* ================================================================
+     Tu año: resumen en historias
+     ================================================================ */
+  const anioResumen = () => {
+    const a = todo().filter(x => x.nota != null).map(x => x.anio);
+    return a.length ? Math.max(...a) : new Date().getFullYear();
+  };
+  const WR_MS = 5600;
+  const wr = { i: 0, slides: [], t0: 0, ultimo: 0, pausa: false, activo: false, pulsado: 0 };
+  const cita = (t, n = 150) => t.length > n ? t.slice(0, n).replace(/\s+\S*$/, "") + "…" : t;
+
+  function slidesResumen() {
+    const d = todo(), Y = anioResumen();
+    const del = d.filter(x => x.anio === Y);
+    const hechos = del.filter(x => x.estado === "Visto" || x.estado === "Revisto");
+    const conN = del.filter(x => x.nota != null);
+    const avg = l => l.reduce((a, x) => a + x.nota, 0) / l.length;
+    const prev = d.filter(x => x.anio === Y - 1 && x.nota != null);
+    const nom = nombre || NOMBRE_DEF;
+    const S = [];
+
+    S.push({ c: ["#46d19e", "#6e62ff", "#f0a93b"], html: `
+      <p class="wr-k">${esc(nom)} presenta</p>
+      <div class="wr-gigante">${Y}</div>
+      <p class="t">Tu año en anime, series y pelis: lo que viste, lo que te voló la cabeza y lo que no tanto.</p>` });
+
+    const tipos = {};
+    hechos.forEach(x => { const t = x.tipo || "Anime"; tipos[t] = (tipos[t] || 0) + 1; });
+    const tiposTxt = Object.entries(tipos).sort((a, b) => b[1] - a[1])
+      .map(([t, n]) => `<b>${n}</b> ${t.toLowerCase()}${n === 1 ? "" : t === "Serie" ? "s" : t === "Película" ? "s" : ""}`).join(", ");
+    S.push({ c: ["#4f9bff", "#46d19e", "#9a8cff"], html: `
+      <p class="wr-k">En ${Y} terminaste</p>
+      <div class="wr-gigante" data-cuenta="${hechos.length}">0</div>
+      <p class="t">títulos. ${tiposTxt ? `Entre ellos, ${tiposTxt}.` : ""}</p>` });
+
+    const porMes = MESES.map(m => {
+      const l = conN.filter(x => x.mes === m);
+      return { m, n: l.length, media: l.length ? avg(l) : 0, mejor: l.slice().sort((a, b) => b.nota - a.nota)[0] };
+    });
+    const candidatos = porMes.filter(x => x.n >= 2);
+    if (candidatos.length) {
+      const top = candidatos.slice().sort((a, b) => b.media - a.media)[0];
+      const maxN = Math.max(...porMes.map(x => x.n), 1);
+      const visibles = porMes.filter((x, i) => i <= Math.max(...porMes.map((p, j) => p.n ? j : 0)));
+      S.push({ c: ["#f0a93b", "#ff7aa8", "#46d19e"], html: `
+        <p class="wr-k">Tu mejor mes</p>
+        <div class="wr-grande" style="font-size:3.6rem">${top.m}</div>
+        <p class="t">Media de <b>${top.media.toFixed(2)}</b> en ${top.n} títulos. Lo mejor: <b>${esc(top.mejor.titulo)}</b>.</p>
+        <div class="wr-meses">${visibles.map(x => `<div class="${x.m === top.m ? "top" : ""}">
+          <i style="height:${Math.max(4, x.n / maxN * 80)}px"></i><span>${x.m.slice(0, 1)}</span></div>`).join("")}</div>` });
+    }
+
+    const orden = conN.map((x, i) => [x, i]).sort((a, b) => b[0].nota - a[0].nota || b[1] - a[1]).map(([x]) => x);
+    if (orden.length) {
+      const uno = orden[0];
+      S.push({ c: uno.nota >= 10 ? ["#f6c945", "#c7860f", "#fff3c2"] : ["#46d19e", "#9a8cff", "#4f9bff"], html: `
+        <p class="wr-k">Tu número 1 de ${Y}</p>
+        ${poster(uno, "grande")}
+        <div class="wr-grande">${esc(uno.titulo)}</div>
+        <p class="t">Un <b>${fmtNota(uno.nota)}</b>.${orden[1] ? ` Por detrás, ${esc(orden[1].titulo)} (${fmtNota(orden[1].nota)}).` : ""}</p>
+        ${uno.comentario ? `<p class="wr-cita">«${esc(cita(uno.comentario))}»</p>` : ""}` });
+
+      const peor = orden[orden.length - 1];
+      if (orden.length > 2 && peor !== uno) S.push({ c: ["#ff7aa8", "#6e62ff", "#f0a93b"], html: `
+        <p class="wr-k">La que más dolió</p>
+        <div class="wr-gigante">${fmtNota(peor.nota)}</div>
+        <div class="wr-grande" style="font-size:2rem">${esc(peor.titulo)}</div>
+        ${peor.comentario ? `<p class="wr-cita">«${esc(cita(peor.comentario))}»</p>` : `<p class="t">Sin comentario. A veces el silencio lo dice todo.</p>`}` });
+
+      const media = avg(conN);
+      let frase = "";
+      if (prev.length) {
+        const mp = avg(prev), dif = media - mp;
+        frase = Math.abs(dif) < .05 ? `Clavado a ${Y - 1} (${mp.toFixed(2)}). Criterio de hierro.`
+          : dif > 0 ? `Más generoso que en ${Y - 1}, cuando ibas a <b>${mp.toFixed(2)}</b>.`
+          : `Más exigente que en ${Y - 1}, cuando ibas a <b>${mp.toFixed(2)}</b>. Se te afina el criterio.`;
+      }
+      const altas = conN.filter(x => x.nota >= 9).length;
+      S.push({ c: ["#9a8cff", "#46d19e", "#4f9bff"], html: `
+        <p class="wr-k">Tu nota media en ${Y}</p>
+        <div class="wr-gigante" data-cuenta="${media.toFixed(2)}" data-dec="2">0</div>
+        <p class="t">${frase}</p>
+        ${altas ? `<p class="t"><b>${altas}</b> ${altas === 1 ? "título se llevó" : "títulos se llevaron"} un 9 o más.</p>` : ""}` });
+    }
+
+    const pend = d.filter(x => x.estado === "Por ver");
+    const muestra3 = pend.slice().sort(() => Math.random() - .5).slice(0, 3).map(x => `<b>${esc(x.titulo)}</b>`);
+    S.push({ c: ["#f0a93b", "#46d19e", "#6e62ff"], html: `
+      <p class="wr-k">Y lo que viene</p>
+      <div class="wr-gigante" data-cuenta="${pend.length}">0</div>
+      <p class="t">${pend.length === 1 ? "título espera" : "títulos esperan"} turno${muestra3.length ? `: ${muestra3.join(", ")}…` : "."}</p>
+      ${pend.length ? `<button type="button" class="wr-accion" data-wr="ruleta">Elegir qué ver ahora</button>` : ""}` });
+    return S;
+  }
+
+  function wrIr(i) {
+    if (i < 0) i = 0;
+    if (i >= wr.slides.length) return;
+    wr.i = i;
+    const s = wr.slides[i];
+    const bg = $("wr-bg");
+    ["--c1", "--c2", "--c3"].forEach((v, k) => { bg.style.setProperty(v, s.c[k]); $("wr-story").style.setProperty(v, s.c[k]); });
+    $("wr-slide").innerHTML = `<div class="wr-slide">${s.html}</div>`;
+    $("wr-barras").querySelectorAll("i").forEach((b, k) => { b.style.width = k < i ? "100%" : "0"; });
+    $("wr-slide").querySelectorAll("[data-cuenta]").forEach(el => cuenta(el, +el.dataset.cuenta, +(el.dataset.dec || 0), 1400));
+    wr.t0 = performance.now();
+  }
+  function wrTick(t) {
+    if (!wr.activo) return;
+    const dt = t - wr.ultimo; wr.ultimo = t;
+    if (wr.pausa) wr.t0 += dt;
+    const p = Math.min(1, (t - wr.t0) / WR_MS);
+    const barra = $("wr-barras").querySelectorAll("i")[wr.i];
+    if (barra) barra.style.width = (p * 100) + "%";
+    if (p >= 1 && wr.i < wr.slides.length - 1) wrIr(wr.i + 1);
+    requestAnimationFrame(wrTick);
+  }
+  function abreResumen() {
+    wr.slides = slidesResumen();
+    $("wr-barras").innerHTML = wr.slides.map(() => "<span><i></i></span>").join("");
+    abreCapa("wrapped");
+    wr.activo = true; wr.pausa = false; wr.ultimo = performance.now();
+    wrIr(0);
+    requestAnimationFrame(wrTick);
+    setTimeout(() => $("wrapped").querySelector(".wr-cerrar").focus(), 30);
+  }
+  $("wr-abrir").addEventListener("click", abreResumen);
+  // Mantener pulsado pausa; un toque en el tercio izquierdo retrocede y en el resto avanza
+  $("wr-story").addEventListener("pointerdown", e => {
+    if (e.target.closest("button")) return;
+    wr.pausa = true; wr.pulsado = performance.now();
+  });
+  $("wr-story").addEventListener("pointerup", e => {
+    if (e.target.closest("button")) return;
+    wr.pausa = false;
+    if (performance.now() - wr.pulsado > 300) return;
+    const r = $("wr-story").getBoundingClientRect();
+    wrIr(e.clientX - r.left < r.width / 3 ? wr.i - 1 : wr.i + 1);
+  });
+  $("wr-story").addEventListener("pointerleave", () => { wr.pausa = false; });
+  $("wr-story").addEventListener("click", e => {
+    if (e.target.closest("[data-wr='ruleta']")) { cierraCapa("wrapped"); abreRuleta(); }
+  });
+
+  /* ================================================================
+     Detalles: cifras que cuentan hacia arriba y brillo bajo el raton
+     ================================================================ */
+  // Cuenta hasta el valor que tenga el elemento al terminar, aunque cambie a mitad
+  function cuenta(el, hasta, dec = 0, ms = 1200) {
+    el.dataset.fin = hasta;
+    const final = () => { el.textContent = (+el.dataset.fin).toFixed(dec); };
+    // Con la pestaña oculta el navegador congela las animaciones: se pone el valor final
+    // directamente, y un respaldo por tiempo evita que una cifra se quede a medias
+    if (reduceMov() || document.visibilityState !== "visible") { final(); return; }
+    setTimeout(final, ms + 200);
+    const t0 = performance.now();
+    (function paso(t) {
+      const p = Math.min(1, (t - t0) / ms), e = 1 - Math.pow(1 - p, 3);
+      el.textContent = (+el.dataset.fin * e).toFixed(dec);
+      if (p < 1) requestAnimationFrame(paso);
+    })(t0);
+  }
+  function ponCifra(el, v, dec) {
+    if (v == null) { el.dataset.fin = ""; el.textContent = "—"; return; }
+    if (!el.dataset.contado) { el.dataset.contado = "1"; cuenta(el, v, dec); }
+    else { el.dataset.fin = v; el.textContent = (+v).toFixed(dec); }
+  }
+  document.addEventListener("pointermove", e => {
+    const p = e.target.closest && e.target.closest(".panel, .card");
+    if (!p) return;
+    const r = p.getBoundingClientRect();
+    p.style.setProperty("--mx", (e.clientX - r.left) + "px");
+    p.style.setProperty("--my", (e.clientY - r.top) + "px");
+  }, { passive: true });
+
+  marcaVista();
+
+  rellenaSelects();
+  pintaNombre();
+  redibuja();
+  conectaNube();
+  addEventListener("scroll", oculta, { passive: true });
+})();
+</script>
+
+</body></html>

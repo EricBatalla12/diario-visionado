@@ -3,7 +3,7 @@
 // directamente. En modo "revincula" sirve para cambiar el título de AniList al
 // que apunta una entrada.
 import { $, esc, FORMATOS, tituloApi, ESTADOS, aviso, TIPOS } from "./ui.js";
-import { entradas, porMedia, anade, actualiza, entrada } from "./almacen.js";
+import { propias, porMedia, anade, actualiza, entrada } from "./almacen.js";
 import { buscar } from "./anilist.js";
 import * as ficha from "./ficha.js";
 
@@ -49,7 +49,7 @@ function programa(texto, ms = 380) {
   clearTimeout(temporizador);
   const t = texto.trim();
   // Lo local sale al instante; AniList espera a que dejes de teclear
-  const locales = !t || modo.revincula ? [] : entradas().filter((e) => norm(e.titulo + " " + (e.media?.title.romaji || "") + " " + (e.media?.title.english || "")).includes(norm(t)))
+  const locales = !t || modo.revincula ? [] : propias().filter((e) => norm(e.titulo + " " + (e.media?.title.romaji || "") + " " + (e.media?.title.english || "")).includes(norm(t)))
     .slice(0, 5).map((e) => ({ clase: "local", e }));
   resultados = [...locales];
   if (t && !modo.revincula) resultados.push({ clase: "manual", texto: t });

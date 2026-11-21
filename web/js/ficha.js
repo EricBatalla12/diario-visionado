@@ -1,10 +1,12 @@
 // Ficha de un título: datos de AniList arriba y tu registro (estado, nota,
 // progreso, fecha, comentario) debajo, que se guarda solo al tocarlo. También
-// sirve de vista previa para algo que aún no está en el archivo.
+// sirve de vista previa para algo que aún no está en el archivo, y de ficha
+// en solo lectura cuando el registro es de otro operador.
 import { $, esc, cartel, rango, fmtNota, ESTADOS, TIPOS, MESES, FORMATOS, tituloApi, genero, aviso,
   tarjetaTitulo, htmlSeguro, cuentaAtras, tinte } from "./ui.js";
-import { entrada, actualiza, borra, anade, porMedia, deshaz } from "./almacen.js";
+import { entrada, actualiza, borra, anade, porMedia, deshaz, esMia, sujetoActual, yoMismo } from "./almacen.js";
 import { detalle } from "./anilist.js";
+import { otrosDe } from "./nube.js";
 
 const dlg = () => $("#ficha");
 let actual = null;          // uid abierto (o null en vista previa)
@@ -31,10 +33,11 @@ export function abre(uid, previa = null) {
   d.style.setProperty("--tinte", e ? tinte(e) : (m?.coverImage?.color || "#ff6b1a"));
   if (!d.open) d.showModal();
   d.scrollTop = 0;
-  if (e) conectaRegistro(d, e);
-  else conectaAlta(d, m);
+  if (e && esMia(e.uid)) conectaRegistro(d, e);
+  else conectaAlta(d, m, e);
   d.querySelector("[data-cierra]").addEventListener("click", () => d.close());
-  if (m?.id) cargaDetalle(d, m.id);
+  d.querySelector("[data-mio]")?.addEventListener("click", (ev) => abre(ev.currentTarget.dataset.mio));
+  if (m?.id) { cargaDetalle(d, m.id); cargaOtros(d, m.id, e); }
 }
 
 export function cierra() { if (dlg().open) dlg().close(); }
@@ -68,7 +71,8 @@ function plantilla(e, m) {
       ${m?.genres?.length ? `<div class="fi-gen">${m.genres.map((g) => `<span>${esc(genero(g))}</span>`).join("")}</div>` : ""}
     </div>
   </header>
-  ${e ? registro(e) : alta(m)}
+  ${e && esMia(e.uid) ? registro(e) : e ? ajeno(e) + alta(m, e) : alta(m)}
+  ${m?.id ? `<div id="fi-otros"></div>` : ""}
   <div id="fi-det">${m?.id ? `<div class="cargando"><span></span>Descargando expediente…</div>` : ""}</div>`;
 }
 
@@ -113,22 +117,44 @@ function registro(e) {
   </section>`;
 }
 
-function alta(m) {
+// Registro de otro operador, en solo lectura
+function ajeno(e) {
+  const r = rango(e.nota), es = ESTADOS[e.estado], dueno = sujetoActual();
+  const total = e.media?.episodes;
+  return `<section class="fi-reg panel esquinas fi-ajeno">
+    <h3 class="p-tit"><span>Registro de ${esc(dueno?.nombre || "otro operador")}</span><i>記録</i><small>@${esc(dueno?.alias || "")} · solo lectura</small></h3>
+    <div class="fa-fila">
+      <div class="fa-nota ${r ? r.clase : "sin-nota"}"><b>${e.nota == null ? "—" : fmtNota(e.nota)}</b><i>${r ? r.r : ""}</i></div>
+      <div class="fa-datos">
+        <span class="fa-estado" style="--c:${es.color}"><i>${es.jp}</i>${es.nombre}</span>
+        <small>${[total ? `${e.progreso || 0}/${total} ep` : null, e.mes ? MESES[e.mes - 1] : null, e.anio].filter(Boolean).join(" · ")}</small>
+      </div>
+    </div>
+    ${e.comentario ? `<blockquote class="fa-com">${esc(e.comentario)}</blockquote>` : ""}
+  </section>`;
+}
+
+function alta(m, ajena = null) {
+  const mia = m?.id ? porMedia(m.id) : null;
+  if (mia) return `<section class="fi-reg panel esquinas fi-alta"><h3 class="p-tit"><span>Tu archivo</span><i>登録</i></h3>
+    <div class="fi-acc"><button class="btn primario" data-mio="${esc(mia.uid)}">Ya lo tienes · abrir tu registro ▸</button></div></section>`;
   return `<section class="fi-reg panel esquinas fi-alta">
-    <h3 class="p-tit"><span>Añadir al archivo</span><i>登録</i></h3>
+    <h3 class="p-tit"><span>${ajena ? "Añadir a tu archivo" : "Añadir al archivo"}</span><i>登録</i></h3>
     <div class="fi-estados">${["pendiente", "viendo", "visto"].map((k) => `<button data-alta="${k}" style="--c:${ESTADOS[k].color}"><i>${ESTADOS[k].jp}</i>Como ${ESTADO_AL[k].toLowerCase()}</button>`).join("")}</div>
     ${m?.siteUrl ? `<div class="fi-acc"><a class="btn" href="${esc(m.siteUrl)}" target="_blank" rel="noopener">Abrir en AniList ↗</a></div>` : ""}
   </section>`;
 }
 
-function conectaAlta(d, m) {
+function conectaAlta(d, m, ajena = null) {
   d.querySelectorAll("[data-alta]").forEach((b) => b.addEventListener("click", () => {
-    const ya = porMedia(m.id);
+    const ya = m?.id ? porMedia(m.id) : null;
     if (ya) return abre(ya.uid);
     const estado = b.dataset.alta;
-    const e = anade({ mediaId: m.id, media: m, titulo: tituloApi(m), estado,
+    // Sin ficha de AniList (serie o peli de un amigo) se copia su título y tipo
+    const e = m ? anade({ mediaId: m.id, media: m, titulo: tituloApi(m), estado,
       tipo: m.type === "MANGA" ? "manga" : m.format === "MOVIE" ? "peli" : "anime",
-      progreso: estado === "visto" ? (m.episodes || 0) : 0 });
+      progreso: estado === "visto" ? (m.episodes || 0) : 0 })
+      : anade({ titulo: ajena.titulo, tipo: ajena.tipo, estado });
     aviso(`«${e.titulo}» entra en el archivo.`);
     abre(e.uid);
   }));
@@ -236,4 +262,23 @@ async function cargaDetalle(d, id) {
     const { studios, ...resto } = n;
     abre(ya ? ya.uid : null, ya ? null : { ...resto, studio: studios?.nodes?.[0]?.name || null });
   }));
+}
+
+// Lo que el resto de operadores ha registrado de este título
+async function cargaOtros(d, mediaId, e) {
+  const caja = d.querySelector("#fi-otros");
+  if (!caja) return;
+  let filas;
+  try { filas = await otrosDe(mediaId, yoMismo().id); } catch { return; }
+  if (!caja.isConnected || !filas.length) return;
+  const conNota = filas.filter((f) => f.nota != null);
+  const media = conNota.length ? conNota.reduce((a, f) => a + +f.nota, 0) / conNota.length : null;
+  caja.innerHTML = `<section class="fi-sec"><h3 class="p-tit"><span>Otros operadores</span><i>仲間</i>
+      <small>${filas.length} lo tienen${media != null ? ` · media ${fmtNota(+media.toFixed(1))}` : ""}</small></h3>
+    <ul class="fi-otros">${filas.map((f) => { const r = f.nota != null ? rango(+f.nota) : null; const es = ESTADOS[f.estado]; const p = f.perfiles;
+      return `<li><a href="#/@${esc(p.alias)}" class="fo-av">${p.avatar_url ? `<img src="${esc(p.avatar_url)}" alt="" referrerpolicy="no-referrer">` : `<span>${esc(p.nombre[0] || "?")}</span>`}</a>
+        <div class="fo-d"><b>${esc(p.nombre)}</b> <span style="color:${es.color}">${es.nombre.toLowerCase()}</span>
+        ${f.comentario ? `<p>«${esc(f.comentario)}»</p>` : ""}</div>
+        <span class="fo-nota ${r ? r.clase : ""}">${r ? `${fmtNota(+f.nota)}<i>${r.r}</i>` : "—"}</span></li>`; }).join("")}</ul></section>`;
+  caja.querySelectorAll("a").forEach((a) => a.addEventListener("click", () => d.close()));
 }

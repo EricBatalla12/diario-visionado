@@ -880,6 +880,166 @@ body.berserk .carta-img img { filter: hue-rotate(-30deg) saturate(1.8) contrast(
 body.berserk .amb-kanji { color: rgba(255, 31, 61, .12); }
 @keyframes temblor { 0% { transform: translate(1px, -1px); } 50% { transform: translate(-1px, 1px); } }
 
+/* ==========================================================================
+   Cuentas y operadores
+   ========================================================================== */
+
+/* Hasta que hay sesión solo se ve la capa de acceso */
+body.sin-sesion > .cab, body.sin-sesion > .nav, body.sin-sesion > .vista, body.sin-sesion > .pie { display: none; }
+.arranque[hidden] { display: none; }
+
+/* ── Acceso ───────────────────────────────────────────────────────────── */
+.acceso {
+  position: fixed; inset: 0; z-index: 800; overflow-y: auto;
+  display: grid; justify-items: center; align-content: safe center; gap: 18px; padding: 24px 16px;
+  background: radial-gradient(900px 500px at 50% 0%, rgba(255, 107, 26, .14), transparent 70%), var(--negro);
+}
+.ac-fondo { position: fixed; inset: 0; display: grid; place-items: center; pointer-events: none; overflow: hidden; }
+.ac-fondo span { font: min(38vw, 420px)/1 var(--f-jp); color: rgba(255, 107, 26, .045); letter-spacing: -.05em; white-space: nowrap; }
+.ac-caja { position: relative; width: min(480px, 100%); padding: 30px 30px 26px; animation: abreFicha .5s cubic-bezier(.2, .9, .2, 1) both; }
+.ac-logo { display: flex; align-items: center; gap: 14px; margin-bottom: 26px; }
+.ac-tit { margin: 0 0 8px; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; font-weight: 400; }
+.ac-tit span { font: 800 clamp(30px, 6vw, 40px)/1 var(--f-display); letter-spacing: -.01em; }
+.ac-tit i { font: 700 15px "Zen Kaku Gothic New", sans-serif; font-style: normal; color: var(--naranja); }
+.ac-txt { margin: 0 0 22px; color: var(--texto-2); font-size: 14.5px; }
+.ac-txt code { font: 12.5px var(--f-mono); color: var(--naranja-2); }
+.ac-botones { display: grid; gap: 10px; }
+.ac-btn {
+  display: flex; align-items: center; justify-content: center; gap: 12px; height: 52px;
+  font: 700 14px var(--f-hud); letter-spacing: .1em; text-transform: uppercase;
+  border: 1px solid var(--linea-2); transition: transform .12s, filter .2s, box-shadow .2s;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+}
+.ac-btn svg { width: 22px; height: 22px; }
+.ac-btn:hover { filter: brightness(1.1); }
+.ac-btn:active { transform: translateY(1px); }
+.ac-btn:disabled { opacity: .6; cursor: progress; }
+.ac-btn.discord { background: #5865f2; border-color: #5865f2; color: #fff; }
+.ac-btn.discord:hover { box-shadow: 0 0 30px -6px #5865f2; }
+.ac-btn.google { background: #fff; border-color: #fff; color: #1f1f1f; }
+.ac-btn.google:hover { box-shadow: 0 0 30px -8px #fff; }
+.ac-error { margin: 14px 0 0; padding: 10px 12px; font: 600 13px var(--f-hud); color: var(--rojo); background: rgba(255, 46, 85, .08); border-left: 3px solid var(--rojo); }
+.ac-notas { margin: 22px 0 0; padding: 14px 0 0 18px; border-top: 1px solid var(--linea); color: var(--texto-3); font-size: 12.5px; display: grid; gap: 4px; }
+.ac-pie { margin: 0; font: 11px var(--f-mono); color: var(--texto-3); position: relative; }
+.ac-pie a { color: var(--texto-2); }
+.ac-form { display: grid; gap: 14px; }
+.ac-avatar { justify-self: center; width: 84px; height: 84px; display: grid; place-items: center; overflow: hidden; border: 2px solid var(--naranja); box-shadow: 0 0 30px -6px var(--naranja); clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); background: var(--panel-3); }
+.ac-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.ac-avatar span { font: 36px var(--f-jp); color: var(--naranja); }
+.ac-alias { display: flex; align-items: center; border: 1px solid var(--linea-2); background: var(--negro); }
+.ac-alias:focus-within { border-color: var(--naranja); }
+.ac-alias b { padding: 0 4px 0 12px; font: 800 15px var(--f-mono); color: var(--naranja); }
+.ac-alias input { flex: 1; border: 0 !important; background: none !important; padding-left: 0 !important; font: 600 15px var(--f-mono) !important; min-width: 0; }
+.ac-ayuda { font: 11px var(--f-mono); color: var(--texto-3); }
+.ac-ayuda.ok { color: var(--verde); } .ac-ayuda.mal { color: var(--rojo); }
+.ac-crear { height: 48px; margin-top: 4px; }
+
+/* ── Cabecera con avatar ──────────────────────────────────────────────── */
+.op-enlace { display: contents; color: inherit; text-decoration: none; }
+.op-nv { position: relative; overflow: hidden; }
+.op-nv img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .35; }
+.op-nv small, .op-nv b { position: relative; }
+.estado-guardado { min-width: 0; }
+.pie-sep { color: var(--linea-2); }
+
+/* ── Visitando a otro operador ────────────────────────────────────────── */
+.pestana.volver { min-width: 0; background: var(--panel-2); }
+.visita { flex-shrink: 0; display: flex; align-items: center; gap: 10px; padding: 0 16px 0 6px; margin: 0 6px; border: 1px solid var(--cian); background: rgba(57, 216, 255, .07); }
+.visita img { width: 34px; height: 34px; object-fit: cover; }
+.visita span { display: grid; line-height: 1.15; }
+.visita small { font: 600 9px var(--f-mono); letter-spacing: .16em; text-transform: uppercase; color: var(--cian); }
+.visita b { font: 700 14px var(--f-hud); }
+.visita em { font: 11px var(--f-mono); font-style: normal; color: var(--texto-3); }
+body.visitando .pestana.on { background: var(--cian); border-color: var(--cian); }
+body.visitando .vista { --naranja: var(--cian); }
+
+/* ── Perfil con foto ──────────────────────────────────────────────────── */
+.id-foto { width: 104px; height: 104px; object-fit: cover; border-radius: 50%; filter: saturate(1.1); }
+.id-kanji-mini { position: absolute; top: 4px; right: 4px; padding: 3px 6px; font: 700 12px "Zen Kaku Gothic New", sans-serif; background: var(--negro); border: 1px solid var(--naranja); color: var(--naranja-2); }
+.id-nombre:not(.editable) { cursor: default; border-bottom-color: transparent !important; }
+
+/* ── Archivo vacío ────────────────────────────────────────────────────── */
+.vacio-acc { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 18px 0 14px; }
+.vista-accion { margin-left: auto; }
+
+/* ── Operadores ───────────────────────────────────────────────────────── */
+.ops { display: grid; grid-template-columns: 1fr 360px; gap: 18px; align-items: start; }
+.ops-lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 12px; }
+.op-tarjeta { position: relative; display: grid; grid-template-columns: 74px 1fr; gap: 16px; padding: 18px 16px 14px; color: inherit; text-decoration: none; overflow: hidden; transition: border-color .15s, transform .15s, background .15s; }
+.vista.anima .op-tarjeta { animation: entra .5s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(var(--i, 0) * 40ms); }
+.op-tarjeta:hover { border-color: var(--naranja); transform: translateY(-2px); background: var(--panel-2); }
+.op-tarjeta.soy-yo { border-color: rgba(255, 107, 26, .45); }
+.opt-puesto { position: absolute; top: 8px; right: 12px; font: 800 26px/1 var(--f-mono); color: var(--linea-2); }
+.op-tarjeta:nth-child(1) .opt-puesto { color: var(--oro); text-shadow: 0 0 14px rgba(255, 210, 63, .4); }
+.opt-av { position: relative; width: 74px; height: 74px; }
+.opt-av img, .opt-av .av-ini { width: 74px; height: 74px; object-fit: cover; display: grid; place-items: center; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); background: var(--panel-3); font: 30px var(--f-jp); color: var(--naranja); }
+.opt-nv { position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); padding: 1px 6px; white-space: nowrap; font: 800 10px var(--f-mono); background: var(--naranja); color: var(--negro); }
+.opt-d { min-width: 0; }
+.opt-d h3 { margin: 0; padding-right: 40px; font: 800 22px/1.1 var(--f-display); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.opt-tu { font: 700 9.5px var(--f-mono); color: var(--negro); background: var(--naranja); padding: 1px 5px; vertical-align: middle; letter-spacing: .1em; }
+.opt-alias { margin: 3px 0 10px; font: 11.5px var(--f-mono); color: var(--texto-3); }
+.opt-alias i { font: 700 11px "Zen Kaku Gothic New", sans-serif; font-style: normal; color: var(--naranja-2); }
+.opt-cifras { display: flex; gap: 16px; margin: 0 0 10px; }
+.opt-cifras dt { font: 600 8.5px var(--f-mono); letter-spacing: .16em; text-transform: uppercase; color: var(--texto-3); }
+.opt-cifras dd { margin: 0; font: 800 16px var(--f-mono); }
+.opt-af { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 11px; }
+.opt-af > span { font: 600 9px var(--f-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--texto-3); }
+.opt-af-b { flex: 1; height: 6px; background: var(--linea); max-width: 120px; }
+.opt-af-b span { display: block; height: 100%; background: linear-gradient(90deg, var(--rosa), var(--naranja)); box-shadow: 0 0 8px rgba(255, 79, 154, .5); }
+.opt-af b { font: 800 14px var(--f-mono); color: var(--rosa); }
+.opt-af em { font: 10.5px var(--f-mono); font-style: normal; color: var(--texto-3); }
+.opt-viendo { display: flex; align-items: center; gap: 4px; margin-bottom: 6px; }
+.opt-viendo > span { font: 600 9px var(--f-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--cian); margin-right: 4px; }
+.opt-viendo img, .opt-viendo i { width: 26px; height: 36px; object-fit: cover; border: 1px solid var(--linea-2); display: grid; place-items: center; font: 700 11px var(--f-hud); font-style: normal; background: var(--panel-3); }
+.opt-ult { font: 10.5px var(--f-mono); color: var(--texto-3); }
+.ops-feed { padding: 18px; position: sticky; top: 80px; max-height: calc(100vh - 140px); overflow-y: auto; }
+.feed { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+.feed li { display: grid; grid-template-columns: 34px 1fr; gap: 10px; }
+.feed-av img, .feed-av span { width: 34px; height: 34px; object-fit: cover; display: grid; place-items: center; background: var(--panel-3); font: 16px var(--f-jp); color: var(--naranja); }
+.feed p { margin: 0; font-size: 13px; }
+.feed p a { color: var(--texto); font-weight: 700; text-decoration: none; }
+.feed p a:hover { color: var(--naranja-2); }
+.feed p b { font: 800 12px var(--f-mono); color: var(--rc); margin-left: 4px; }
+.feed-t { font: 600 13.5px var(--f-hud) !important; }
+.feed-c { color: var(--texto-2); font-style: italic; font-size: 12.5px !important; }
+.feed small { font: 10px var(--f-mono); color: var(--texto-3); }
+
+/* ── Ficha: registro ajeno y otros operadores ─────────────────────────── */
+.fi-ajeno { border-color: rgba(57, 216, 255, .35); }
+.fi-ajeno::before, .fi-ajeno::after { border-color: var(--cian); }
+.fa-fila { display: flex; align-items: center; gap: 22px; }
+.fa-nota { --rc: var(--linea-2); display: flex; align-items: baseline; gap: 8px; }
+.fa-nota b { font: 800 56px/1 var(--f-mono); letter-spacing: -.04em; }
+.fa-nota i { font: 800 26px var(--f-display); font-style: normal; color: var(--rc); text-shadow: 0 0 14px var(--rc); }
+.fa-datos { display: grid; gap: 6px; }
+.fa-estado { display: inline-flex; gap: 8px; align-items: center; padding: 4px 10px; font: 700 12px var(--f-hud); letter-spacing: .1em; text-transform: uppercase; background: var(--c); color: var(--negro); justify-self: start; }
+.fa-estado i { font: 700 11px "Zen Kaku Gothic New", sans-serif; font-style: normal; opacity: .65; }
+.fa-datos small { font: 12px var(--f-mono); color: var(--texto-3); }
+.fa-com { margin: 16px 0 0; padding: 12px 16px; border-left: 3px solid var(--cian); background: var(--panel); font: 15px/1.6 var(--f-texto); color: var(--texto); }
+.fi-otros { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.fi-otros li { display: grid; grid-template-columns: 38px 1fr auto; gap: 12px; align-items: center; padding: 8px 12px 8px 8px; background: var(--negro); border: 1px solid var(--linea); }
+.fo-av img, .fo-av span { width: 38px; height: 38px; object-fit: cover; display: grid; place-items: center; background: var(--panel-3); font: 16px var(--f-jp); color: var(--naranja); }
+.fo-d { min-width: 0; font-size: 13px; }
+.fo-d b { font: 700 13.5px var(--f-hud); }
+.fo-d p { margin: 3px 0 0; color: var(--texto-2); font-style: italic; font-size: 12.5px; }
+.fo-nota { --rc: var(--texto-3); font: 800 20px var(--f-mono); }
+.fo-nota i { font: 800 11px var(--f-hud); font-style: normal; color: var(--rc); margin-left: 4px; }
+
+@media (max-width: 1100px) {
+  .ops { grid-template-columns: 1fr; }
+  .ops-feed { position: static; max-height: none; }
+}
+@media (max-width: 720px) {
+  .ac-caja { padding: 24px 18px 20px; }
+  .ops-lista { grid-template-columns: 1fr; }
+  .visita { padding-right: 10px; }
+  .visita em { display: none; }
+  .fa-fila { gap: 14px; }
+  .fa-nota b { font-size: 44px; }
+  .pie-der .estado-guardado, .pie-sep { display: none; }
+  .vista-accion { margin-left: 0; }
+}
+
 /* ── Pantallas medianas ───────────────────────────────────────────────── */
 @media (max-width: 1100px) {
   .p-sinc { grid-column: span 12; grid-row: auto; }

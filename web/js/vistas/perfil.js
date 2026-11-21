@@ -1,21 +1,24 @@
 // 02 · PERFIL — tarjeta de operador, sincronía con AniList, radar de géneros,
 // estudios, reparto de notas, actividad por mes y logros.
 import { esc, fmtNota, rango, genero, MESES, ESTADOS } from "../ui.js";
-import { operador, ponOperador } from "../almacen.js";
+import { operador, ponOperador, sujetoActual, esPropio } from "../almacen.js";
+import { aviso } from "../ui.js";
 
 export function pinta(raiz, { stats: s, abreFicha }) {
   const op = s.op;
+  const quien = sujetoActual(), propio = esPropio();
   const hechos = s.logros.filter((l) => l.hecho).length;
   raiz.innerHTML = `
   <section class="id-op panel esquinas">
     <div class="id-avatar">
       ${anillo(op.k)}
-      <div class="id-kanji" style="--n:${[...op.rango.jp].length}">${op.rango.jp}</div>
+      ${quien?.avatar_url ? `<img class="id-foto" src="${esc(quien.avatar_url)}" alt="" referrerpolicy="no-referrer"><div class="id-kanji-mini">${op.rango.jp}</div>`
+        : `<div class="id-kanji" style="--n:${[...op.rango.jp].length}">${op.rango.jp}</div>`}
       <div class="id-nv">NV<b>${op.nivel}</b></div>
     </div>
     <div class="id-datos">
-      <span class="etq">OPERADOR · オペレーター</span>
-      <h2 class="id-nombre" id="op-nombre" contenteditable="plaintext-only" spellcheck="false" title="Pulsa para cambiar el nombre">${esc(operador())}</h2>
+      <span class="etq">OPERADOR · オペレーター · @${esc(quien?.alias || "")}</span>
+      <h2 class="id-nombre ${propio ? "editable" : ""}" id="op-nombre" ${propio ? 'contenteditable="plaintext-only" spellcheck="false" title="Pulsa para cambiar el nombre"' : ""}>${esc(operador())}</h2>
       <div class="id-rango">${esc(op.rango.nombre)} <i>${op.rango.jp}</i></div>
       <div class="xp"><div class="xp-barra"><span style="width:${(op.k * 100).toFixed(1)}%"></span></div>
         <small>${op.xp.toLocaleString("es-ES")} XP · faltan ${(op.hasta - op.xp).toLocaleString("es-ES")} para el NV ${op.nivel + 1}
@@ -69,8 +72,14 @@ export function pinta(raiz, { stats: s, abreFicha }) {
   </section>`;
 
   const nom = raiz.querySelector("#op-nombre");
-  nom.addEventListener("keydown", (ev) => { if (ev.key === "Enter") { ev.preventDefault(); nom.blur(); } });
-  nom.addEventListener("blur", () => { const t = nom.textContent.trim(); if (t && t !== operador()) ponOperador(t); else nom.textContent = operador(); });
+  if (propio) {
+    nom.addEventListener("keydown", (ev) => { if (ev.key === "Enter") { ev.preventDefault(); nom.blur(); } });
+    nom.addEventListener("blur", async () => {
+      const t = nom.textContent.trim().slice(0, 24);
+      if (!t || t === operador()) { nom.textContent = operador(); return; }
+      try { await ponOperador(t); aviso("Nombre cambiado."); } catch (err) { nom.textContent = operador(); aviso("No se pudo cambiar: " + err.message); }
+    });
+  }
   raiz.querySelectorAll("[data-uid]").forEach((n) => n.addEventListener("click", () => abreFicha(n.dataset.uid)));
 }
 

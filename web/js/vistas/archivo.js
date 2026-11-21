@@ -1,7 +1,7 @@
 // 01 · ARCHIVO — la colección: cifras del HUD, filtros y cartas holográficas
 // (o la vista "dossier", en filas).
 import { esc, cartel, rango, fmtNota, ESTADOS, TIPOS, MESES, FORMATOS, subtitulo, tinte, cuenta, genero } from "../ui.js";
-import { entradas } from "../almacen.js";
+import { entradas, esPropio, sujetoActual } from "../almacen.js";
 import { episodios, generosDe } from "../stats.js";
 
 const CLAVE_F = "kiroku:filtros";
@@ -155,6 +155,14 @@ function cifra(et, jp, n, d, suf) {
   return `<div class="cifra panel"><span class="cifra-et">${et}<i>${jp}</i></span><b data-n="${n}" data-d="${d}">0</b><em>${suf}</em></div>`;
 }
 function vacio(hay) {
-  return `<div class="vacio"><div class="vacio-jp">無</div><p>${hay ? "Nada coincide con los filtros." : "El archivo está vacío."}</p>
-    <p class="tenue">Pulsa <kbd>/</kbd> para buscar en AniList y añadir.</p></div>`;
+  if (hay) return `<div class="vacio"><div class="vacio-jp">無</div><p>Nada coincide con los filtros.</p></div>`;
+  if (!esPropio()) return `<div class="vacio"><div class="vacio-jp">無</div><p>@${esc(sujetoActual().alias)} aún no ha registrado nada.</p></div>`;
+  // Archivo propio vacío: lo normal en un operador recién llegado
+  return `<div class="vacio vacio-nuevo"><div class="vacio-jp">始</div><p>Tu archivo está vacío. Empieza por aquí:</p>
+    <div class="vacio-acc">
+      <button class="btn primario" onclick="document.getElementById('btn-busca').click()">⌕ Buscar en AniList</button>
+      <a class="btn" href="#/temporada">Ver la temporada</a>
+      <button class="btn" onclick="document.getElementById('fichero').click()">↑ Importar un archivo JSON</button>
+    </div>
+    <p class="tenue">¿Venías de la versión local de KIROKU o del diario antiguo? Exporta allí e importa aquí.</p></div>`;
 }

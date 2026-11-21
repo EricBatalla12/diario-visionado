@@ -10,16 +10,17 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://graphql.anilist.co">
+  <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/+esm" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Dela+Gothic+One&family=JetBrains+Mono:wght@400;600;800&family=Shippori+Mincho+B1:wght@700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
   <link rel="stylesheet" href="css/kiroku.css">
 </head>
-<body>
+<body class="sin-sesion">
   <!-- Capas de ambiente: rejilla, kanji de fondo, líneas de barrido y viñeta -->
   <div class="amb-rejilla" aria-hidden="true"></div>
   <div class="amb-kanji" aria-hidden="true">視聴記録</div>
   <div class="amb-crt" aria-hidden="true"></div>
 
-  <div id="arranque" class="arranque" aria-hidden="true">
+  <div id="arranque" class="arranque" aria-hidden="true" hidden>
     <div class="ar-logo"><span>記録</span></div>
     <div class="ar-lineas"></div>
     <div class="ar-pie">pulsa cualquier tecla</div>
@@ -37,11 +38,12 @@
         <button class="btn-icono" id="btn-menu" aria-label="Menú de datos" aria-haspopup="true">⋮</button>
         <div class="menu" id="menu" hidden>
           <button data-acc="exporta"><i>↓</i>Exportar copia (JSON)</button>
-          <button data-acc="importa"><i>↑</i>Importar copia o diario antiguo</button>
+          <button data-acc="importa"><i>↑</i>Importar archivo (JSON)</button>
           <button data-acc="refresca"><i>↻</i>Actualizar fichas de AniList</button>
           <button data-acc="deshaz"><i>↶</i>Deshacer último cambio</button>
           <hr>
-          <button data-acc="restablece" class="peligro"><i>⚠</i>Restablecer desde la semilla</button>
+          <button data-acc="sal"><i>⏻</i>Cerrar sesión</button>
+          <button data-acc="borra-cuenta" class="peligro"><i>⚠</i>Borrar mi cuenta y mi archivo</button>
         </div>
       </div>
       <input type="file" id="fichero" accept="application/json,.json" hidden>
@@ -54,7 +56,7 @@
 
   <footer class="pie">
     <div class="teletipo" id="teletipo" aria-hidden="true"></div>
-    <div class="pie-der"><span id="estado-red" class="estado-red"></span><span>Datos de <a href="https://anilist.co" target="_blank" rel="noopener">AniList</a></span></div>
+    <div class="pie-der"><span id="estado-red" class="estado-red ok"></span><span id="estado-guardado" class="estado-guardado">Guardado</span><span class="pie-sep">·</span><span>Datos de <a href="https://anilist.co" target="_blank" rel="noopener">AniList</a></span></div>
   </footer>
 
   <dialog id="ficha" class="ficha" aria-label="Ficha del título"></dialog>

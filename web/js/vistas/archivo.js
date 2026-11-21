@@ -1,0 +1,160 @@
+// 01 · ARCHIVO — la colección: cifras del HUD, filtros y cartas holográficas
+// (o la vista "dossier", en filas).
+import { esc, cartel, rango, fmtNota, ESTADOS, TIPOS, MESES, FORMATOS, subtitulo, tinte, cuenta, genero } from "../ui.js";
+import { entradas } from "../almacen.js";
+import { episodios, generosDe } from "../stats.js";
+
+const CLAVE_F = "kiroku:filtros";
+const def = { estado: "todos", tipo: "todos", anio: "todos", genero: "todos", orden: "fecha", texto: "", modo: "cartas" };
+let f = { ...def };
+try { f = { ...def, ...JSON.parse(localStorage.getItem(CLAVE_F) || "{}"), texto: "" }; } catch {}
+const guardaF = () => { try { localStorage.setItem(CLAVE_F, JSON.stringify({ ...f, texto: "" })); } catch {} };
+
+const norm = (t) => String(t || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+
+// Fecha de "cuándo lo viste": año y mes del registro; sin mes va al principio del año
+const clave = (e) => (e.anio || 0) * 100 + (e.mes || 0);
+
+function filtra(lista) {
+  const q = norm(f.texto);
+  return lista.filter((e) =>
+    (f.estado === "todos" || e.estado === f.estado) &&
+    (f.tipo === "todos" || e.tipo === f.tipo) &&
+    (f.anio === "todos" || String(e.anio) === f.anio) &&
+    (f.genero === "todos" || generosDe(e).includes(f.genero)) &&
+    (!q || norm(e.titulo + " " + (e.media?.title.romaji || "") + " " + (e.media?.title.english || "") + " " + e.comentario).includes(q)));
+}
+
+const ORDENES = {
+  fecha:   { nombre: "Más reciente",      fn: (a, b) => clave(b) - clave(a) || b.creado - a.creado },
+  nota:    { nombre: "Tu nota",           fn: (a, b) => (b.nota ?? -1) - (a.nota ?? -1) },
+  anilist: { nombre: "Nota de AniList",   fn: (a, b) => (b.media?.averageScore ?? -1) - (a.media?.averageScore ?? -1) },
+  delta:   { nombre: "Discrepancia",      fn: (a, b) => dif(b) - dif(a) },
+  titulo:  { nombre: "Título (A-Z)",      fn: (a, b) => a.titulo.localeCompare(b.titulo, "es") },
+  estreno: { nombre: "Año de estreno",    fn: (a, b) => (b.media?.seasonYear ?? 0) - (a.media?.seasonYear ?? 0) },
+};
+function dif(e) { return e.nota != null && e.media?.averageScore ? Math.abs(e.nota - e.media.averageScore / 10) : -1; }
+
+export function carta(e, { indice = 0 } = {}) {
+  const r = rango(e.nota);
+  const es = ESTADOS[e.estado];
+  const m = e.media;
+  const total = m?.episodes;
+  const meta = [m ? FORMATOS[m.format] || m.format : TIPOS[e.tipo]?.nombre, m?.seasonYear, total ? total + " ep" : (m?.chapters ? m.chapters + " cap" : null)].filter(Boolean).join(" · ");
+  const prog = e.estado === "viendo" && total ? Math.min(1, (e.progreso || 0) / total) : null;
+  const sig = e.estado !== "visto" && m?.nextAiringEpisode;
+  return `<article class="carta holo ${r ? r.clase : "sin-nota"}" data-uid="${esc(e.uid)}" tabindex="0" role="button"
+      aria-label="${esc(e.titulo)}" style="--tinte:${esc(tinte(e))};--i:${indice}">
+    <div class="carta-marco">
+      <div class="carta-img">${cartel(e)}</div>
+      <div class="carta-brillo"></div>
+      <span class="carta-estado" style="--c:${es.color}"><i>${es.jp}</i>${es.nombre}</span>
+      ${r ? `<span class="carta-rango"><b>${fmtNota(e.nota)}</b><i>${r.r}</i></span>` : ""}
+      ${sig ? `<span class="carta-emision">EP ${sig.episode} · ${diasA(sig.airingAt)}</span>` : ""}
+      <div class="carta-pie">
+        <h3>${esc(e.titulo)}</h3>
+        <p>${esc(meta)}</p>
+        ${prog != null ? `<div class="carta-prog"><span style="width:${(prog * 100).toFixed(1)}%"></span></div>` : ""}
+      </div>
+    </div>
+  </article>`;
+}
+const diasA = (t) => { const s = t - Date.now() / 1000; const d = Math.floor(s / 86400); return d > 0 ? `${d}d` : `${Math.max(0, Math.floor(s / 3600))}h`; };
+
+function fila(e) {
+  const r = rango(e.nota);
+  const es = ESTADOS[e.estado];
+  const total = e.media?.episodes;
+  const ep = episodios(e);
+  return `<article class="fila ${r ? r.clase : ""}" data-uid="${esc(e.uid)}" tabindex="0" role="button" style="--tinte:${esc(tinte(e))}">
+    <div class="fila-img">${cartel(e)}</div>
+    <div class="fila-t"><h3>${esc(e.titulo)}</h3><p>${esc(subtitulo(e))}</p></div>
+    <span class="fila-estado" style="--c:${es.color}">${es.jp} ${es.nombre}</span>
+    <div class="fila-ep">${total ? `<div class="barra"><span style="width:${Math.min(100, ep / total * 100)}%"></span></div><small>${ep}/${total}</small>` : `<small>${TIPOS[e.tipo]?.nombre}</small>`}</div>
+    <p class="fila-com">${esc(e.comentario || "")}</p>
+    <span class="fila-nota">${r ? `<b>${fmtNota(e.nota)}</b><i>${r.r}</i>` : "—"}</span>
+  </article>`;
+}
+
+export function pinta(raiz, { stats, primera }) {
+  const todas = entradas();
+  const lista = filtra(todas).sort(ORDENES[f.orden]?.fn || ORDENES.fecha.fn);
+  const anios = [...new Set(todas.map((e) => e.anio).filter(Boolean))].sort((a, b) => b - a);
+  const generos = [...stats.generos.entries()].sort((a, b) => b[1] - a[1]).map(([g]) => g);
+  const cuentaEst = (k) => todas.filter((e) => k === "todos" || e.estado === k).length;
+
+  raiz.innerHTML = `
+  <section class="hud-cifras">
+    ${cifra("TÍTULOS", "作品数", stats.total, 0, "")}
+    ${cifra("EPISODIOS", "話数", stats.eps, 0, "")}
+    ${cifra("HORAS DE VIDA", "時間", stats.horas, 0, "h")}
+    ${cifra("NOTA MEDIA", "平均", stats.media ?? 0, 2, "")}
+  </section>
+
+  <section class="filtros panel">
+    <div class="chips" role="group" aria-label="Estado">
+      ${["todos", ...Object.keys(ESTADOS)].map((k) => `<button class="chip ${f.estado === k ? "on" : ""}" data-f="estado" data-v="${k}"
+        style="--c:${k === "todos" ? "var(--texto)" : ESTADOS[k].color}">${k === "todos" ? "Todos" : ESTADOS[k].nombre}<small>${cuentaEst(k)}</small></button>`).join("")}
+    </div>
+    <div class="filtros-fila">
+      <label class="campo-busca"><span>⌕</span><input id="f-texto" type="search" placeholder="Filtrar el archivo…" value="${esc(f.texto)}" autocomplete="off"></label>
+      ${sel("tipo", "Tipo", [["todos", "Todo"], ...Object.entries(TIPOS).map(([k, v]) => [k, v.nombre])])}
+      ${sel("anio", "Año", [["todos", "Siempre"], ...anios.map((a) => [String(a), String(a)])])}
+      ${sel("genero", "Género", [["todos", "Cualquiera"], ...generos.map((g) => [g, genero(g)])])}
+      ${sel("orden", "Orden", Object.entries(ORDENES).map(([k, v]) => [k, v.nombre]))}
+      <div class="conmuta" role="group" aria-label="Vista">
+        <button class="${f.modo === "cartas" ? "on" : ""}" data-f="modo" data-v="cartas" title="Cartas">▦</button>
+        <button class="${f.modo === "dossier" ? "on" : ""}" data-f="modo" data-v="dossier" title="Dossier">☰</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="resultado-cuenta"><span>${lista.length}</span> registros ${lista.length !== todas.length ? `de ${todas.length}` : ""}
+    ${f.texto || f.estado !== "todos" || f.tipo !== "todos" || f.anio !== "todos" || f.genero !== "todos" ? `<button class="enlace" data-limpia>Quitar filtros</button>` : ""}</div>
+
+  <section id="coleccion">${lista.length ? cuerpo(lista) : vacio(todas.length)}</section>`;
+
+  raiz.querySelectorAll(".cifra b[data-n]").forEach((b) => primera ? cuenta(b, +b.dataset.n, { dec: +b.dataset.d }) :
+    (b.textContent = (+b.dataset.n).toLocaleString("es-ES", { maximumFractionDigits: +b.dataset.d, minimumFractionDigits: +b.dataset.d })));
+
+  // Eventos
+  raiz.querySelectorAll("[data-f]").forEach((b) => b.addEventListener("click", () => { f[b.dataset.f] = b.dataset.v; guardaF(); pinta(raiz, { stats }); }));
+  raiz.querySelectorAll("select[data-sel]").forEach((s) => s.addEventListener("change", () => { f[s.dataset.sel] = s.value; guardaF(); pinta(raiz, { stats }); }));
+  raiz.querySelector("[data-limpia]")?.addEventListener("click", () => { f = { ...def, orden: f.orden, modo: f.modo }; guardaF(); pinta(raiz, { stats }); });
+  const t = raiz.querySelector("#f-texto");
+  t.addEventListener("input", () => {
+    f.texto = t.value;
+    const l = filtra(todas).sort(ORDENES[f.orden].fn);
+    raiz.querySelector("#coleccion").innerHTML = l.length ? cuerpo(l) : vacio(todas.length);
+    raiz.querySelector(".resultado-cuenta span").textContent = l.length;
+  });
+
+  function cuerpo(l) {
+    if (f.modo === "dossier") return `<div class="dossier">${l.map(fila).join("")}</div>`;
+    // Ordenado por fecha, las cartas se agrupan por mes con un rótulo
+    if (f.orden !== "fecha") return `<div class="rejilla">${l.map((e, i) => carta(e, { indice: i })).join("")}</div>`;
+    const grupos = [];
+    for (const e of l) {
+      const k = e.anio ? `${e.anio}-${e.mes || 0}` : "sin";
+      if (!grupos.length || grupos.at(-1).k !== k) grupos.push({ k, e, items: [] });
+      grupos.at(-1).items.push(e);
+    }
+    let i = 0;
+    return grupos.map((g) => `<div class="grupo">
+      <h2 class="rotulo"><span class="rotulo-n">${g.e.anio || "—"}</span><span class="rotulo-m">${g.e.mes ? MESES[g.e.mes - 1] : (g.e.anio ? "Sin mes" : "Sin fecha")}</span>
+      <span class="rotulo-jp">${g.e.mes ? g.e.mes + "月" : "年"}</span><span class="rotulo-c">${g.items.length}</span></h2>
+      <div class="rejilla">${g.items.map((e) => carta(e, { indice: i++ })).join("")}</div></div>`).join("");
+  }
+}
+
+function sel(k, etiqueta, ops) {
+  return `<label class="sel"><span>${etiqueta}</span><select data-sel="${k}">${ops.map(([v, n]) =>
+    `<option value="${esc(v)}" ${f[k] === v ? "selected" : ""}>${esc(n)}</option>`).join("")}</select></label>`;
+}
+function cifra(et, jp, n, d, suf) {
+  return `<div class="cifra panel"><span class="cifra-et">${et}<i>${jp}</i></span><b data-n="${n}" data-d="${d}">0</b><em>${suf}</em></div>`;
+}
+function vacio(hay) {
+  return `<div class="vacio"><div class="vacio-jp">無</div><p>${hay ? "Nada coincide con los filtros." : "El archivo está vacío."}</p>
+    <p class="tenue">Pulsa <kbd>/</kbd> para buscar en AniList y añadir.</p></div>`;
+}

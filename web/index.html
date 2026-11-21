@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KIROKU 記録</title>
+  <meta name="description" content="Archivo personal de anime, manga, series y pelis, con datos de AniList.">
+  <meta name="theme-color" content="#060609">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23ff6b1a'/%3E%3Ctext x='32' y='46' font-size='40' text-anchor='middle' font-family='serif' font-weight='900' fill='%23060609'%3E記%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://graphql.anilist.co">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Dela+Gothic+One&family=JetBrains+Mono:wght@400;600;800&family=Shippori+Mincho+B1:wght@700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+  <link rel="stylesheet" href="css/kiroku.css">
+</head>
+<body>
+  <!-- Capas de ambiente: rejilla, kanji de fondo, líneas de barrido y viñeta -->
+  <div class="amb-rejilla" aria-hidden="true"></div>
+  <div class="amb-kanji" aria-hidden="true">視聴記録</div>
+  <div class="amb-crt" aria-hidden="true"></div>
+
+  <div id="arranque" class="arranque" aria-hidden="true">
+    <div class="ar-logo"><span>記録</span></div>
+    <div class="ar-lineas"></div>
+    <div class="ar-pie">pulsa cualquier tecla</div>
+  </div>
+
+  <header class="cab">
+    <a class="logo" href="#/archivo" aria-label="KIROKU, ir al archivo">
+      <span class="logo-kanji">記録</span>
+      <span class="logo-t"><b>KIROKU</b><small>Archivo de visionado · 視聴の記録</small></span>
+    </a>
+    <div class="cab-der">
+      <button class="btn-busca" id="btn-busca"><span>⌕</span><span class="bb-t">Buscar en AniList</span><kbd>/</kbd></button>
+      <div class="op" id="op"></div>
+      <div class="menu-caja">
+        <button class="btn-icono" id="btn-menu" aria-label="Menú de datos" aria-haspopup="true">⋮</button>
+        <div class="menu" id="menu" hidden>
+          <button data-acc="exporta"><i>↓</i>Exportar copia (JSON)</button>
+          <button data-acc="importa"><i>↑</i>Importar copia o diario antiguo</button>
+          <button data-acc="refresca"><i>↻</i>Actualizar fichas de AniList</button>
+          <button data-acc="deshaz"><i>↶</i>Deshacer último cambio</button>
+          <hr>
+          <button data-acc="restablece" class="peligro"><i>⚠</i>Restablecer desde la semilla</button>
+        </div>
+      </div>
+      <input type="file" id="fichero" accept="application/json,.json" hidden>
+    </div>
+  </header>
+
+  <nav class="nav" id="nav" aria-label="Secciones"></nav>
+
+  <main id="vista" class="vista"></main>
+
+  <footer class="pie">
+    <div class="teletipo" id="teletipo" aria-hidden="true"></div>
+    <div class="pie-der"><span id="estado-red" class="estado-red"></span><span>Datos de <a href="https://anilist.co" target="_blank" rel="noopener">AniList</a></span></div>
+  </footer>
+
+  <dialog id="ficha" class="ficha" aria-label="Ficha del título"></dialog>
+  <dialog id="paleta" class="paleta" aria-label="Buscar"></dialog>
+  <div id="avisos" class="avisos" aria-live="polite"></div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

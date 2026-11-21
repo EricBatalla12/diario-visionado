@@ -1,7 +1,7 @@
 // Pantallas previas a la web: terminal de acceso (Discord / Google), registro
 // del operador la primera vez, y aviso si falta configurar Supabase.
 import { $, esc } from "./ui.js";
-import { entra, datosProveedor, aliasLibre, creaPerfil } from "./nube.js";
+import { entra, datosProveedor, aliasLibre, creaPerfil, proveedoresActivos } from "./nube.js";
 
 const ICONOS = {
   discord: `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M20.32 4.37a19.8 19.8 0 0 0-4.89-1.52.07.07 0 0 0-.08.04c-.21.38-.44.87-.61 1.25a18.27 18.27 0 0 0-5.49 0 12.6 12.6 0 0 0-.62-1.25.08.08 0 0 0-.08-.04 19.74 19.74 0 0 0-4.89 1.52.07.07 0 0 0-.03.03C.53 9.05-.32 13.58.1 18.06a.08.08 0 0 0 .03.05 19.9 19.9 0 0 0 5.99 3.03.08.08 0 0 0 .08-.03c.46-.63.87-1.3 1.23-1.99a.08.08 0 0 0-.04-.1 13.1 13.1 0 0 1-1.87-.9.08.08 0 0 1 0-.12l.37-.29a.07.07 0 0 1 .08-.01c3.93 1.79 8.18 1.79 12.06 0a.07.07 0 0 1 .08 0l.37.3a.08.08 0 0 1 0 .12c-.6.35-1.22.65-1.88.9a.08.08 0 0 0-.04.1c.36.7.78 1.36 1.23 1.99a.08.08 0 0 0 .08.03 19.84 19.84 0 0 0 6-3.03.08.08 0 0 0 .03-.05c.5-5.18-.84-9.67-3.55-13.66a.06.06 0 0 0-.03-.03ZM8.02 15.33c-1.18 0-2.16-1.09-2.16-2.42s.96-2.42 2.16-2.42c1.21 0 2.18 1.1 2.16 2.42 0 1.33-.96 2.42-2.16 2.42Zm7.97 0c-1.18 0-2.15-1.09-2.15-2.42s.95-2.42 2.15-2.42c1.21 0 2.18 1.1 2.16 2.42 0 1.33-.95 2.42-2.16 2.42Z"/></svg>`,
@@ -28,19 +28,28 @@ const marco = (cuerpo) => `
   <p class="ac-pie">Datos de anime y manga: <a href="https://anilist.co" target="_blank" rel="noopener">AniList</a></p>`;
 
 // ── Inicio de sesión ─────────────────────────────────────────────────────
-export function pantallaEntrada(error) {
+const PROVEEDORES = [
+  { id: "discord", nombre: "Discord" },
+  { id: "google", nombre: "Google" },
+];
+
+// Solo se enseñan los botones de los proveedores activados en Supabase
+// (si no se puede saber, se enseñan todos).
+export async function pantallaEntrada(error) {
   const c = capa();
+  const activos = await proveedoresActivos();
+  const visibles = PROVEEDORES.filter((p) => !activos || activos.has(p.id));
   c.innerHTML = marco(`
     <h1 class="ac-tit"><span>Terminal de acceso</span><i>アクセス端末</i></h1>
     <p class="ac-txt">Identifícate, operador. Si es tu primera vez, entrar crea tu expediente.</p>
     <div class="ac-botones">
-      <button class="ac-btn discord" data-prov="discord">${ICONOS.discord}<span>Entrar con Discord</span></button>
-      <button class="ac-btn google" data-prov="google">${ICONOS.google}<span>Entrar con Google</span></button>
+      ${visibles.map((p) => `<button class="ac-btn ${p.id}" data-prov="${p.id}">${ICONOS[p.id]}<span>Entrar con ${p.nombre}</span></button>`).join("")
+        || `<p class="ac-error">▲ No hay ningún método de acceso activado todavía.</p>`}
     </div>
     ${error ? `<p class="ac-error">▲ ${esc(error)}</p>` : ""}
     <ul class="ac-notas">
       <li>Tu archivo lo ven los demás operadores con sesión iniciada; solo tú puedes cambiarlo.</li>
-      <li>De tu cuenta de Discord o Google solo se usan el nombre y la foto.</li>
+      <li>De tu cuenta de ${visibles.map((p) => p.nombre).join(" o ") || "Discord o Google"} solo se usan el nombre y la foto.</li>
     </ul>`);
   c.querySelectorAll("[data-prov]").forEach((b) => b.addEventListener("click", async () => {
     c.querySelectorAll("[data-prov]").forEach((x) => (x.disabled = true));

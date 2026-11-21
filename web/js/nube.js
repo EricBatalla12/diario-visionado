@@ -28,6 +28,19 @@ export function entra(proveedor) {
   });
 }
 
+// Qué proveedores de login están activados en Supabase, para no enseñar un
+// botón que acabaría en "provider is not enabled". Si la consulta falla se
+// devuelve null y la pantalla de acceso enseña todos.
+export async function proveedoresActivos() {
+  try {
+    // Con límite de tiempo: si la red va lenta, mejor todos los botones que una pantalla vacía
+    const r = await fetch(`${SUPABASE_URL}/auth/v1/settings`, { headers: { apikey: SUPABASE_ANON_KEY }, signal: AbortSignal.timeout(3000) });
+    if (!r.ok) return null;
+    const { external = {} } = await r.json();
+    return new Set(Object.keys(external).filter((k) => external[k] === true));
+  } catch { return null; }
+}
+
 export const sal = () => sb.auth.signOut();
 export const alCambiarSesion = (fn) => sb.auth.onAuthStateChange((ev, s) => fn(ev, s));
 

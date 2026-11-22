@@ -103,12 +103,15 @@ function tarjeta(m) {
   const ya = porMedia(m.id);
   const falso = { titulo: tituloApi(m), media: m, tipo: "anime" };
   const sig = m.nextAiringEpisode;
+  // AniList solo da `episodes` cuando el total está anunciado: si no, no se inventa
+  const total = m.format !== "MOVIE" ? m.episodes : null;
   return `<article class="carta holo t-carta" style="--tinte:${esc(m.coverImage?.color || "#ff6b1a")}">
     <div class="carta-marco" data-abre="${m.id}" role="button" tabindex="0">
       <div class="carta-img">${cartel(falso)}</div>
       <div class="carta-brillo"></div>
       ${m.averageScore ? `<span class="carta-comunidad">${(m.averageScore / 10).toFixed(1)}</span>` : ""}
-      ${sig ? `<span class="carta-emision">EP ${sig.episode} · ${cuentaAtras(sig.airingAt - Date.now() / 1000)}</span>` : ""}
+      ${sig ? `<span class="carta-emision" title="${total ? `Episodio ${sig.episode} de ${total}` : `Episodio ${sig.episode}; total sin confirmar`}">EP ${sig.episode}${total ? `/${total}` : ""} · ${cuentaAtras(sig.airingAt - Date.now() / 1000)}</span>`
+        : total ? `<span class="carta-emision total" title="${total} episodios">${total} EP</span>` : ""}
       <div class="carta-pie"><h3>${esc(falso.titulo)}</h3>
         <p>${esc([FORMATOS[m.format] || m.format, m.studio, m.episodes ? m.episodes + " ep" : null].filter(Boolean).join(" · "))}</p>
         <p class="t-gen">${(m.genres || []).slice(0, 3).map((g) => esc(genero(g))).join(" / ")}</p></div>

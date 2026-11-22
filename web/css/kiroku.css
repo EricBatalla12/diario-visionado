@@ -392,6 +392,8 @@ kbd {
   background: rgba(6, 6, 9, .82); color: var(--cian); border: 1px solid rgba(57, 216, 255, .4);
 }
 .carta-comunidad { top: 8px; left: auto; right: 8px; color: var(--texto); border-color: var(--linea-2); }
+/* Sin fecha de próximo episodio: solo el total confirmado, en neutro */
+.carta-emision.total { color: var(--texto-2); border-color: var(--linea-2); }
 .carta-pie { position: absolute; left: 0; right: 0; bottom: 0; padding: 10px 12px 12px; }
 .carta-pie h3 { margin: 0; font: 700 14px/1.2 var(--f-hud); text-wrap: balance; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-shadow: 0 1px 8px #000; }
 .carta-pie p { margin: 4px 0 0; font: 500 10px var(--f-mono); color: var(--texto-2); letter-spacing: .04em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

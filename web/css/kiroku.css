@@ -724,18 +724,21 @@ dialog::backdrop { background: rgba(3, 3, 6, .78); backdrop-filter: blur(6px) sa
 .fi-estados button.on { background: var(--c); border-color: var(--c); color: var(--negro); box-shadow: 0 0 22px -4px var(--c); }
 .fi-estados button.on i { color: rgba(6, 6, 9, .6); }
 .fi-rejilla { display: grid; grid-template-columns: 260px 1fr; gap: 20px; margin-bottom: 14px; }
-.fi-nota { --rc: var(--linea-2); padding: 14px 16px; border: 1px solid var(--linea-2); background: radial-gradient(circle at 80% 30%, color-mix(in srgb, var(--rc) 18%, transparent), transparent 70%); }
+/* El color por defecto va en :where (especificidad 0) para que .r-ex, .r-s… lo pisen
+   aunque estén antes en el fichero */
+:where(.fi-nota) { --rc: var(--linea-2); }
+.fi-nota { padding: 14px 16px; border: 1px solid var(--linea-2); background: radial-gradient(circle at 80% 30%, color-mix(in srgb, var(--rc) 18%, transparent), transparent 70%); }
 .fn-lectura { display: grid; grid-template-columns: 36px 1fr 36px; align-items: center; gap: 6px; margin: 2px 0 6px; }
 .fn-centro { display: flex; align-items: baseline; justify-content: center; gap: 6px; min-width: 0; }
 #fn-num {
   width: 3ch; padding: 0; border: 0; border-bottom: 2px solid transparent; background: none; outline: none;
-  font: 800 54px/1 var(--f-mono); letter-spacing: -.04em; color: var(--texto); font-variant-numeric: tabular-nums; text-align: right;
+  font: 800 50px/1 var(--f-mono); letter-spacing: -.04em; color: var(--texto); font-variant-numeric: tabular-nums; text-align: right;
   transition: border-color .15s;
 }
 #fn-num::placeholder { color: var(--texto-3); }
 #fn-num:hover { border-bottom-color: var(--linea-2); }
 #fn-num:focus { border-bottom-color: var(--naranja); }
-.fn-lectura i { font: 800 26px/1 var(--f-display); font-style: normal; color: var(--rc); text-shadow: 0 0 18px var(--rc); min-width: 1.2em; }
+.fn-lectura i { font: 800 24px/1 var(--f-display); font-style: normal; color: var(--rc); text-shadow: 0 0 18px var(--rc); min-width: 1.2em; }
 .fi-nota.r-ex #fn-num { background: linear-gradient(135deg, #fff3c2, var(--oro), #c7860f); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .fn-paso {
   width: 36px; height: 40px; display: grid; place-items: center; touch-action: manipulation; user-select: none;
@@ -1023,7 +1026,8 @@ body.visitando .vista { --naranja: var(--cian); }
 .fi-ajeno { border-color: rgba(57, 216, 255, .35); }
 .fi-ajeno::before, .fi-ajeno::after { border-color: var(--cian); }
 .fa-fila { display: flex; align-items: center; gap: 22px; }
-.fa-nota { --rc: var(--linea-2); display: flex; align-items: baseline; gap: 8px; }
+:where(.fa-nota) { --rc: var(--linea-2); }
+.fa-nota { display: flex; align-items: baseline; gap: 8px; }
 .fa-nota b { font: 800 56px/1 var(--f-mono); letter-spacing: -.04em; }
 .fa-nota i { font: 800 26px var(--f-display); font-style: normal; color: var(--rc); text-shadow: 0 0 14px var(--rc); }
 .fa-datos { display: grid; gap: 6px; }
@@ -1037,7 +1041,8 @@ body.visitando .vista { --naranja: var(--cian); }
 .fo-d { min-width: 0; font-size: 13px; }
 .fo-d b { font: 700 13.5px var(--f-hud); }
 .fo-d p { margin: 3px 0 0; color: var(--texto-2); font-style: italic; font-size: 12.5px; }
-.fo-nota { --rc: var(--texto-3); font: 800 20px var(--f-mono); }
+:where(.fo-nota) { --rc: var(--texto-3); }
+.fo-nota { font: 800 20px var(--f-mono); }
 .fo-nota i { font: 800 11px var(--f-hud); font-style: normal; color: var(--rc); margin-left: 4px; }
 
 @media (max-width: 1100px) {
@@ -1139,7 +1144,8 @@ body.visitando .vista { --naranja: var(--cian); }
 .rc-cuenta { justify-self: end; font: 10.5px var(--f-mono); color: var(--texto-3); }
 .rc-nota { display: flex; align-items: center; gap: 8px; margin-top: 10px; font: 500 13px var(--f-hud); color: var(--texto-2); cursor: pointer; }
 .rc-nota input { accent-color: var(--naranja); width: 16px; height: 16px; }
-.rc-nota b { --rc: var(--texto); font: 800 13px var(--f-mono); color: var(--rc); }
+:where(.rc-nota b) { --rc: var(--texto); }
+.rc-nota b { font: 800 13px var(--f-mono); color: var(--rc); }
 .fi-recomendado { display: flex; align-items: center; gap: 8px; margin: -6px 0 14px; font: 500 13px var(--f-hud); color: var(--texto-2); }
 .fi-recomendado span { padding: 1px 5px; font: 700 11px "Zen Kaku Gothic New", sans-serif; background: var(--naranja); color: var(--negro); }
 
@@ -1164,7 +1170,8 @@ body.visitando .vista { --naranja: var(--cian); }
 .bz-ya { margin: 10px 0 0; font: 500 13px var(--f-hud); color: var(--texto-2); }
 .bz-ya b { color: var(--c); }
 .bz-carta .fi-acc { margin-top: 12px; }
-.bz-nota { --rc: var(--texto); display: grid; justify-items: end; padding: 4px 4px 0 0; }
+:where(.bz-nota) { --rc: var(--texto); }
+.bz-nota { display: grid; justify-items: end; padding: 4px 4px 0 0; }
 .bz-nota small { font: 600 9.5px var(--f-mono); letter-spacing: .16em; text-transform: uppercase; color: var(--texto-3); }
 .bz-nota b { font: 800 40px/1 var(--f-mono); letter-spacing: -.04em; }
 .bz-nota i { font: 800 18px var(--f-display); font-style: normal; color: var(--rc); text-shadow: 0 0 12px var(--rc); }

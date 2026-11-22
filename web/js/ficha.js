@@ -6,7 +6,8 @@ import { $, esc, cartel, rango, fmtNota, ESTADOS, TIPOS, MESES, FORMATOS, titulo
   tarjetaTitulo, htmlSeguro, cuentaAtras, tinte } from "./ui.js";
 import { entrada, actualiza, borra, anade, porMedia, deshaz, esMia, sujetoActual, yoMismo } from "./almacen.js";
 import { detalle } from "./anilist.js";
-import { otrosDe } from "./nube.js";
+import { otrosDe, perfilCorto } from "./nube.js";
+import { boton as botonRecomendar } from "./recos.js";
 
 const dlg = () => $("#ficha");
 let actual = null;          // uid abierto (o null en vista previa)
@@ -37,7 +38,8 @@ export function abre(uid, previa = null) {
   else conectaAlta(d, m, e);
   d.querySelector("[data-cierra]").addEventListener("click", () => d.close());
   d.querySelector("[data-mio]")?.addEventListener("click", (ev) => abre(ev.currentTarget.dataset.mio));
-  if (m?.id) { cargaDetalle(d, m.id); cargaOtros(d, m.id, e); }
+  if (m?.id) { cargaDetalle(d, m.id); cargaOtros(d, m.id, e); botonRecomendar(d.querySelector("#fi-recomienda"), m); }
+  if (e?.recomendadoPor) quienRecomendo(d, e.recomendadoPor);
 }
 
 export function cierra() { if (dlg().open) dlg().close(); }
@@ -72,7 +74,7 @@ function plantilla(e, m) {
     </div>
   </header>
   ${e && esMia(e.uid) ? registro(e) : e ? ajeno(e) + alta(m, e) : alta(m)}
-  ${m?.id ? `<div id="fi-otros"></div>` : ""}
+  ${m?.id ? `<div id="fi-recomienda"></div><div id="fi-otros"></div>` : ""}
   <div id="fi-det">${m?.id ? `<div class="cargando"><span></span>Descargando expediente…</div>` : ""}</div>`;
 }
 
@@ -84,6 +86,7 @@ function registro(e) {
   const anio = new Date().getFullYear();
   return `<section class="fi-reg panel esquinas">
     <h3 class="p-tit"><span>Tu registro</span><i>記録</i><small class="fi-guardado" aria-live="polite"></small></h3>
+    ${e.recomendadoPor ? `<p class="fi-recomendado" hidden></p>` : ""}
     <div class="fi-estados" role="radiogroup" aria-label="Estado">
       ${Object.entries(ESTADOS).map(([k, v]) => `<button role="radio" aria-checked="${e.estado === k}" class="${e.estado === k ? "on" : ""}" data-estado="${k}" style="--c:${v.color}">
         <i>${v.jp}</i>${ESTADO_AL[k]}</button>`).join("")}
@@ -91,7 +94,12 @@ function registro(e) {
     <div class="fi-rejilla">
       <div class="fi-nota ${r ? r.clase : "sin-nota"}">
         <span class="etq">Nota</span>
-        <div class="fn-lectura"><b id="fn-num">${e.nota == null ? "—" : fmtNota(e.nota)}</b><i id="fn-r">${r ? r.r : ""}</i></div>
+        <div class="fn-lectura">
+          <button class="fn-paso" data-paso="-1" aria-label="Bajar una décima" title="Bajar 0,1 (mantén pulsado para seguir)">−</button>
+          <span class="fn-centro"><input id="fn-num" inputmode="decimal" autocomplete="off" maxlength="4" aria-label="Nota, escríbela o usa − y ＋"
+            value="${e.nota == null ? "" : fmtNota(e.nota)}" placeholder="—"><i id="fn-r">${r ? r.r : ""}</i></span>
+          <button class="fn-paso" data-paso="1" aria-label="Subir una décima" title="Subir 0,1 (mantén pulsado para seguir)">＋</button>
+        </div>
         <input type="range" id="fn-rango" min="0" max="10" step="0.1" value="${e.nota ?? 7}" aria-label="Nota de 0 a 10" ${e.nota == null ? 'data-vacia="1"' : ""}>
         <div class="fn-pie"><span>0</span><button class="enlace" data-sin-nota>${e.nota == null ? "Arrastra para puntuar" : "Quitar nota"}</button><span>10</span></div>
       </div>
@@ -181,22 +189,71 @@ function conectaRegistro(d, e0) {
     if (cambios.mes) { d.querySelector("#fi-mes").value = cambios.mes; d.querySelector("#fi-anio").value = cambios.anio; }
   }));
 
-  // Nota
+  // Nota: la barra para ir rápido; − y ＋ (o escribirla) para afinar la décima,
+  // que con la barra cuesta acertar. Mantener − o ＋ pulsado sigue contando y
+  // se guarda una sola vez al soltar.
   const rg = d.querySelector("#fn-rango"), num = d.querySelector("#fn-num"), letra = d.querySelector("#fn-r"), caja = d.querySelector(".fi-nota");
-  const pintaNota = (n) => {
+  const redondea = (n) => Math.min(10, Math.max(0, Math.round(n * 10) / 10));
+  const pintaNota = (n, { tecleando = false } = {}) => {
     const r = rango(n);
-    num.textContent = n == null ? "—" : fmtNota(n);
+    if (!tecleando) num.value = n == null ? "" : fmtNota(n);
     letra.textContent = r ? r.r : "";
     caja.className = "fi-nota " + (r ? r.clase : "sin-nota");
+    if (n != null) { rg.value = n; rg.removeAttribute("data-vacia"); } else rg.setAttribute("data-vacia", "1");
     d.querySelector("[data-sin-nota]").textContent = n == null ? "Arrastra para puntuar" : "Quitar nota";
   };
-  rg.addEventListener("input", () => pintaNota(+rg.value));
-  rg.addEventListener("change", () => {
-    const antes = e().nota, n = +(+rg.value).toFixed(1);
+  const guardaNota = (n) => {
+    const antes = e().nota;
+    if (n === antes) return;
     pon({ nota: n });
     if (n >= 10 && (antes == null || antes < 10)) tarjetaTitulo({ jp: "傑作", linea1: "OBRA MAESTRA", linea2: e().titulo, clase: "oro" });
-  });
+  };
+  rg.addEventListener("input", () => pintaNota(+rg.value));
+  rg.addEventListener("change", () => guardaNota(redondea(+rg.value)));
   d.querySelector("[data-sin-nota]").addEventListener("click", () => { if (e().nota != null) { pon({ nota: null }); pintaNota(null); } });
+
+  // − / ＋
+  let enCurso = null, repite = null;
+  const paso = (dir) => { enCurso = redondea((enCurso ?? e().nota ?? +rg.value) + dir / 10); pintaNota(enCurso); };
+  const suelta = () => {
+    clearTimeout(repite); clearInterval(repite);
+    if (enCurso != null) { guardaNota(enCurso); enCurso = null; }
+  };
+  d.querySelectorAll("[data-paso]").forEach((b) => {
+    const dir = +b.dataset.paso;
+    b.addEventListener("pointerdown", (ev) => {
+      if (ev.button !== 0) return;
+      b.setPointerCapture(ev.pointerId);
+      paso(dir);
+      repite = setTimeout(() => { repite = setInterval(() => paso(dir), 80); }, 420);
+    });
+    b.addEventListener("pointerup", suelta);
+    b.addEventListener("pointercancel", suelta);
+    // Con teclado (Intro o espacio sobre el botón) llega un clic sin puntero
+    b.addEventListener("click", (ev) => { if (ev.detail === 0) { paso(dir); suelta(); } });
+  });
+
+  // Escribirla: admite coma o punto; Intro o salir del campo guarda, Esc deshace
+  const leeTecleada = () => {
+    const t = num.value.trim().replace(",", ".");
+    if (!t) return null;
+    const n = Number(t);
+    return Number.isFinite(n) ? redondea(n) : undefined;
+  };
+  num.addEventListener("focus", () => num.select());
+  num.addEventListener("input", () => { const n = leeTecleada(); if (n != null) pintaNota(n, { tecleando: true }); });
+  num.addEventListener("keydown", (ev) => {
+    if (ev.key === "Enter") { ev.preventDefault(); num.blur(); }
+    if (ev.key === "Escape") { ev.preventDefault(); ev.stopPropagation(); num.value = ""; pintaNota(e().nota); num.blur(); }
+    if (ev.key === "ArrowUp" || ev.key === "ArrowDown") { ev.preventDefault(); paso(ev.key === "ArrowUp" ? 1 : -1); suelta(); }
+  });
+  num.addEventListener("blur", () => {
+    const n = leeTecleada();
+    // Vacío o algo que no es un número: se queda la nota que había
+    if (n == null) { pintaNota(e().nota); return; }
+    pintaNota(n);
+    guardaNota(n);
+  });
 
   // Progreso
   const prog = d.querySelector("#fi-prog");
@@ -262,6 +319,18 @@ async function cargaDetalle(d, id) {
     const { studios, ...resto } = n;
     abre(ya ? ya.uid : null, ya ? null : { ...resto, studio: studios?.nodes?.[0]?.name || null });
   }));
+}
+
+// "Te lo recomendó…": el perfil se pide aparte (puede haber borrado su cuenta)
+async function quienRecomendo(d, id) {
+  const caja = d.querySelector(".fi-recomendado");
+  if (!caja) return;
+  let p;
+  try { p = await perfilCorto(id); } catch { return; }
+  if (!p || !caja.isConnected) return;
+  caja.innerHTML = `<span>推</span> Te lo recomendó <a href="#/@${esc(p.alias)}">${esc(p.nombre)}</a>`;
+  caja.hidden = false;
+  caja.querySelector("a").addEventListener("click", () => d.close());
 }
 
 // Lo que el resto de operadores ha registrado de este título

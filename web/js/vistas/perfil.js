@@ -4,6 +4,7 @@ import { esc, fmtNota, rango, genero, MESES, ESTADOS } from "../ui.js";
 import { operador, ponOperador, sujetoActual, esPropio } from "../almacen.js";
 import { aviso } from "../ui.js";
 import { panel as panelPrivacidad } from "./privacidad.js";
+import { panel as panelRecos } from "./ajustes-recos.js";
 
 export function pinta(raiz, { stats: s, abreFicha }) {
   const op = s.op;
@@ -34,7 +35,8 @@ export function pinta(raiz, { stats: s, abreFicha }) {
     </div>
     <div class="id-codigo" aria-hidden="true">${codigo(operador() + op.nivel)}</div>
   </section>
-  ${propio ? `<section class="panel esquinas p-priv" id="privacidad"></section>` : ""}
+  ${propio ? `<div class="ajustes"><section class="panel esquinas p-priv" id="privacidad"></section>
+    <section class="panel esquinas p-priv" id="ajustes-recos"></section></div>` : ""}
 
   <div class="paneles">
     <section class="panel esquinas p-sinc">
@@ -73,7 +75,7 @@ export function pinta(raiz, { stats: s, abreFicha }) {
       </div>`).join("")}</div>
   </section>`;
 
-  if (propio) panelPrivacidad(raiz.querySelector("#privacidad"));
+  if (propio) { panelPrivacidad(raiz.querySelector("#privacidad")); panelRecos(raiz.querySelector("#ajustes-recos")); }
   const nom = raiz.querySelector("#op-nombre");
   if (propio) {
     nom.addEventListener("keydown", (ev) => { if (ev.key === "Enter") { ev.preventDefault(); nom.blur(); } });

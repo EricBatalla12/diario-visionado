@@ -1,6 +1,6 @@
 # Diario de visionado / KIROKU 記録
 
-Lee esto antes de nada. Estado al 22-11-2026.
+Lee esto antes de nada. Estado al 22-11-2026 (recomendaciones publicadas).
 
 ## Qué es
 
@@ -29,7 +29,7 @@ Lee esto antes de nada. Estado al 22-11-2026.
   Usa el **Supabase real**. El navegador cachea: recargar con `fetch(url,{cache:'reload'})`.
 - Página de pruebas con Supabase de imitación: `web/_prueba/index.html`
   (gitignored). `fake-sb.js` imita supabase-js en localStorage y aplica las mismas
-  reglas que `esquema.sql` (propiedad, privacidad, permisos). Sesiones falsas:
+  reglas que `esquema.sql` (propiedad, privacidad, permisos, recomendaciones). Sesiones falsas:
   `discord`, `google`, `tercero`. `web/_prueba/semilla.json` es copia de la semilla.
 - Reglas de la base de datos: probarlas en Docker `postgres:16-alpine` con una
   réplica mínima de Supabase (roles `anon`/`authenticated` creados con `DO ... exception`,
@@ -46,7 +46,9 @@ Lee esto antes de nada. Estado al 22-11-2026.
 - `almacen.js` archivo en memoria + **cola de guardado** (agrupa, reintenta), deshacer
   por operación, importar/exportar, "sujeto" (tu archivo o el de un amigo en solo lectura).
 - `acceso.js` pantallas de login/registro. `ficha.js`, `paleta.js` (buscador).
-- `vistas/`: archivo, perfil (+ `privacidad.js`), tier, temporada, gacha, operadores.
+- `recos.js` recomendaciones: buzón, sondeo, envío y resolución.
+- `vistas/`: archivo, perfil (+ `privacidad.js` y `ajustes-recos.js`), tier, temporada,
+  gacha, operadores, y `buzon.js` (fuera de la barra de pestañas).
 - `supabase/esquema.sql` estado completo e idempotente; cambios nuevos además en
   `supabase/migraciones/AAAA-MM-DD-nombre.sql`. **El usuario ejecuta la migración en
   el SQL Editor ANTES de publicar** la web que la usa; luego comprobarla desde aquí
@@ -61,34 +63,33 @@ Lee esto antes de nada. Estado al 22-11-2026.
 - Sueltos sin versionar a propósito: `kiroku-icono.png` (copia del usuario; el bueno
   está en `docs/marca/`), `datos/archivo-estrella.json` (gitignored, copia de seguridad).
 
-## Siguiente trabajo: recomendaciones entre operadores (propuesto, falta el "adelante")
+## Recomendaciones entre operadores (publicado)
 
-Idea de Eric: compartir un anime con otro usuario con un texto corto sin spoilers.
-Propuesta hecha (esperando confirmación de las 4 decisiones):
+Implementado el 22-11-2026 con las 4 decisiones recomendadas: por defecto
+"cualquiera" con máximo 3; lista "pueden recomendarme" aparte de la de privacidad;
+las pendientes no caducan; contador por sondeo (al arrancar, al volver a la pestaña
+tras 30 s y cada 3 min a la vista), sin tiempo real.
 
-- **Enviar**: botón "Recomendar a…" en cualquier ficha; elegir uno o varios
-  operadores (solo los que te aceptan; el resto en gris con motivo); mensaje ≤ 280
-  caracteres con recordatorio "sin spoilers"; lleva tu nota si tienes el título.
-- **Buzón 受信箱**: icono con contador en la cabecera; cartas con portada, remitente,
-  mensaje y nota; acciones **Añadir a pendientes** / **Ya lo he visto** (abre ficha) /
-  **Descartar**; marca si ya lo tienes. Pestaña **Enviadas** (pendientes, cancelables).
-- **Ajustes** (junto a Privacidad): quién puede recomendarte (nadie / mi lista /
-  cualquiera) y máximo de pendientes por remitente (1–10).
-- **Sin historial**: al resolver, la recomendación se borra; si se añade al archivo,
-  la entrada guarda `recomendado_por` (historial gratis + posible logro tipo "Ojo
-  clínico: N recomendaciones tuyas acabaron con 9+").
-- **Base de datos** (migración nueva): en `perfiles` → `recibe_recos` ('nadie'|'lista'|'todos')
-  y `recos_max` (1–10); tabla `permisos_reco (dueno, autorizado)`; tabla
-  `recomendaciones (id, de, para, media_id, media jsonb reducido, mensaje ≤280, creado)`
-  con unique (de, para, media_id); RLS: leer/borrar solo `de` o `para`; insertar solo
-  `de = auth.uid()` y si el receptor acepta (función security definer) y no se pasa
-  de su máximo (trigger); `entradas.recomendado_por uuid references perfiles on delete set null`.
-  No revelar al remitente si el receptor ya tiene el título (filtraría archivos privados).
-- **Decisiones recomendadas** (pendientes de que Eric diga "adelante"):
-  1. Por defecto "cualquier operador" con máximo 3.
-  2. Lista "pueden recomendarme" **aparte** de la de privacidad.
-  3. Las pendientes **no caducan**.
-  4. Contador por sondeo (al abrir, al volver a la pestaña, cada pocos minutos), sin tiempo real.
+- **Estado**: publicado el 22-11-2026; migración ejecutada en Supabase y comprobada.
+- **Base de datos**: `perfiles.recibe_recos` ('nadie'|'lista'|'todos') y `recos_max`
+  (1–10); tablas `permisos_reco (dueno, autorizado)` y `recomendaciones` (unique
+  de+para+media_id, mensaje ≤ 280, media ≤ 4 KB, nota opcional); `entradas.recomendado_por`.
+  `kiroku_acepta_recos(receptor)` en la regla de inserción; trigger `kiroku_tope_recos`
+  (no acepta / máximo por remitente / 200 en total, con cerrojo); trigger
+  `kiroku_limpia_recomendado` pone null si el perfil ya no existe (si no, la cola de
+  guardado reintentaría sin fin con un id viejo en memoria). Probado en Docker.
+- **Web**: `recos.js` (buzón en memoria, sondeo, aceptar/descartar con deshacer de 5 s,
+  formulario "Recomendar a…" de la ficha), `vistas/buzon.js` (`#/buzon`, fuera de la
+  barra de pestañas; Recibidas y Enviadas), `vistas/ajustes-recos.js` (en Perfil, junto
+  a Privacidad). La portada que llega en una recomendación solo se pinta si es de
+  `s*.anilist.co`; al añadirla al archivo se vuelve a pedir la ficha a AniList.
+- **Logro "Ojo clínico"** (眼, 3 recomendaciones tuyas que el receptor puntúa con 9+):
+  `nube.aciertosDe` cuenta entradas ajenas con `recomendado_por` = tú y nota ≥ 9. Pasa
+  por las reglas de lectura: los archivos privados que no puedes ver **no cuentan**
+  (a propósito, para no revelar nada de ellos). Se carga junto al archivo en
+  `almacen.carga` para que el aviso de logro no se repita en cada arranque.
+- **Nota en la ficha**: además de la barra, − y ＋ de 0,1 (mantener pulsado repite y
+  guarda al soltar) y el número se puede escribir (coma o punto, Intro guarda, Esc deshace).
 
 ## Pendientes menores
 

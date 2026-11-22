@@ -725,10 +725,25 @@ dialog::backdrop { background: rgba(3, 3, 6, .78); backdrop-filter: blur(6px) sa
 .fi-estados button.on i { color: rgba(6, 6, 9, .6); }
 .fi-rejilla { display: grid; grid-template-columns: 260px 1fr; gap: 20px; margin-bottom: 14px; }
 .fi-nota { --rc: var(--linea-2); padding: 14px 16px; border: 1px solid var(--linea-2); background: radial-gradient(circle at 80% 30%, color-mix(in srgb, var(--rc) 18%, transparent), transparent 70%); }
-.fn-lectura { display: flex; align-items: baseline; gap: 10px; margin: 2px 0 6px; }
-.fn-lectura b { font: 800 64px/1 var(--f-mono); letter-spacing: -.04em; color: var(--texto); font-variant-numeric: tabular-nums; }
-.fn-lectura i { font: 800 30px/1 var(--f-display); font-style: normal; color: var(--rc); text-shadow: 0 0 18px var(--rc); }
-.fi-nota.r-ex .fn-lectura b { background: linear-gradient(135deg, #fff3c2, var(--oro), #c7860f); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.fn-lectura { display: grid; grid-template-columns: 36px 1fr 36px; align-items: center; gap: 6px; margin: 2px 0 6px; }
+.fn-centro { display: flex; align-items: baseline; justify-content: center; gap: 6px; min-width: 0; }
+#fn-num {
+  width: 3ch; padding: 0; border: 0; border-bottom: 2px solid transparent; background: none; outline: none;
+  font: 800 54px/1 var(--f-mono); letter-spacing: -.04em; color: var(--texto); font-variant-numeric: tabular-nums; text-align: right;
+  transition: border-color .15s;
+}
+#fn-num::placeholder { color: var(--texto-3); }
+#fn-num:hover { border-bottom-color: var(--linea-2); }
+#fn-num:focus { border-bottom-color: var(--naranja); }
+.fn-lectura i { font: 800 26px/1 var(--f-display); font-style: normal; color: var(--rc); text-shadow: 0 0 18px var(--rc); min-width: 1.2em; }
+.fi-nota.r-ex #fn-num { background: linear-gradient(135deg, #fff3c2, var(--oro), #c7860f); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.fn-paso {
+  width: 36px; height: 40px; display: grid; place-items: center; touch-action: manipulation; user-select: none;
+  font: 700 22px var(--f-mono); color: var(--naranja); background: var(--panel); border: 1px solid var(--linea-2);
+  transition: border-color .15s, background .15s;
+}
+.fn-paso:hover { border-color: var(--naranja); background: var(--panel-2); }
+.fn-paso:active { background: rgba(255, 107, 26, .18); }
 #fn-rango { width: 100%; appearance: none; height: 22px; background: transparent; cursor: pointer; }
 #fn-rango::-webkit-slider-runnable-track { height: 6px; background: linear-gradient(90deg, var(--rk-f), var(--rk-d) 50%, var(--rk-c) 60%, var(--rk-b) 70%, var(--rk-a) 80%, var(--rk-s) 90%, var(--rk-sp) 95%, var(--rk-ex)); }
 #fn-rango::-moz-range-track { height: 6px; background: linear-gradient(90deg, var(--rk-f), var(--rk-d) 50%, var(--rk-c) 60%, var(--rk-b) 70%, var(--rk-a) 80%, var(--rk-s) 90%, var(--rk-sp) 95%, var(--rk-ex)); }
@@ -1083,6 +1098,89 @@ body.visitando .vista { --naranja: var(--cian); }
 .bloqueo-av img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: grayscale(1) brightness(.45); }
 .bloqueo-av span { position: relative; font: 700 22px "Zen Kaku Gothic New", sans-serif; color: var(--cian); text-shadow: 0 0 14px var(--cian); }
 @media (max-width: 720px) { .priv-modo { grid-template-columns: 1fr; } }
+
+/* ── Recomendaciones ──────────────────────────────────────────────────── */
+/* Ajustes en el perfil: privacidad y recomendaciones lado a lado */
+.ajustes { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: -2px 0 16px; align-items: start; }
+.ajustes .p-priv { margin: 0; }
+.rc-modo { grid-template-columns: repeat(3, 1fr); }
+.rc-modo button { grid-template-columns: 1fr; text-align: left; }
+.rc-modo i { grid-row: auto; }
+.rc-max { margin-top: 14px; max-width: 320px; }
+.rc-max select { width: 100%; }
+
+/* Icono del buzón en la cabecera */
+.btn-buzon { position: relative; text-decoration: none; color: var(--texto-2); }
+.btn-buzon span { font: 17px/1 var(--f-jp); }
+.btn-buzon.con { color: var(--texto); border-color: var(--naranja); }
+.btn-buzon.on { background: var(--naranja); color: var(--negro); border-color: var(--naranja); }
+.buzon-n {
+  position: absolute; top: -7px; right: -7px; min-width: 19px; height: 19px; padding: 0 5px;
+  display: none; place-items: center; font: 800 10.5px/1 var(--f-mono);
+  background: var(--naranja); color: var(--negro); box-shadow: 0 0 12px rgba(255, 107, 26, .6);
+}
+.btn-buzon.con .buzon-n { display: grid; }
+.btn-buzon.on .buzon-n { background: var(--texto); }
+
+/* Ficha: "Recomendar a…" y "te lo recomendó" */
+.fi-reco.panel { padding: 18px 20px; background: var(--negro); }
+.rc-ico { font: 700 13px "Zen Kaku Gothic New", sans-serif; font-style: normal; color: var(--naranja); }
+.rc-ops { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 6px; margin-bottom: 14px; }
+.rc-op { display: grid; grid-template-columns: 34px 1fr; gap: 10px; align-items: center; padding: 6px 10px 6px 6px; text-align: left; background: var(--panel); border: 1px solid var(--linea-2); transition: border-color .15s, background .15s; }
+.rc-op:not([disabled]):hover { border-color: var(--naranja); }
+.rc-op.on { border-color: var(--naranja); background: rgba(255, 107, 26, .12); box-shadow: inset 3px 0 0 var(--naranja); }
+.rc-op[disabled] { opacity: .45; cursor: not-allowed; }
+.rc-av img, .rc-av span, .bz-av img, .bz-av span { width: 34px; height: 34px; object-fit: cover; display: grid; place-items: center; background: var(--panel-3); font: 15px var(--f-jp); color: var(--naranja); }
+.rc-n { min-width: 0; }
+.rc-n b { display: block; font: 700 13px var(--f-hud); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rc-n small { display: block; font: 10.5px var(--f-mono); color: var(--texto-3); }
+.rc-op.on .rc-n small { color: var(--naranja-2); }
+.rc-msg > span b { color: var(--naranja); font-weight: 600; }
+.rc-cuenta { justify-self: end; font: 10.5px var(--f-mono); color: var(--texto-3); }
+.rc-nota { display: flex; align-items: center; gap: 8px; margin-top: 10px; font: 500 13px var(--f-hud); color: var(--texto-2); cursor: pointer; }
+.rc-nota input { accent-color: var(--naranja); width: 16px; height: 16px; }
+.rc-nota b { --rc: var(--texto); font: 800 13px var(--f-mono); color: var(--rc); }
+.fi-recomendado { display: flex; align-items: center; gap: 8px; margin: -6px 0 14px; font: 500 13px var(--f-hud); color: var(--texto-2); }
+.fi-recomendado span { padding: 1px 5px; font: 700 11px "Zen Kaku Gothic New", sans-serif; background: var(--naranja); color: var(--negro); }
+
+/* Buzón */
+.buzon { display: grid; gap: 12px; }
+.bz-carta {
+  position: relative; display: grid; grid-template-columns: 104px 1fr auto; gap: 18px; align-items: start;
+  padding: 14px; background: var(--panel); border: 1px solid var(--linea);
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--tinte) 70%, transparent);
+}
+.bz-img { width: 104px; aspect-ratio: 2 / 3; overflow: hidden; background: var(--panel-3); display: grid; place-items: center; }
+.bz-img img { width: 100%; height: 100%; object-fit: cover; transition: transform .25s; }
+.bz-img:hover img { transform: scale(1.04); }
+.bz-img span { font: 36px var(--f-jp); color: var(--linea-2); }
+.bz-d { min-width: 0; }
+.bz-d h3 { margin: 4px 0 4px; font: 800 clamp(20px, 2.2vw, 26px)/1.1 var(--f-display); text-wrap: balance; }
+.bz-de { display: flex; align-items: center; gap: 10px; margin: 0; font: 500 13px var(--f-hud); color: var(--texto-2); }
+.bz-de b { color: var(--texto); }
+.bz-de small { margin-left: 4px; font: 10.5px var(--f-mono); color: var(--texto-3); }
+.bz-meta { margin: 0 0 8px; font: 11px var(--f-mono); color: var(--texto-3); }
+.bz-msg { margin: 10px 0 0; padding: 10px 14px; border-left: 3px solid var(--naranja); background: var(--negro); font: 14.5px/1.55 var(--f-texto); color: var(--texto); white-space: pre-line; overflow-wrap: anywhere; }
+.bz-ya { margin: 10px 0 0; font: 500 13px var(--f-hud); color: var(--texto-2); }
+.bz-ya b { color: var(--c); }
+.bz-carta .fi-acc { margin-top: 12px; }
+.bz-nota { --rc: var(--texto); display: grid; justify-items: end; padding: 4px 4px 0 0; }
+.bz-nota small { font: 600 9.5px var(--f-mono); letter-spacing: .16em; text-transform: uppercase; color: var(--texto-3); }
+.bz-nota b { font: 800 40px/1 var(--f-mono); letter-spacing: -.04em; }
+.bz-nota i { font: 800 18px var(--f-display); font-style: normal; color: var(--rc); text-shadow: 0 0 12px var(--rc); }
+
+@media (max-width: 1100px) { .ajustes { grid-template-columns: 1fr; } }
+@media (max-width: 720px) {
+  .rc-modo { grid-template-columns: 1fr; }
+  .rc-ops { grid-template-columns: 1fr; }
+  .bz-carta { grid-template-columns: 76px 1fr; grid-template-rows: auto 1fr; gap: 12px; padding: 10px; }
+  .bz-img { width: 76px; }
+  .bz-img { grid-column: 1; grid-row: 1; }
+  .bz-d { grid-column: 2; grid-row: 1 / span 2; }
+  .bz-nota { grid-column: 1; grid-row: 2; justify-items: center; padding: 0; }
+  .bz-nota b { font-size: 26px; }
+  .bz-carta .fi-acc .btn { flex: 1 1 auto; }
+}
 
 /* ── Pantallas medianas ───────────────────────────────────────────────── */
 @media (max-width: 1100px) {

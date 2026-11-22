@@ -6,7 +6,7 @@
 // También lleva el "sujeto": de quién es el archivo que se está mirando. Por
 // defecto el tuyo; al visitar a un amigo, el suyo, en solo lectura.
 
-import { sb, entradasDe, perfilPorAlias, cambiaPerfil, traduce, puedoVer } from "./nube.js";
+import { sb, entradasDe, perfilPorAlias, cambiaPerfil, traduce, puedoVer, aciertosDe } from "./nube.js";
 
 const oyentes = new Set();
 export const escucha = (fn) => (oyentes.add(fn), () => oyentes.delete(fn));
@@ -16,25 +16,32 @@ let yo = null;          // perfil propio { id, alias, nombre, avatar_url }
 let mias = [];          // entradas propias
 let sujeto = null;      // null = tú; si no, { perfil, entradas, bloqueado } del amigo visitado
 let historial = [];     // deshacer: [{ uid: copia previa | null }]
+let misAciertos = 0;    // recomendaciones tuyas que otros puntuaron con 9+ (logro Ojo clínico)
+
+// No es grave si falla: el logro espera a la siguiente lectura
+const aciertos = (id) => aciertosDe(id).catch(() => 0);
 
 // ── Filas de la base de datos ↔ entradas de la web ───────────────────────
 const deFila = (r) => ({
   uid: r.id, usuario: r.usuario, mediaId: r.media_id, media: r.media, titulo: r.titulo, tipo: r.tipo,
   estado: r.estado, nota: r.nota == null ? null : +r.nota, comentario: r.comentario || "", progreso: r.progreso || 0,
-  anio: r.anio, mes: r.mes, generos: r.generos || [], creado: Date.parse(r.creado) || 0, editado: Date.parse(r.editado) || 0,
+  anio: r.anio, mes: r.mes, generos: r.generos || [], recomendadoPor: r.recomendado_por || null,
+  creado: Date.parse(r.creado) || 0, editado: Date.parse(r.editado) || 0,
 });
 const aFila = (e) => ({
   id: e.uid, usuario: yo.id, media_id: e.mediaId || null, media: e.media || null, titulo: String(e.titulo).slice(0, 120),
   tipo: e.tipo, estado: e.estado, nota: e.nota == null ? null : Math.round(e.nota * 10) / 10,
   comentario: String(e.comentario || "").slice(0, 600), progreso: Math.max(0, e.progreso | 0),
   anio: e.anio || null, mes: e.mes || null, generos: (e.generos || []).slice(0, 20),
-  creado: new Date(e.creado || Date.now()).toISOString(),
+  recomendado_por: e.recomendadoPor || null, creado: new Date(e.creado || Date.now()).toISOString(),
 });
 
 // ── Carga ────────────────────────────────────────────────────────────────
 export async function carga(perfil) {
   yo = perfil;
-  mias = (await entradasDe(perfil.id)).map(deFila);
+  const [filas, n] = await Promise.all([entradasDe(perfil.id), aciertos(perfil.id)]);
+  mias = filas.map(deFila);
+  misAciertos = n;
   historial = [];
   avisa("todo");
 }
@@ -42,9 +49,13 @@ export async function carga(perfil) {
 // Al volver a la pestaña tras un rato, se recarga por si cambiaste algo en otro dispositivo
 export async function recarga() {
   if (!yo || cola.size) return;
-  const nuevas = (await entradasDe(yo.id)).map(deFila);
+  const [filas, n] = await Promise.all([entradasDe(yo.id), aciertos(yo.id)]);
+  const nuevas = filas.map(deFila);
   const firma = (l) => l.map((e) => e.uid + ":" + e.editado).sort().join("|");
+  const cambian = n !== misAciertos;
+  misAciertos = n;
   if (firma(nuevas) !== firma(mias)) { mias = nuevas; avisa("fuera"); }
+  else if (cambian) avisa("fuera");
 }
 
 // ── Sujeto (tu archivo o el de un amigo) ─────────────────────────────────
@@ -53,6 +64,8 @@ export const esPropio = () => !sujeto;
 export const sujetoActual = () => sujeto ? sujeto.perfil : yo;
 export const entradas = () => sujeto ? sujeto.entradas : mias;
 export const propias = () => mias;
+export const aciertosPropios = () => misAciertos;
+export const aciertosSujeto = () => sujeto ? sujeto.aciertos : misAciertos;
 export const operador = () => sujetoActual()?.nombre || "Operador";
 
 export async function visita(alias) {
@@ -63,7 +76,8 @@ export async function visita(alias) {
   // Perfil privado sin permiso: la base de datos devolvería 0 entradas; se marca
   // como bloqueado para enseñar "perfil privado" en vez de un archivo vacío
   const bloqueado = !(await puedoVer(perfil, yo.id));
-  sujeto = { perfil, bloqueado, entradas: bloqueado ? [] : (await entradasDe(perfil.id)).map(deFila) };
+  const [filas, n] = bloqueado ? [[], 0] : await Promise.all([entradasDe(perfil.id), aciertos(perfil.id)]);
+  sujeto = { perfil, bloqueado, entradas: filas.map(deFila), aciertos: n };
   return true;
 }
 export const sujetoBloqueado = () => Boolean(sujeto?.bloqueado);
@@ -137,7 +151,7 @@ export function anade(datos) {
   const e = {
     uid: crypto.randomUUID(), usuario: yo.id, mediaId: null, media: null, titulo: "", tipo: "anime", estado: "pendiente",
     nota: null, comentario: "", progreso: 0, anio: hoy.getFullYear(), mes: hoy.getMonth() + 1,
-    generos: [], creado: Date.now(), editado: Date.now(),
+    generos: [], recomendadoPor: null, creado: Date.now(), editado: Date.now(),
     ...datos,
   };
   mias.push(e);
@@ -196,6 +210,13 @@ export async function ponOperador(nombre) {
 
 export async function ponPrivado(privado) {
   yo = await cambiaPerfil(yo.id, { privado: Boolean(privado) });
+  avisa("operador");
+  return yo;
+}
+
+// Quién puede recomendarte ('nadie' | 'lista' | 'todos') y cuántas pendientes por remitente
+export async function ponRecos(cambios) {
+  yo = await cambiaPerfil(yo.id, cambios);
   avisa("operador");
   return yo;
 }

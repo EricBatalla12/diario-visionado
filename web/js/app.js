@@ -16,6 +16,8 @@ import * as tier from "./vistas/tier.js";
 import * as temporada from "./vistas/temporada.js";
 import * as gacha from "./vistas/gacha.js";
 import * as operadores from "./vistas/operadores.js";
+import * as buzon from "./vistas/buzon.js";
+import * as recos from "./recos.js";
 
 const VISTAS = {
   archivo:    { n: "01", nombre: "Archivo",    jp: "アーカイブ", mod: archivo },
@@ -25,6 +27,9 @@ const VISTAS = {
   gacha:      { n: "05", nombre: "Gacha",      jp: "ガチャ", mod: gacha },
   operadores: { n: "06", nombre: "Operadores", jp: "オペレーター", mod: operadores },
 };
+// Vistas que no van en la barra de pestañas (se abren desde la cabecera)
+const OCULTAS = { buzon: { nombre: "Buzón", jp: "受信箱", mod: buzon } };
+const vistaDe = (k) => VISTAS[k] || OCULTAS[k];
 // Lo que se puede mirar del archivo de otro
 const VISTAS_AJENAS = ["archivo", "perfil", "tier"];
 const REFRESCO_MS = 12 * 3600 * 1000;
@@ -59,6 +64,15 @@ function pintaCabecera() {
       <div class="op-xp" title="${op.xp.toLocaleString("es-ES")} / ${op.hasta.toLocaleString("es-ES")} XP">${Array.from({ length: 20 }, (_, i) => `<i class="${i < Math.round(op.k * 20) ? "on" : ""}"></i>`).join("")}</div></div></a>`;
 }
 
+// Icono del buzón con el número de recomendaciones sin resolver
+function pintaBuzon() {
+  const n = recos.cuenta(), b = $("#btn-buzon");
+  b.querySelector(".buzon-n").textContent = n > 99 ? "99+" : String(n);
+  b.classList.toggle("con", n > 0);
+  b.classList.toggle("on", vista === "buzon");
+  b.setAttribute("aria-label", n ? `Buzón: ${n} recomendaci${n === 1 ? "ón" : "ones"}` : "Buzón de recomendaciones");
+}
+
 function pintaTeletipo() {
   const s = mias, lista = A.propias();
   const prox = lista.filter((e) => e.estado === "viendo" && e.media?.nextAiringEpisode)
@@ -69,6 +83,7 @@ function pintaTeletipo() {
     ...prox.slice(0, 3).map((e) => `PRÓXIMO EPISODIO ▸ ${esc(e.titulo)} #${e.media.nextAiringEpisode.episode} en ${cuentaAtras(e.media.nextAiringEpisode.airingAt - Date.now() / 1000)}`),
     `HORAS DE VIDA INVERTIDAS ▸ ${Math.round(s.horas).toLocaleString("es-ES")}`,
     `PENDIENTES ▸ ${s.porEstado.pendiente || 0}`,
+    recos.cuenta() ? `BUZÓN 受信箱 ▸ ${recos.cuenta()} recomendaci${recos.cuenta() === 1 ? "ón" : "ones"} sin resolver` : null,
     diez ? `ÚLTIMA OBRA MAESTRA ▸ ${esc(diez.titulo)}` : null,
     top ? `GÉNERO DOMINANTE ▸ ${esc(top[0]).toUpperCase()} ×${top[1]}` : null,
     `RANGO DEL OPERADOR ▸ ${esc(s.op.rango.nombre).toUpperCase()} ${s.op.rango.jp}`,
@@ -82,16 +97,17 @@ function pintaTeletipo() {
 // `anima` solo al entrar en una vista: repintar por un cambio guardado no
 // vuelve a lanzar la entrada escalonada de las cartas.
 function pinta(anima = false) {
-  mias = calcula(A.propias());
-  stats = A.esPropio() ? mias : calcula(A.entradas());
+  mias = calcula(A.propias(), { aciertos: A.aciertosPropios() });
+  stats = A.esPropio() ? mias : calcula(A.entradas(), { aciertos: A.aciertosSujeto() });
   pintaNav();
   pintaCabecera();
   pintaTeletipo();
+  pintaBuzon();
   const raiz = $("#vista");
   raiz.dataset.vista = vista;
   raiz.classList.toggle("anima", anima);
   if (A.sujetoBloqueado()) pintaBloqueado(raiz);
-  else VISTAS[vista].mod.pinta(raiz, { stats, abreFicha, primera: anima && primera, propio: A.esPropio() });
+  else vistaDe(vista).mod.pinta(raiz, { stats, abreFicha, primera: anima && primera, propio: A.esPropio() });
   if (anima) primera = false;
 }
 
@@ -141,7 +157,7 @@ async function desdeHash() {
     A.vuelve();
     if (alias) { location.replace(`#/${partes[1] && VISTAS[partes[1]] ? partes[1] : "perfil"}`); return; }
   }
-  vista = VISTAS[v] ? v : "archivo";
+  vista = vistaDe(v) ? v : "archivo";
   ficha.cierra();
   pinta(true);
   scrollTo({ top: 0, behavior: reducido() ? "auto" : "smooth" });
@@ -319,6 +335,9 @@ async function inicio() {
     if (document.visibilityState === "hidden") oculto = Date.now();
     else if (oculto && Date.now() - oculto > 60000) A.recarga().catch(() => {});
   });
+
+  recos.escucha(() => { pintaBuzon(); pintaTeletipo(); });
+  recos.arranca();
 
   await desdeHash();
   nivelPrevio = mias.op.nivel;

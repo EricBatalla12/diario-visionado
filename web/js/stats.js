@@ -40,8 +40,11 @@ export function nivelDe(xp) {
 }
 
 // ── Estadísticas ─────────────────────────────────────────────────────────
-export function calcula(lista) {
+// `aciertos`: títulos que este operador recomendó y que quien los recibió
+// puntuó con 9 o más (sale de otros archivos, así que se pasa desde fuera).
+export function calcula(lista, { aciertos = 0 } = {}) {
   const s = {
+    aciertos,
     total: lista.length, porEstado: {}, porTipo: {}, eps: 0, minutos: 0, notas: [],
     generos: new Map(), estudios: new Map(), pares: [], porMes: new Map(), porAnio: new Map(),
     retro: null, enEmision: [], comentarios: 0, terminados: 0,
@@ -118,5 +121,6 @@ export const LOGROS = [
   { id: "monte",   jp: "山", nombre: "Montaña de pendientes",desc: "20 pendientes a la vez",              mide: (s) => [s.porEstado.pendiente || 0, 20] },
   { id: "critico", jp: "評", nombre: "Crítico",              desc: "Escribe 50 comentarios",              mide: (s) => [s.comentarios, 50] },
   { id: "contra",  jp: "逆", nombre: "A contracorriente",    desc: "Discrepa 1,5 puntos de AniList en 5", mide: (s) => [s.contra, 5] },
+  { id: "ojo",     jp: "眼", nombre: "Ojo clínico",          desc: "3 recomendaciones tuyas acaban con 9+", mide: (s) => [s.aciertos, 3] },
   { id: "kami",    jp: "神", nombre: "Kami",                 desc: "Llega al nivel 45",                   mide: (s) => [Math.floor(Math.sqrt(s.xp / 25)), 45] },
 ];

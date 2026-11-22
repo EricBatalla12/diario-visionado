@@ -23,7 +23,8 @@ python -m http.server 8640 --directory web
 - **Archivo**: tus títulos como cartas holográficas (o en filas), agrupados por mes,
   con filtros por estado, tipo, año y género.
 - **Perfil**: nivel y rango de operador, sincronía de tus notas con las de AniList,
-  radar de géneros, estudios, reparto de notas, actividad y 24 logros.
+  radar de géneros, estudios, reparto de notas, actividad y 25 logros (entre ellos *Ojo clínico*: 3 recomendaciones tuyas que
+  acaban con 9 o más).
 - **Tier**: tier list automática a partir de tus notas (EX = 10).
 - **Temporada**: catálogo de la temporada en AniList y cuenta atrás de lo que sigues.
 - **Gacha**: invoca un pendiente al azar; la rareza sale de la nota de AniList.
@@ -33,6 +34,12 @@ python -m http.server 8640 --directory web
 - **Privacidad** (en tu Perfil o en ⋮ → Privacidad del perfil): archivo público o
   privado. Si es privado, solo lo ven los operadores que añadas a tu lista; los demás
   ven tu nombre y avatar con un candado.
+- **Recomendaciones**: desde cualquier ficha, «Recomendar a…» manda el título a uno o
+  varios operadores con un mensaje corto sin spoilers (y tu nota, si quieres). Llegan
+  al **buzón 受信箱** (icono de la cabecera), donde se añaden a pendientes, se marcan
+  como vistas o se descartan; al añadirlas, tu registro recuerda quién te las pasó.
+  En tu Perfil eliges quién puede recomendarte (cualquiera, tu lista o nadie) y
+  cuántas pendientes admites de cada uno.
 - **Ficha** de cada título: tu registro (se guarda solo), sinopsis, personajes,
   relacionados y la nota que le han puesto los demás operadores.
 - Atajos: `/` o `Ctrl+K` busca en AniList, `1`–`6` cambia de sección, `Esc` cierra.
@@ -42,7 +49,8 @@ python -m http.server 8640 --directory web
 - Cada operador tiene su archivo en la tabla `entradas` de Supabase. Las reglas de
   [`supabase/esquema.sql`](supabase/esquema.sql) hacen que sin sesión no se lea nada;
   con sesión se leen los archivos públicos y los privados en cuya lista estés, y solo
-  se cambia lo propio. Los cambios de esquema posteriores van en `supabase/migraciones/`.
+  se cambia lo propio. Una recomendación solo la ven quien la manda y quien la recibe,
+  y solo se puede mandar a quien la acepta. Los cambios de esquema posteriores van en `supabase/migraciones/`.
 - La web guarda con una cola: agrupa los cambios seguidos y, si falla la red,
   reintenta sola (en el pie se ve "Guardado" / "Sin guardar · reintentando").
 - **⋮ → Exportar** baja tu archivo en JSON; **Importar** acepta ese JSON, el de la

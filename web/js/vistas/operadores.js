@@ -64,10 +64,16 @@ async function carga(caja) {
   for (const f of cache.filas) porUsuario.get(f.usuario)?.push(comoEntrada(f));
   // Lo tuyo se toma de memoria, que va al día aunque la cola no haya guardado aún
   porUsuario.set(yo.id, propias());
+  // Ojo clínico: entradas con 9+ que vienen de una recomendación de cada uno
+  const aciertos = new Map();
+  // (las tuyas, de memoria: puntuar algo que te recomendaron cuenta al momento)
+  const suma = (por, nota) => { if (por && nota != null && +nota >= 9) aciertos.set(por, (aciertos.get(por) || 0) + 1); };
+  for (const f of cache.filas) if (f.usuario !== yo.id) suma(f.recomendado_por, f.nota);
+  for (const e of propias()) suma(e.recomendadoPor, e.nota);
 
   const ops = cache.perfiles.map((p) => {
     const lista = porUsuario.get(p.id) || [];
-    const s = calcula(lista);
+    const s = calcula(lista, { aciertos: aciertos.get(p.id) || 0 });
     const ultima = lista.reduce((a, e) => Math.max(a, e.editado || 0), 0);
     const viendo = lista.filter((e) => e.estado === "viendo").sort((a, b) => b.editado - a.editado).slice(0, 4);
     // Privado y sin permiso: la base de datos no ha mandado sus entradas

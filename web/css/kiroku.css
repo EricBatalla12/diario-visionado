@@ -1040,6 +1040,50 @@ body.visitando .vista { --naranja: var(--cian); }
   .vista-accion { margin-left: 0; }
 }
 
+/* ── Privacidad ───────────────────────────────────────────────────────── */
+.p-priv { padding: 20px; margin: -2px 0 16px; }
+.priv-modo { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.priv-modo button {
+  display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; column-gap: 12px; align-items: center;
+  padding: 12px 14px; text-align: left; border: 1px solid var(--linea-2); background: var(--negro); transition: all .15s;
+}
+.priv-modo i { grid-row: span 2; font: 700 15px "Zen Kaku Gothic New", sans-serif; font-style: normal; color: var(--naranja); }
+.priv-modo b { font: 700 14px var(--f-hud); letter-spacing: .12em; text-transform: uppercase; }
+.priv-modo small { font-size: 12px; color: var(--texto-3); }
+.priv-modo button:hover { border-color: var(--naranja); }
+.priv-modo button.on { border-color: var(--naranja); background: rgba(255, 107, 26, .1); box-shadow: inset 3px 0 0 var(--naranja); }
+.priv-modo button.on i { color: var(--naranja-2); }
+.priv-nota { margin: 14px 0 0; font-size: 13px; color: var(--texto-2); }
+.priv-lista { margin-top: 16px; }
+.priv-lista h3 { margin: 0 0 10px; font: 600 10.5px var(--f-mono); letter-spacing: .18em; text-transform: uppercase; color: var(--texto-3); font-weight: 600; }
+.priv-lista h3 em { font-style: normal; color: var(--naranja); margin-left: 6px; }
+.priv-lista ul { list-style: none; margin: 0 0 14px; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 6px; }
+.priv-lista li { display: grid; grid-template-columns: 36px 1fr auto; gap: 10px; align-items: center; padding: 6px 8px 6px 6px; background: var(--negro); border: 1px solid var(--linea); }
+.priv-av img, .priv-av span { width: 36px; height: 36px; object-fit: cover; display: grid; place-items: center; background: var(--panel-3); font: 16px var(--f-jp); color: var(--naranja); }
+.priv-lista li b { display: block; font: 700 13.5px var(--f-hud); }
+.priv-lista li small { font: 11px var(--f-mono); color: var(--texto-3); }
+.priv-lista li .btn { min-height: 32px; padding: 6px 10px; font-size: 11px; }
+.priv-anade { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; }
+.priv-anade .sel { flex: 1 1 240px; }
+.priv-anade select { width: 100%; }
+
+/* Operadores con perfil privado */
+.opt-privado { display: inline-block; margin: 2px 0 0; padding: 1px 6px; font: 600 9.5px var(--f-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--cian); border: 1px solid rgba(57, 216, 255, .35); }
+.op-tarjeta.bloqueado { opacity: .85; background: repeating-linear-gradient(-45deg, rgba(255, 255, 255, .015) 0 8px, transparent 8px 16px), var(--panel); }
+.op-tarjeta.bloqueado .opt-av img, .op-tarjeta.bloqueado .opt-av .av-ini { filter: grayscale(1) brightness(.7); }
+.opt-candado { background: var(--linea-2) !important; color: var(--texto) !important; font-family: "Zen Kaku Gothic New", sans-serif !important; font-weight: 700 !important; }
+.opt-priv { margin: 8px 0 0; font-size: 12.5px; color: var(--texto-3); }
+.opt-priv b { display: block; font: 700 12px var(--f-hud); letter-spacing: .12em; text-transform: uppercase; color: var(--texto-2); margin-bottom: 2px; }
+
+/* Pantalla de perfil privado al visitarlo */
+.bloqueo h2 { margin: 18px 0 6px; font: 800 34px/1.1 var(--f-display); }
+.bloqueo h2 small { font: 13px var(--f-mono); color: var(--texto-3); }
+.bloqueo .btn { margin-top: 18px; }
+.bloqueo-av { position: relative; width: 110px; height: 110px; margin: 0 auto; display: grid; place-items: center; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); background: var(--panel-3); }
+.bloqueo-av img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: grayscale(1) brightness(.45); }
+.bloqueo-av span { position: relative; font: 700 22px "Zen Kaku Gothic New", sans-serif; color: var(--cian); text-shadow: 0 0 14px var(--cian); }
+@media (max-width: 720px) { .priv-modo { grid-template-columns: 1fr; } }
+
 /* ── Pantallas medianas ───────────────────────────────────────────────── */
 @media (max-width: 1100px) {
   .p-sinc { grid-column: span 12; grid-row: auto; }

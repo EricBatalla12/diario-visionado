@@ -90,8 +90,21 @@ function pinta(anima = false) {
   const raiz = $("#vista");
   raiz.dataset.vista = vista;
   raiz.classList.toggle("anima", anima);
-  VISTAS[vista].mod.pinta(raiz, { stats, abreFicha, primera: anima && primera, propio: A.esPropio() });
+  if (A.sujetoBloqueado()) pintaBloqueado(raiz);
+  else VISTAS[vista].mod.pinta(raiz, { stats, abreFicha, primera: anima && primera, propio: A.esPropio() });
   if (anima) primera = false;
+}
+
+// Perfil privado de otro operador que no te ha dado acceso
+function pintaBloqueado(raiz) {
+  const s = A.sujetoActual();
+  raiz.innerHTML = `<div class="vacio bloqueo">
+    <div class="bloqueo-av">${s.avatar_url ? `<img src="${esc(s.avatar_url)}" alt="" referrerpolicy="no-referrer">` : ""}<span>非公開</span></div>
+    <h2>${esc(s.nombre)} <small>@${esc(s.alias)}</small></h2>
+    <p>Este archivo es <b>privado</b>.</p>
+    <p class="tenue">Solo pueden verlo los operadores que @${esc(s.alias)} añada a su lista. Pídele que te dé acceso desde su perfil.</p>
+    <a class="btn" href="#/operadores">◀ Volver a Operadores</a>
+  </div>`;
 }
 
 // ── Subidas de nivel y logros (solo los propios) ─────────────────────────
@@ -175,6 +188,10 @@ function conectaMenu() {
     if (acc === "importa") $("#fichero").click();
     if (acc === "refresca") refresca(true);
     if (acc === "deshaz") aviso(A.deshaz() ? "Último cambio deshecho." : "No hay nada que deshacer.");
+    if (acc === "privacidad") {
+      if (location.hash !== "#/perfil") { location.hash = "#/perfil"; await new Promise((r) => setTimeout(r, 300)); }
+      document.getElementById("privacidad")?.scrollIntoView({ behavior: reducido() ? "auto" : "smooth", block: "start" });
+    }
     if (acc === "sal") { await A.vacia(); await sal(); location.hash = ""; location.reload(); }
     if (acc === "borra-cuenta") borraCuenta();
   });

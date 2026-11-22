@@ -6,7 +6,7 @@
 // También lleva el "sujeto": de quién es el archivo que se está mirando. Por
 // defecto el tuyo; al visitar a un amigo, el suyo, en solo lectura.
 
-import { sb, entradasDe, perfilPorAlias, cambiaPerfil, traduce } from "./nube.js";
+import { sb, entradasDe, perfilPorAlias, cambiaPerfil, traduce, puedoVer } from "./nube.js";
 
 const oyentes = new Set();
 export const escucha = (fn) => (oyentes.add(fn), () => oyentes.delete(fn));
@@ -14,7 +14,7 @@ const avisa = (motivo) => oyentes.forEach((fn) => fn(motivo));
 
 let yo = null;          // perfil propio { id, alias, nombre, avatar_url }
 let mias = [];          // entradas propias
-let sujeto = null;      // null = tú; si no, { perfil, entradas } del amigo visitado
+let sujeto = null;      // null = tú; si no, { perfil, entradas, bloqueado } del amigo visitado
 let historial = [];     // deshacer: [{ uid: copia previa | null }]
 
 // ── Filas de la base de datos ↔ entradas de la web ───────────────────────
@@ -60,9 +60,13 @@ export async function visita(alias) {
   if (sujeto?.perfil.alias === alias) return true;
   const perfil = await perfilPorAlias(alias);
   if (!perfil) return false;
-  sujeto = { perfil, entradas: (await entradasDe(perfil.id)).map(deFila) };
+  // Perfil privado sin permiso: la base de datos devolvería 0 entradas; se marca
+  // como bloqueado para enseñar "perfil privado" en vez de un archivo vacío
+  const bloqueado = !(await puedoVer(perfil, yo.id));
+  sujeto = { perfil, bloqueado, entradas: bloqueado ? [] : (await entradasDe(perfil.id)).map(deFila) };
   return true;
 }
+export const sujetoBloqueado = () => Boolean(sujeto?.bloqueado);
 export const vuelve = () => { sujeto = null; };
 
 // Busca primero en lo tuyo (para "ya lo tienes") y luego en lo que se mira
@@ -188,6 +192,12 @@ export async function ponOperador(nombre) {
   if (!n) return;
   yo = await cambiaPerfil(yo.id, { nombre: n });
   avisa("operador");
+}
+
+export async function ponPrivado(privado) {
+  yo = await cambiaPerfil(yo.id, { privado: Boolean(privado) });
+  avisa("operador");
+  return yo;
 }
 
 export async function ponAlias(alias) {

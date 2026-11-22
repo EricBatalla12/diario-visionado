@@ -3,6 +3,7 @@
 import { esc, fmtNota, rango, genero, MESES, ESTADOS } from "../ui.js";
 import { operador, ponOperador, sujetoActual, esPropio } from "../almacen.js";
 import { aviso } from "../ui.js";
+import { panel as panelPrivacidad } from "./privacidad.js";
 
 export function pinta(raiz, { stats: s, abreFicha }) {
   const op = s.op;
@@ -17,7 +18,7 @@ export function pinta(raiz, { stats: s, abreFicha }) {
       <div class="id-nv">NV<b>${op.nivel}</b></div>
     </div>
     <div class="id-datos">
-      <span class="etq">OPERADOR · オペレーター · @${esc(quien?.alias || "")}</span>
+      <span class="etq">OPERADOR · オペレーター · @${esc(quien?.alias || "")}${quien?.privado ? " · 非公開 PRIVADO" : ""}</span>
       <h2 class="id-nombre ${propio ? "editable" : ""}" id="op-nombre" ${propio ? 'contenteditable="plaintext-only" spellcheck="false" title="Pulsa para cambiar el nombre"' : ""}>${esc(operador())}</h2>
       <div class="id-rango">${esc(op.rango.nombre)} <i>${op.rango.jp}</i></div>
       <div class="xp"><div class="xp-barra"><span style="width:${(op.k * 100).toFixed(1)}%"></span></div>
@@ -33,6 +34,7 @@ export function pinta(raiz, { stats: s, abreFicha }) {
     </div>
     <div class="id-codigo" aria-hidden="true">${codigo(operador() + op.nivel)}</div>
   </section>
+  ${propio ? `<section class="panel esquinas p-priv" id="privacidad"></section>` : ""}
 
   <div class="paneles">
     <section class="panel esquinas p-sinc">
@@ -71,6 +73,7 @@ export function pinta(raiz, { stats: s, abreFicha }) {
       </div>`).join("")}</div>
   </section>`;
 
+  if (propio) panelPrivacidad(raiz.querySelector("#privacidad"));
   const nom = raiz.querySelector("#op-nombre");
   if (propio) {
     nom.addEventListener("keydown", (ev) => { if (ev.key === "Enter") { ev.preventDefault(); nom.blur(); } });

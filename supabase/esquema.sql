@@ -7,8 +7,8 @@
 -- Reglas (Row Level Security):
 --   · Hay que haber iniciado sesión para leer nada; un visitante anónimo no ve
 --     ni perfiles ni archivos.
---   · Con sesión, se ven los perfiles y los archivos de todos (perfiles
---     visibles entre operadores).
+--   · Con sesión, se ven los perfiles de todos y los archivos públicos; un
+--     archivo privado solo lo ven su dueño y los operadores que él añada.
 --   · Cada uno solo crea, cambia o borra lo suyo: la base de datos lo impone,
 --     no solo la web.
 -- ============================================================================
@@ -107,9 +107,8 @@ drop policy if exists "perfiles: borrar el propio" on public.perfiles;
 create policy "perfiles: borrar el propio" on public.perfiles
   for delete to authenticated using (id = (select auth.uid()));
 
+-- La lectura de entradas depende de la privacidad: ver la sección final
 drop policy if exists "entradas: leer con sesión" on public.entradas;
-create policy "entradas: leer con sesión" on public.entradas
-  for select to authenticated using (true);
 
 drop policy if exists "entradas: crear las propias" on public.entradas;
 create policy "entradas: crear las propias" on public.entradas
@@ -123,3 +122,54 @@ create policy "entradas: cambiar las propias" on public.entradas
 drop policy if exists "entradas: borrar las propias" on public.entradas;
 create policy "entradas: borrar las propias" on public.entradas
   for delete to authenticated using (usuario = (select auth.uid()));
+
+-- ── Privacidad: perfiles privados y operadores permitidos ──────────────────
+
+alter table public.perfiles add column if not exists privado boolean not null default false;
+
+create table if not exists public.permisos (
+  dueno     uuid not null default auth.uid() references public.perfiles (id) on delete cascade,
+  invitado  uuid not null references public.perfiles (id) on delete cascade,
+  creado    timestamptz not null default now(),
+  primary key (dueno, invitado),
+  check (dueno <> invitado)
+);
+create index if not exists permisos_invitado_idx on public.permisos (invitado);
+
+-- ¿Puede quien ha iniciado sesión ver el archivo de `objetivo`?
+-- security definer: consulta perfiles y permisos sin pasar por sus propias
+-- reglas (si no, las reglas de entradas y de permisos se llamarían en bucle).
+create or replace function public.kiroku_puede_ver(objetivo uuid)
+returns boolean
+language sql stable security definer set search_path = public
+as $$
+  select objetivo = auth.uid()
+      or not coalesce((select privado from public.perfiles where id = objetivo), false)
+      or exists (select 1 from public.permisos where dueno = objetivo and invitado = auth.uid());
+$$;
+revoke all on function public.kiroku_puede_ver(uuid) from public, anon;
+grant execute on function public.kiroku_puede_ver(uuid) to authenticated;
+
+-- Las entradas se leen solo si el archivo es tuyo, público o te han dado permiso
+drop policy if exists "entradas: leer con sesión" on public.entradas;
+drop policy if exists "entradas: leer si se puede" on public.entradas;
+create policy "entradas: leer si se puede" on public.entradas
+  for select to authenticated using (public.kiroku_puede_ver(usuario));
+
+-- Permisos: cada uno ve los que da y los que recibe; solo el dueño los crea;
+-- los borra el dueño (retirar) o el invitado (salirse)
+alter table public.permisos enable row level security;
+revoke all on public.permisos from anon;
+grant select, insert, delete on public.permisos to authenticated;
+
+drop policy if exists "permisos: ver los míos" on public.permisos;
+create policy "permisos: ver los míos" on public.permisos
+  for select to authenticated using (dueno = (select auth.uid()) or invitado = (select auth.uid()));
+
+drop policy if exists "permisos: dar los míos" on public.permisos;
+create policy "permisos: dar los míos" on public.permisos
+  for insert to authenticated with check (dueno = (select auth.uid()));
+
+drop policy if exists "permisos: quitar" on public.permisos;
+create policy "permisos: quitar" on public.permisos
+  for delete to authenticated using (dueno = (select auth.uid()) or invitado = (select auth.uid()));

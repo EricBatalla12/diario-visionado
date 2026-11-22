@@ -29,6 +29,10 @@ de Supabase) se pegan solo en el panel de Supabase. No van ni al repo ni a la we
    https://xxxxxxxx.supabase.co/auth/v1/callback
    ```
 
+Si el proyecto ya existía, en vez del esquema entero pega las migraciones nuevas
+de [`supabase/migraciones/`](../supabase/migraciones/) (cada una se puede ejecutar
+más de una vez sin problema), **siempre antes de publicar la web que las usa**.
+
 ## 2. Entrar con Discord
 
 1. Abre <https://discord.com/developers/applications> → **New Application** → nombre `KIROKU`.

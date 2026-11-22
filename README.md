@@ -30,6 +30,9 @@ python -m http.server 8640 --directory web
 - **Operadores**: todos los usuarios con su nivel, afinidad de notas contigo, lo que
   están viendo y la actividad reciente. Pulsando a alguien ves su archivo, perfil y
   tier list en solo lectura (`#/@alias`).
+- **Privacidad** (en tu Perfil o en ⋮ → Privacidad del perfil): archivo público o
+  privado. Si es privado, solo lo ven los operadores que añadas a tu lista; los demás
+  ven tu nombre y avatar con un candado.
 - **Ficha** de cada título: tu registro (se guarda solo), sinopsis, personajes,
   relacionados y la nota que le han puesto los demás operadores.
 - Atajos: `/` o `Ctrl+K` busca en AniList, `1`–`6` cambia de sección, `Esc` cierra.
@@ -37,8 +40,9 @@ python -m http.server 8640 --directory web
 ### Datos y seguridad
 
 - Cada operador tiene su archivo en la tabla `entradas` de Supabase. Las reglas de
-  [`supabase/esquema.sql`](supabase/esquema.sql) hacen que sin sesión no se lea nada
-  y que con sesión se pueda leer todo, pero solo cambiar lo propio.
+  [`supabase/esquema.sql`](supabase/esquema.sql) hacen que sin sesión no se lea nada;
+  con sesión se leen los archivos públicos y los privados en cuya lista estés, y solo
+  se cambia lo propio. Los cambios de esquema posteriores van en `supabase/migraciones/`.
 - La web guarda con una cola: agrupa los cambios seguidos y, si falla la red,
   reintenta sola (en el pie se ve "Guardado" / "Sin guardar · reintentando").
 - **⋮ → Exportar** baja tu archivo en JSON; **Importar** acepta ese JSON, el de la

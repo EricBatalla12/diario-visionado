@@ -55,7 +55,7 @@ export function datosProveedor(user) {
 }
 
 // ── Perfiles ─────────────────────────────────────────────────────────────
-const COLS_PERFIL = "id, alias, nombre, avatar_url, creado";
+const COLS_PERFIL = "id, alias, nombre, avatar_url, privado, creado";
 
 export async function miPerfil(id) {
   const { data, error } = await sb.from("perfiles").select(COLS_PERFIL).eq("id", id).maybeSingle();
@@ -113,14 +113,17 @@ export const entradasDe = (usuario) =>
 
 // Para el directorio de operadores basta una versión ligera: sin la ficha
 // entera de AniList, solo los campos que usan las estadísticas.
-export async function directorio() {
-  const [perfiles, filas] = await Promise.all([
+export async function directorio(yo) {
+  const [perfiles, filas, recibidos] = await Promise.all([
+    // Los perfiles se ven todos; las entradas de un perfil privado solo llegan
+    // si te ha dado permiso (lo filtra la base de datos)
     todas(() => sb.from("perfiles").select(COLS_PERFIL).order("creado")),
     todas(() => sb.from("entradas").select(`id, usuario, media_id, titulo, tipo, estado, nota, comentario, progreso, anio, mes, generos, editado,
       episodes:media->episodes, duration:media->duration, genres:media->genres, studio:media->>studio, seasonYear:media->seasonYear,
       status:media->>status, averageScore:media->averageScore, cover:media->coverImage->>large`).order("editado", { ascending: false })),
+    permisosRecibidos(yo),
   ]);
-  return { perfiles, filas };
+  return { perfiles, filas, recibidos };
 }
 
 // Lo que otros operadores tienen registrado de un mismo título
@@ -141,4 +144,40 @@ export function traduce(error) {
   if (/Límite de 5000/.test(m)) return new Error("Has llegado al límite de 5000 entradas.");
   if (/JWT|session|401/.test(m)) return new Error("La sesión ha caducado: vuelve a entrar.");
   return new Error(m);
+}
+
+// ── Privacidad ───────────────────────────────────────────────────────────
+// A quién has dado permiso para ver tu archivo (cuando es privado)
+export async function misPermisos(yo) {
+  const { data, error } = await sb.from("permisos")
+    .select("invitado, creado, perfiles!permisos_invitado_fkey(id, alias, nombre, avatar_url)")
+    .eq("dueno", yo).order("creado");
+  if (error) throw traduce(error);
+  return data.map((r) => r.perfiles).filter(Boolean);
+}
+
+// Quién te ha dado permiso a ti: conjunto de ids de dueños
+export async function permisosRecibidos(yo) {
+  const { data, error } = await sb.from("permisos").select("dueno").eq("invitado", yo);
+  if (error) throw traduce(error);
+  return new Set(data.map((r) => r.dueno));
+}
+
+export async function concede(yo, invitado) {
+  const { error } = await sb.from("permisos").insert({ dueno: yo, invitado });
+  if (error && !/duplicate key/.test(error.message)) throw traduce(error);
+}
+
+export async function retira(yo, invitado) {
+  const { error } = await sb.from("permisos").delete().eq("dueno", yo).eq("invitado", invitado);
+  if (error) throw traduce(error);
+}
+
+// ¿Puedo ver el archivo de este perfil? (la base de datos lo impone igual;
+// esto solo sirve para enseñar "perfil privado" en vez de un archivo vacío)
+export async function puedoVer(perfil, yo) {
+  if (!perfil.privado || perfil.id === yo) return true;
+  const { data, error } = await sb.from("permisos").select("dueno").eq("dueno", perfil.id).eq("invitado", yo).maybeSingle();
+  if (error) throw traduce(error);
+  return Boolean(data);
 }

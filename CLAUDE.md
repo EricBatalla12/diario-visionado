@@ -1,6 +1,7 @@
 # Diario de visionado / KIROKU 記録
 
-Lee esto antes de nada. Estado al 22-11-2026 (recomendaciones publicadas).
+Lee esto antes de nada. Estado al 22-11-2026: recomendaciones, nota afinable y total de
+episodios en Temporada publicados; no hay trabajo a medias en la web.
 
 ## Qué es
 
@@ -88,8 +89,39 @@ tras 30 s y cada 3 min a la vista), sin tiempo real.
   por las reglas de lectura: los archivos privados que no puedes ver **no cuentan**
   (a propósito, para no revelar nada de ellos). Se carga junto al archivo en
   `almacen.carga` para que el aviso de logro no se repita en cada arranque.
+
+## Ficha y Temporada (publicado)
+
 - **Nota en la ficha**: además de la barra, − y ＋ de 0,1 (mantener pulsado repite y
   guarda al soltar) y el número se puede escribir (coma o punto, Intro guarda, Esc deshace).
+- **Temporada**: la etiqueta de cada carta dice «EP 9/12 · 5d 1h» si AniList tiene el
+  total (`media.episodes`); sin próximo episodio, «12 EP» en gris; sin total, como antes.
+- **Trampa de CSS**: `--rc` (color de rango) lo ponen `.r-ex`, `.r-s`… (línea ~402). Un
+  valor por defecto de `--rc` en una clase posterior los pisa (pasó en `.fi-nota`,
+  `.fa-nota`, `.fo-nota`…: la letra EX salía gris). Los valores por defecto van en
+  `:where(.clase) { --rc: … }`.
+
+## Vídeos promocionales (`video/`, local y sin versionar)
+
+- `video/` no está en git (las capturas pesan ~20 MB por proyecto): falta decidir qué
+  versionar y qué ir a `.gitignore`. Tampoco `docs/ideas/` ni la línea de `.gitignore`
+  que excluye `video/.chrome-perfil/`.
+- Tres proyectos de HyperFrames: `a-la-147`, `b-kiroku-os`, `c-121-titulos`
+  (guiones en `video/STORYLINES.md`, cada uno con su `SPEC.md` y `REVIEW.md`).
+  Renders en `video/renders/`. Créditos de sonido CC BY en `video/CREDITOS.md`.
+- Capturas reales: `node video/captura.mjs --prepara` (necesita el servidor
+  `kiroku` en 8640) y luego los grupos; usa la página de pruebas con la semilla.
+- Fuentes: `python3 video/comun/fuentes.py` baja solo los caracteres usados en
+  las escenas; copiarlas a `assets/fonts/` de cada proyecto.
+- Sin música: el catálogo de HyperFrames necesita el CLI `heygen`.
+- En las escenas, nada de `tl.call` para cambiar texto: el render salta a cada fotograma
+  y no lo ejecuta. Usar elementos apilados y `tl.set` de opacidad.
+
+## Ideas aparcadas
+
+- **Red social** (seguir perfiles, feed de actividad, publicaciones estilo Twitter):
+  propuesta completa en `docs/ideas/red-social.md` (local, sin versionar). Eric la hará si hay usuarios;
+  no empezarla sin que lo pida.
 
 ## Pendientes menores
 

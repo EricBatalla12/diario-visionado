@@ -1,7 +1,8 @@
 // 04 · TEMPORADA — lo que sigues en emisión con la cuenta atrás al próximo
 // episodio, y el catálogo de la temporada de AniList para apuntarte cosas.
 import { esc, cartel, cuentaAtras, FORMATOS, tituloApi, aviso, genero, tipoDe } from "../ui.js";
-import { entradas, porMedia, anade } from "../almacen.js";
+import { entradas, porMedia, anade, actualiza } from "../almacen.js";
+import { recientes, haceDias } from "../terminados.js";
 import { temporada, TEMPORADAS, temporadaActual, sagas, refrescar } from "../anilist.js";
 
 let sel = temporadaActual();
@@ -19,6 +20,8 @@ export function pinta(raiz, { abreFicha }) {
   const siguiendo = entradas().filter((e) => (e.estado === "viendo" || e.estado === "pendiente") && e.media?.nextAiringEpisode)
     .sort((a, b) => a.media.nextAiringEpisode.airingAt - b.media.nextAiringEpisode.airingAt);
 
+  const acabados = recientes(entradas());
+
   raiz.innerHTML = `
   <header class="vista-cab">
     <h1 class="vista-tit"><span>Temporada</span><i>${t.jp}</i></h1>
@@ -28,6 +31,19 @@ export function pinta(raiz, { abreFicha }) {
       <button class="btn-icono" data-mueve="1" aria-label="Temporada siguiente">▶</button>
     </div>
   </header>
+
+  ${acabados.length ? `<section class="panel esquinas emision terminados">
+    <h2 class="p-tit"><span>Ya terminados</span><i>完結</i><small>${acabados.length}</small></h2>
+    <p class="tm-nota">Pendientes que esperaban a que acabase la emisión. Ya puedes verlos de tirón.</p>
+    <div class="emision-lista">${acabados.map((e) => `
+      <div class="em-item cn-item tm-item" style="--tinte:${esc(e.media.coverImage?.color || "var(--verde)")}">
+        <button class="cn-abre" data-uid="${esc(e.uid)}">
+          <div class="em-img">${cartel(e)}</div>
+          <div class="em-t"><b>${esc(e.titulo)}</b><small>Terminó ${haceDias(e)}${e.media.episodes ? ` · ${e.media.episodes} ep` : ""}</small></div>
+        </button>
+        <button class="cn-anade tm-empieza" data-empieza="${esc(e.uid)}">▶ Empezar</button>
+      </div>`).join("")}</div>
+  </section>` : ""}
 
   ${siguiendo.length ? `<section class="panel esquinas emision ${plegada ? "plegada" : ""}">
     <h2 class="p-tit"><button class="em-pliega" data-pliega aria-expanded="${!plegada}" aria-controls="emision-lista">
@@ -58,7 +74,12 @@ export function pinta(raiz, { abreFicha }) {
     sec.querySelector(".emision-lista").hidden = plegada;
     ev.currentTarget.setAttribute("aria-expanded", !plegada);
   });
-  raiz.querySelectorAll(".em-item").forEach((b) => b.addEventListener("click", () => abreFicha(b.dataset.uid)));
+  raiz.querySelectorAll("button.em-item, .tm-item [data-uid]").forEach((b) => b.addEventListener("click", () => abreFicha(b.dataset.uid)));
+  raiz.querySelectorAll("[data-empieza]").forEach((b) => b.addEventListener("click", () => {
+    const h = new Date();
+    const e = actualiza(b.dataset.empieza, { estado: "viendo", mes: h.getMonth() + 1, anio: h.getFullYear() });
+    aviso(`«${e?.titulo || "Título"}» a viendo. ¡A por él!`);
+  }));
 
   clearInterval(reloj);
   reloj = setInterval(() => {

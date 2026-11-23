@@ -232,7 +232,9 @@ const CLAVE_SINC = () => `kiroku:sinc:${yo?.id}`;
 export function sincronizado() { try { return +localStorage.getItem(CLAVE_SINC()) || 0; } catch { return 0; } }
 
 // Solo se reescriben las entradas cuya ficha ha cambiado de verdad
-export function aplicaFichas(fichas) {
+// `marca: false` en los refrescos parciales (solo lo que está en emisión), para
+// que no retrasen el refresco completo de 12 h
+export function aplicaFichas(fichas, { marca = true } = {}) {
   const porId = new Map(fichas.map((m) => [m.id, m]));
   let n = 0;
   for (const e of mias) {
@@ -241,7 +243,7 @@ export function aplicaFichas(fichas) {
     if (m && e.media && "saga" in e.media && !("saga" in m)) m = { ...m, saga: e.media.saga };
     if (m && JSON.stringify(m) !== JSON.stringify(e.media)) { e.media = m; encola(e.uid, "guarda"); n++; }
   }
-  try { localStorage.setItem(CLAVE_SINC(), String(Date.now())); } catch {}
+  if (marca) try { localStorage.setItem(CLAVE_SINC(), String(Date.now())); } catch {}
   avisa("fichas");
   return n;
 }

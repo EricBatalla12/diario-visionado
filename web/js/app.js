@@ -19,6 +19,7 @@ import * as operadores from "./vistas/operadores.js";
 import * as buzon from "./vistas/buzon.js";
 import * as recos from "./recos.js";
 import * as tutorial from "./tutorial.js";
+import * as terminados from "./terminados.js";
 // Como espacio de nombres: si a config.js le falta DONAR (copias viejas,
 // página de pruebas) no rompe el arranque
 import * as config from "./config.js";
@@ -38,6 +39,7 @@ const vistaDe = (k) => VISTAS[k] || OCULTAS[k];
 // Lo que se puede mirar del archivo de otro
 const VISTAS_AJENAS = ["archivo", "perfil", "tier"];
 const REFRESCO_MS = 12 * 3600 * 1000;
+const REFRESCO_EMISION_MS = 3 * 3600 * 1000;
 
 let vista = "archivo";
 let stats = null;        // del archivo que se está mirando
@@ -181,10 +183,29 @@ async function refresca(forzar = false) {
     const fichas = await refrescar(ids);
     const n = A.aplicaFichas(fichas);
     actualizaSagas(true);
+    terminados.avisaNuevos(A.propias(), A.yoMismo().id);
     if (forzar) aviso(`${fichas.length} fichas revisadas en AniList, ${n} con cambios.`);
   } catch (err) {
     if (forzar) aviso("AniList no responde: " + err.message);
   }
+}
+
+// Lo que tienes en pendiente o viendo y aún se emite se mira cada 3 h (son
+// pocos títulos, una petición): así el aviso de "ha terminado" llega pronto.
+// También lo que aún no tiene fecha de fin guardada (fichas de antes de pedirla).
+async function refrescaEmision() {
+  const clave = `kiroku:sinc-emision:${A.yoMismo().id}`;
+  let ultima = 0;
+  try { ultima = +localStorage.getItem(clave) || 0; } catch {}
+  if (Date.now() - ultima < REFRESCO_EMISION_MS) return;
+  const ids = [...new Set(A.propias().filter((e) => e.mediaId && (e.estado === "pendiente" || e.estado === "viendo")
+    && (e.media?.status === "RELEASING" || e.media?.status === "NOT_YET_RELEASED" || (e.media && !("endDate" in e.media))))
+    .map((e) => e.mediaId))];
+  try {
+    if (ids.length) A.aplicaFichas(await refrescar(ids), { marca: false });
+    localStorage.setItem(clave, String(Date.now()));
+  } catch { return; }
+  terminados.avisaNuevos(A.propias(), A.yoMismo().id);
 }
 
 // ── Sagas ────────────────────────────────────────────────────────────────
@@ -387,6 +408,9 @@ async function inicio() {
   } else arranque();
   refresca();
   setTimeout(() => actualizaSagas(), 3000);
+  terminados.avisaNuevos(A.propias(), yo.id);
+  setTimeout(refrescaEmision, 5000);
+  setInterval(refrescaEmision, 30 * 60 * 1000);
   setInterval(() => mias && pintaTeletipo(), 60000);
 }
 

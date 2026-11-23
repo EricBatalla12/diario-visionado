@@ -3,6 +3,7 @@
 import { esc, cartel, rango, fmtNota, ESTADOS, TIPOS, MESES, subtitulo, tinte, cuenta, genero, formato, totalDe, unidad, seLee, infoTipo } from "../ui.js";
 import { entradas, esPropio, sujetoActual } from "../almacen.js";
 import { episodios, generosDe } from "../stats.js";
+import { esReciente } from "../terminados.js";
 
 const CLAVE_F = "kiroku:filtros";
 const def = { estado: "todos", tipo: "todos", anio: "todos", genero: "todos", orden: "fecha", texto: "", modo: "cartas", agrupa: true };
@@ -70,7 +71,8 @@ export function carta(e, { indice = 0, clase = "" } = {}) {
       <div class="carta-brillo"></div>
       <span class="carta-estado" style="--c:${es.color}"><i>${es.jp}</i>${es.nombre}</span>
       ${r ? `<span class="carta-rango"><b>${fmtNota(e.nota)}</b><i>${r.r}</i></span>` : ""}
-      ${sig ? `<span class="carta-emision">EP ${sig.episode} · ${diasA(sig.airingAt)}</span>` : ""}
+      ${sig ? `<span class="carta-emision">EP ${sig.episode} · ${diasA(sig.airingAt)}</span>`
+        : esReciente(e) ? `<span class="carta-emision completo" title="Terminó de emitirse: ya puedes verlo de tirón">✓ Completo</span>` : ""}
       <div class="carta-pie">
         <h3>${esc(e.titulo)}</h3>
         <p>${esc(meta)}</p>

@@ -118,7 +118,14 @@ tras 30 s y cada 3 min a la vista), sin tiempo real.
 
 - Tier list: chip "⧉ Sagas" (publicado el 23-11): una portada por saga con la
   nota media de sus temporadas puntuadas; se recuerda en `localStorage`.
-- Propuesta del aviso de pendientes en emisión que terminan: `docs/ideas/aviso-terminados.md`.
+- **Aviso de pendientes que terminan** (publicado el 23-11; idea en
+  `docs/ideas/aviso-terminados.md`): `terminados.js` → recién terminado = pendiente + FINISHED +
+  `endDate` (nuevo en `CAMPOS`) hace < 30 días + apuntado antes de que acabara. Aviso al entrar
+  (una vez por título y navegador), "Ya terminados" en Temporada con "▶ Empezar" y "✓ Completo"
+  en la carta. `refrescaEmision` mira cada 3 h lo pendiente/viendo en emisión
+  (`aplicaFichas(..., { marca: false })` para no retrasar el refresco de 12 h).
+- `gql` reintenta los fallos de red (AniList manda el 429 sin CORS). Los nodos de las sagas se
+  guardan en `sessionStorage` (`kiroku:nodos-saga:v1`) para no repetir peticiones al recargar.
 
 ## Ideas del 22-11 (publicado el 23-11)
 

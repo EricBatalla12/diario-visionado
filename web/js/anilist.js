@@ -11,7 +11,7 @@ const HUECO_MS = 700;
 export const CAMPOS = `id idMal type format status episodes duration chapters season seasonYear countryOfOrigin
   genres averageScore popularity title { romaji english native }
   coverImage { extraLarge large color } bannerImage siteUrl
-  studios(isMain: true) { nodes { name } } nextAiringEpisode { airingAt episode }`;
+  studios(isMain: true) { nodes { name } } nextAiringEpisode { airingAt episode } endDate { year month day }`;
 
 let cola = Promise.resolve();
 let ultima = 0;
@@ -24,12 +24,21 @@ export function gql(query, variables = {}, { signal } = {}) {
     if (falta > 0) await espera(falta);
     for (let intento = 0; intento < 3; intento++) {
       ultima = Date.now();
-      const r = await fetch(URL_API, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({ query, variables }),
-        signal,
-      });
+      let r;
+      try {
+        r = await fetch(URL_API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify({ query, variables }),
+          signal,
+        });
+      } catch (err) {
+        // AniList devuelve el 429 sin cabeceras CORS: el navegador solo ve un
+        // fallo de red. Se trata igual que un 429: esperar y reintentar.
+        if (err.name === "AbortError" || intento === 2) throw err;
+        await espera(20000);
+        continue;
+      }
       if (r.status === 429) {
         const s = +(r.headers.get("Retry-After") || 30);
         await espera(Math.min(s, 60) * 1000);
@@ -115,7 +124,12 @@ export function temporadaActual(fecha = new Date()) {
 const CAMPOS_SAGA = `id type format status season seasonYear episodes chapters nextAiringEpisode { airingAt episode }
   startDate { year month day } title { romaji english native } coverImage { large color }
   relations { edges { relationType node { id type format } } }`;
-const nodos = new Map();          // id → nodo reducido (caché de la sesión)
+// id → nodo reducido. Se guarda en sessionStorage para que recargar la página
+// no vuelva a pedir las sagas enteras (AniList limita las peticiones por minuto)
+const CLAVE_NODOS = "kiroku:nodos-saga:v1";
+const nodos = new Map();
+try { for (const [k, v] of JSON.parse(sessionStorage.getItem(CLAVE_NODOS) || "[]")) nodos.set(k, v); } catch {}
+const guardaNodos = () => { try { sessionStorage.setItem(CLAVE_NODOS, JSON.stringify([...nodos])); } catch {} };
 const MAX_RONDAS = 8, MAX_NODOS = 60;
 
 // Las novelas ligeras van por su lado: una secuela en novela no es otra
@@ -148,6 +162,7 @@ async function pideNodos(ids) {
     // Los que AniList no devuelve (borrados, adultos) no se vuelven a pedir
     for (const id of faltan.slice(i, i + 50)) if (!nodos.has(id)) nodos.set(id, null);
   }
+  if (faltan.length) guardaNodos();
 }
 
 // ids → Map(id → { raiz, n, cadena: [nodos en orden] }) para los ids pedidos

@@ -161,6 +161,32 @@ export function anade(datos) {
   return e;
 }
 
+// Varias altas (y cambios en lo que ya tienes) de una vez, como añadir una
+// saga entera: cuentan como una sola operación para Deshacer.
+// `cambios` es { uid: { campo: valor } } sobre entradas propias.
+export function anadeLote(lista, cambios = {}) {
+  const hoy = new Date(), previos = {};
+  const nuevas = lista.map((datos, i) => ({
+    uid: crypto.randomUUID(), usuario: yo.id, mediaId: null, media: null, titulo: "", tipo: "anime", estado: "pendiente",
+    nota: null, comentario: "", progreso: 0, anio: hoy.getFullYear(), mes: hoy.getMonth() + 1,
+    generos: [], recomendadoPor: null, creado: Date.now() + i, editado: Date.now(),
+    ...datos,
+  }));
+  for (const [uid, c] of Object.entries(cambios)) {
+    const e = mias.find((x) => x.uid === uid);
+    if (!e) continue;
+    previos[uid] = copia(e);
+    Object.assign(e, c, { editado: Date.now() });
+    encola(uid, "guarda");
+  }
+  for (const e of nuevas) { mias.push(e); previos[e.uid] = null; encola(e.uid, "guarda"); }
+  if (!Object.keys(previos).length) return nuevas;
+  recuerda(previos);
+  ultimoAgrupado = null;
+  avisa("anade");
+  return nuevas;
+}
+
 // Con `agrupa`, varios cambios seguidos de la misma entrada (teclear el
 // comentario, pulsar +1) cuentan como uno solo para Deshacer.
 let ultimoAgrupado = null;

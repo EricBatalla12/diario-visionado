@@ -845,12 +845,12 @@ dialog::backdrop { background: rgba(3, 3, 6, .78); backdrop-filter: blur(6px) sa
 }
 .fn-paso:hover { border-color: var(--naranja); background: var(--panel-2); }
 .fn-paso:active { background: rgba(255, 107, 26, .18); }
-#fn-rango { width: 100%; appearance: none; height: 22px; background: transparent; cursor: pointer; }
-#fn-rango::-webkit-slider-runnable-track { height: 6px; background: linear-gradient(90deg, var(--rk-f), var(--rk-d) 50%, var(--rk-c) 60%, var(--rk-b) 70%, var(--rk-a) 80%, var(--rk-s) 90%, var(--rk-sp) 95%, var(--rk-ex)); }
-#fn-rango::-moz-range-track { height: 6px; background: linear-gradient(90deg, var(--rk-f), var(--rk-d) 50%, var(--rk-c) 60%, var(--rk-b) 70%, var(--rk-a) 80%, var(--rk-s) 90%, var(--rk-sp) 95%, var(--rk-ex)); }
-#fn-rango::-webkit-slider-thumb { appearance: none; width: 16px; height: 24px; margin-top: -9px; background: var(--texto); border: 2px solid var(--negro); clip-path: polygon(50% 0, 100% 30%, 100% 100%, 0 100%, 0 30%); }
-#fn-rango::-moz-range-thumb { width: 14px; height: 22px; background: var(--texto); border: 2px solid var(--negro); border-radius: 0; }
-#fn-rango[data-vacia] { opacity: .45; }
+:is(#fn-rango, .sgf-rango) { width: 100%; appearance: none; height: 22px; background: transparent; cursor: pointer; }
+:is(#fn-rango, .sgf-rango)::-webkit-slider-runnable-track { height: 6px; background: linear-gradient(90deg, var(--rk-f), var(--rk-d) 50%, var(--rk-c) 60%, var(--rk-b) 70%, var(--rk-a) 80%, var(--rk-s) 90%, var(--rk-sp) 95%, var(--rk-ex)); }
+:is(#fn-rango, .sgf-rango)::-moz-range-track { height: 6px; background: linear-gradient(90deg, var(--rk-f), var(--rk-d) 50%, var(--rk-c) 60%, var(--rk-b) 70%, var(--rk-a) 80%, var(--rk-s) 90%, var(--rk-sp) 95%, var(--rk-ex)); }
+:is(#fn-rango, .sgf-rango)::-webkit-slider-thumb { appearance: none; width: 16px; height: 24px; margin-top: -9px; background: var(--texto); border: 2px solid var(--negro); clip-path: polygon(50% 0, 100% 30%, 100% 100%, 0 100%, 0 30%); }
+:is(#fn-rango, .sgf-rango)::-moz-range-thumb { width: 14px; height: 22px; background: var(--texto); border: 2px solid var(--negro); border-radius: 0; }
+:is(#fn-rango, .sgf-rango)[data-vacia] { opacity: .45; }
 .fn-pie { display: flex; justify-content: space-between; align-items: center; font: 10px var(--f-mono); color: var(--texto-3); }
 .fi-campos { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-content: start; }
 .campo { display: grid; gap: 5px; }
@@ -877,7 +877,7 @@ dialog::backdrop { background: rgba(3, 3, 6, .78); backdrop-filter: blur(6px) sa
 .cu-anio { display: flex; align-items: center; height: 40px; border: 1px solid var(--linea-2); background: var(--negro); }
 .cu-anio button { width: 38px; height: 100%; font: 700 13px var(--f-mono); color: var(--naranja); touch-action: manipulation; }
 .cu-anio button:hover { background: var(--panel-2); }
-.campo .cu-anio input { width: 68px; height: 100%; border: 0; padding: 0; text-align: center; font: 800 17px var(--f-mono); background: none; }
+:is(.campo, .sg-form) .cu-anio input { width: 68px; height: 100%; border: 0; padding: 0; text-align: center; font: 800 17px var(--f-mono); background: none; }
 .cu-atemporal {
   margin-left: auto; height: 40px; padding: 0 14px; border: 1px solid var(--linea-2); background: var(--negro);
   font: 600 12px var(--f-hud); letter-spacing: .1em; text-transform: uppercase; color: var(--texto-3);
@@ -918,6 +918,57 @@ dialog::backdrop { background: rgba(3, 3, 6, .78); backdrop-filter: blur(6px) sa
 .sg-t em i { font-style: normal; font-weight: 800; color: var(--rc, var(--texto)); }
 .sg-anade { position: absolute; right: 4px; top: 4px; width: 26px; height: 26px; display: grid; place-items: center; font: 700 15px var(--f-mono); color: var(--negro); background: var(--naranja); }
 .sg-anade:disabled { opacity: .6; }
+/* Añadir la saga entera: el botón va en la cabecera de Temporadas y el
+   formulario se despliega debajo de la fila de portadas */
+.fi-saga .p-tit { flex-wrap: wrap; row-gap: 8px; }
+.sg-todo { min-height: 30px; padding: 5px 12px; font-size: 11.5px; color: var(--naranja); border-color: rgba(255, 107, 26, .45); }
+.sg-todo[aria-expanded="true"] { background: rgba(255, 107, 26, .12); border-color: var(--naranja); }
+.sg-form { margin-top: 12px; padding: 16px; display: grid; gap: 16px; background: var(--negro); border: 1px solid var(--linea-2); border-left: 3px solid var(--naranja); }
+.sg-form[hidden], .sgf-fila[hidden] { display: none; }
+.sg-form .fi-acc { margin-top: 0; }
+.sgf-fila { display: grid; gap: 8px; }
+.sgf-etq { font: 600 9.5px var(--f-mono); letter-spacing: .18em; text-transform: uppercase; color: var(--texto-3); }
+.sgf-etq small { margin-left: 6px; color: var(--naranja); letter-spacing: .06em; }
+.sgf-estados { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; max-width: 360px; }
+.sgf-estados button {
+  display: flex; align-items: center; justify-content: center; gap: 8px; height: 40px;
+  font: 700 12px var(--f-hud); letter-spacing: .1em; text-transform: uppercase;
+  border: 1px solid var(--linea-2); background: var(--panel); color: var(--texto-2); transition: all .15s;
+}
+.sgf-estados button i { font: 700 13px "Zen Kaku Gothic New", sans-serif; font-style: normal; color: var(--c); }
+.sgf-estados button:hover { border-color: var(--c); color: var(--texto); }
+.sgf-estados button.on { background: var(--c); border-color: var(--c); color: var(--negro); }
+.sgf-estados button.on i { color: rgba(6, 6, 9, .6); }
+.sgf-lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 4px; }
+.sgf-t {
+  display: grid; grid-template-columns: 16px auto minmax(0, 1fr); grid-template-rows: auto auto; align-items: center; column-gap: 8px;
+  padding: 7px 10px; text-align: left; border: 1px solid var(--linea); background: var(--panel); color: var(--texto-3);
+  transition: border-color .15s, color .15s;
+}
+.sgf-t:hover { border-color: var(--naranja); }
+.sgf-caja { grid-row: 1 / 3; width: 16px; height: 16px; border: 1px solid var(--linea-2); display: grid; place-items: center; font: 700 11px var(--f-mono); }
+.sgf-t.on { color: var(--texto); border-color: var(--linea-2); }
+.sgf-t.on .sgf-caja { background: var(--naranja); border-color: var(--naranja); color: var(--negro); }
+.sgf-t.on .sgf-caja::after { content: "✓"; }
+.sgf-t b { font: 800 11px var(--f-mono); color: var(--texto-3); }
+.sgf-nom { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 600 13px var(--f-texto); }
+.sgf-t small { grid-column: 2 / 4; font: 10px var(--f-mono); color: var(--cian); }
+.sgf-t small:empty { display: none; }
+:where(.sgf-nota) { --rc: var(--linea-2); }
+.sgf-nota { display: grid; grid-template-columns: 36px 96px 36px minmax(120px, 1fr) auto; align-items: center; gap: 8px; max-width: 560px; }
+.sgf-num { display: flex; align-items: baseline; justify-content: center; gap: 4px; }
+#sgf-num {
+  width: 2.6ch; padding: 0; border: 0; border-bottom: 2px solid transparent; background: none; outline: none;
+  font: 800 30px/1 var(--f-mono); letter-spacing: -.04em; color: var(--texto); text-align: right; font-variant-numeric: tabular-nums;
+}
+#sgf-num:focus { border-bottom-color: var(--naranja); }
+#sgf-num::placeholder { color: var(--texto-3); }
+.sgf-num i { min-width: 1.2em; font: 800 16px/1 var(--f-display); font-style: normal; color: var(--rc); text-shadow: 0 0 14px var(--rc); }
+.sgf-rango[data-vacia] { opacity: .45; }
+.sgf-tambien { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font: 13px var(--f-texto); color: var(--texto-2); cursor: pointer; }
+.sgf-tambien input { accent-color: var(--naranja); width: 16px; height: 16px; }
+.sgf-tambien small { font: 10.5px var(--f-mono); color: var(--texto-3); }
+.sg-form .cu-atemporal { margin-left: 0; }
 .fi-sec:last-child { padding-bottom: 30px; }
 #fi-det:empty { padding-bottom: 30px; }
 #fi-det > .cargando, .fi-error { margin: 10px 30px 30px; }
@@ -1553,6 +1604,11 @@ body.visitando .vista { --naranja: var(--cian); }
   .campo textarea { min-height: 64px; font-size: 13px; }
   .fi-acc { gap: 6px; margin-top: 12px; }
   .fi-sec { margin: 16px 10px 0; }
+  .sg-form { padding: 12px; gap: 14px; }
+  .sgf-lista { grid-template-columns: 1fr; }
+  .sgf-nota { grid-template-columns: 36px 1fr 36px; }
+  .sgf-rango { grid-column: 1 / -1; }
+  .sgf-nota [data-sgf-sin-nota] { grid-column: 1 / -1; justify-self: start; }
 
   /* Perfil: ficha de operador en horizontal y cifras en una fila */
   .id-op { grid-template-columns: 84px minmax(0, 1fr); justify-items: start; text-align: left; gap: 14px; padding: 14px 12px; margin: 12px 0 12px; }

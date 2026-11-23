@@ -4,8 +4,8 @@
 // en solo lectura cuando el registro es de otro operador.
 import { $, esc, cartel, rango, fmtNota, ESTADOS, TIPOS, MESES, FORMATOS, tituloApi, genero, aviso,
   tarjetaTitulo, htmlSeguro, cuentaAtras, tinte, formato, nombreTipo, totalDe, unidad, seLee, infoTipo, tipoDe } from "./ui.js";
-import { entrada, actualiza, borra, anade, porMedia, deshaz, esMia, sujetoActual, yoMismo } from "./almacen.js";
-import { detalle, sagas, refrescar } from "./anilist.js";
+import { entrada, actualiza, borra, anade, anadeLote, porMedia, deshaz, esMia, sujetoActual, yoMismo } from "./almacen.js";
+import { detalle, sagas, refrescar, marcaSaga } from "./anilist.js";
 import { otrosDe, perfilCorto } from "./nube.js";
 import { boton as botonRecomendar } from "./recos.js";
 
@@ -412,8 +412,12 @@ async function cargaSaga(d, id) {
   try { s = (await sagas([id])).get(id); } catch { return; }
   if (!caja?.isConnected || !d.open || !s || s.cadena.length < 2) return;
   const tiene = s.cadena.filter((n) => porMedia(n.id)).length;
+  // El botón de la saga: para añadir lo que falta o, si ya está todo, para
+  // poner una misma nota a lo que tienes visto
+  const conTodo = tiene < s.cadena.length || s.cadena.some((n) => VISTAS.has(porMedia(n.id)?.estado));
   caja.innerHTML = `<section class="fi-sec fi-saga">
-    <h3 class="p-tit"><span>Temporadas</span><i>シリーズ</i><small>${tiene} de ${s.cadena.length} en tu archivo</small></h3>
+    <h3 class="p-tit"><span>Temporadas</span><i>シリーズ</i><small>${tiene} de ${s.cadena.length} en tu archivo</small>
+      ${conTodo ? `<button class="btn sg-todo" data-sg-todo aria-expanded="false">${tiene < s.cadena.length ? "⧉ Añadir la saga" : "⧉ Nota a la saga"}</button>` : ""}</h3>
     <ol class="sg-lista">${s.cadena.map((n, i) => {
       const mia = porMedia(n.id), es = mia ? ESTADOS[mia.estado] : null, r = mia ? rango(mia.nota) : null;
       const t = n.title.english || n.title.romaji || n.title.native || "";
@@ -426,7 +430,15 @@ async function cargaSaga(d, id) {
         </button>
         ${mia ? "" : `<button class="sg-anade" data-sg-anade="${n.id}" title="Añadir a pendientes" aria-label="Añadir «${esc(t)}» a pendientes">＋</button>`}
       </li>`; }).join("")}</ol>
+    <div class="sg-form" hidden></div>
   </section>`;
+  caja.querySelector("[data-sg-todo]")?.addEventListener("click", (ev) => {
+    const f = caja.querySelector(".sg-form"), abierto = !f.hidden;
+    ev.currentTarget.setAttribute("aria-expanded", !abierto);
+    if (abierto) { f.hidden = true; f.innerHTML = ""; return; }
+    formSaga(d, id, s, f);
+    f.hidden = false;
+  });
   // La temporada abierta, a la vista dentro de la fila (sin mover la ficha)
   const lista = caja.querySelector(".sg-lista"), act = lista.querySelector(".actual");
   if (act) lista.scrollLeft = act.offsetLeft - lista.offsetLeft - (lista.clientWidth - act.offsetWidth) / 2;
@@ -449,6 +461,169 @@ async function cargaSaga(d, id) {
       cargaSaga(d, id);
     } catch (err) { aviso("AniList no responde: " + err.message); b.disabled = false; b.textContent = "＋"; }
   }));
+}
+
+// Añadir la saga entera de una vez: pensado para quien empieza a apuntar desde
+// cero todo lo que ha visto. Una nota para toda la saga (y, si quieres, también
+// para las temporadas que ya tenías vistas), un año o Atemporal, y todo entra
+// en una sola operación que se deshace de golpe.
+// Lo que aún no se ha estrenado no se marca de entrada (no puedes haberlo
+// visto); si lo marcas, va a pendientes. Lo que está en emisión va a Viendo.
+const VISTAS = new Set(["visto", "revisto", "viendo"]);
+function formSaga(d, id, s, f) {
+  const faltan = s.cadena.filter((n) => !porMedia(n.id));
+  const tuyas = s.cadena.map((n) => porMedia(n.id)).filter((e) => e && VISTAS.has(e.estado));
+  const titulo = (n) => n.title.english || n.title.romaji || n.title.native || "";
+  const hoy = new Date().getFullYear();
+  let estado = faltan.length ? "visto" : null, nota = null, anio = null;
+  const marcadas = new Set(faltan.filter((n) => n.status !== "NOT_YET_RELEASED").map((n) => n.id));
+  // Cómo entra cada una según lo elegido
+  const comoEntra = (n) => estado === "pendiente" || n.status === "NOT_YET_RELEASED" ? "pendiente" : n.status === "RELEASING" ? "viendo" : "visto";
+
+  f.innerHTML = `
+    ${faltan.length ? `<div class="sgf-fila">
+      <span class="sgf-etq">Entran como</span>
+      <div class="sgf-estados" role="radiogroup" aria-label="Estado de las que añades">
+        ${["visto", "pendiente"].map((k) => `<button role="radio" data-sgf-estado="${k}" style="--c:${ESTADOS[k].color}"><i>${ESTADOS[k].jp}</i>${k === "visto" ? "Vistas" : "Pendientes"}</button>`).join("")}
+      </div></div>
+    <div class="sgf-fila">
+      <span class="sgf-etq">Temporadas <small data-sgf-n></small></span>
+      <div class="sgf-lista">${faltan.map((n) => `<button class="sgf-t" data-sgf-t="${n.id}" title="${esc(titulo(n))}">
+        <span class="sgf-caja"></span><b>${s.cadena.indexOf(n) + 1}</b><span class="sgf-nom">${esc(titulo(n))}</span><small data-sgf-como="${n.id}"></small></button>`).join("")}</div>
+    </div>` : ""}
+    <div class="sgf-fila" data-sgf-solo-visto>
+      <span class="sgf-etq">Nota para toda la saga</span>
+      <div class="sgf-nota sin-nota">
+        <button class="fn-paso" data-sgf-paso="-1" aria-label="Bajar una décima">−</button>
+        <span class="sgf-num"><input id="sgf-num" inputmode="decimal" autocomplete="off" maxlength="4" placeholder="—" aria-label="Nota de la saga"><i></i></span>
+        <button class="fn-paso" data-sgf-paso="1" aria-label="Subir una décima">＋</button>
+        <input type="range" class="sgf-rango" min="0" max="10" step="0.1" value="7" data-vacia="1" aria-label="Nota de 0 a 10">
+        <button class="enlace" data-sgf-sin-nota>Sin nota</button>
+      </div>
+      ${tuyas.length ? `<label class="sgf-tambien"><input type="checkbox" data-sgf-tambien ${faltan.length ? "" : "checked"}>
+        ${faltan.length ? "También a" : "A"} ${tuyas.length === 1 ? "la que ya tienes vista" : `las ${tuyas.length} que ya tienes vistas`}
+        <small>(${tuyas.map((e) => fmtNota(e.nota)).join(" · ")})</small></label>` : ""}
+    </div>
+    ${faltan.length ? `<div class="sgf-fila" data-sgf-solo-visto>
+      <span class="sgf-etq">Cuándo las viste</span>
+      <div class="cuando ${anio ? "" : "atemporal"}"><div class="cu-cab">
+        <div class="cu-anio"><button data-sgf-anio="-1" aria-label="Año anterior">◀</button>
+          <input id="sgf-anio" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="∞" aria-label="Año"><button data-sgf-anio="1" aria-label="Año siguiente">▶</button></div>
+        <button class="cu-atemporal on" data-sgf-atemporal aria-pressed="true" title="Sin fecha: no importa cuándo">∞ Atemporal</button>
+      </div></div>
+    </div>` : ""}
+    <div class="fi-acc"><button class="btn primario" data-sgf-ok></button><button class="btn" data-sgf-cancela>Cancelar</button></div>`;
+
+  const $f = (q) => f.querySelector(q), $$f = (q) => f.querySelectorAll(q);
+  const tambien = () => $f("[data-sgf-tambien]")?.checked || false;
+  const pinta = () => {
+    $$f("[data-sgf-estado]").forEach((b) => { const on = b.dataset.sgfEstado === estado; b.classList.toggle("on", on); b.setAttribute("aria-checked", on); });
+    for (const n of faltan) {
+      const b = $f(`[data-sgf-t="${n.id}"]`), on = marcadas.has(n.id);
+      b.classList.toggle("on", on); b.setAttribute("aria-pressed", on);
+      const como = comoEntra(n);
+      $f(`[data-sgf-como="${n.id}"]`).textContent = n.status === "NOT_YET_RELEASED" ? "Sin estrenar" : como === "viendo" ? "En emisión → Viendo" : "";
+    }
+    const nSel = marcadas.size;
+    if ($f("[data-sgf-n]")) $f("[data-sgf-n]").textContent = `${nSel} de ${faltan.length}`;
+    // Nota y fecha solo tienen sentido si entran como vistas (o para las que ya tienes)
+    const conVisto = estado === "visto" || !faltan.length;
+    $$f("[data-sgf-solo-visto]").forEach((x) => (x.hidden = !conVisto));
+    const r = rango(nota), caja = $f(".sgf-nota");
+    caja.className = "sgf-nota " + (r ? r.clase : "sin-nota");
+    $f(".sgf-num i").textContent = r ? r.r : "";
+    const rg = $f(".sgf-rango");
+    if (nota != null) { rg.value = nota; rg.removeAttribute("data-vacia"); } else rg.setAttribute("data-vacia", "1");
+    $f("[data-sgf-sin-nota]").hidden = nota == null;
+    const cu = $f(".cuando");
+    if (cu) {
+      cu.classList.toggle("atemporal", !anio);
+      $f("#sgf-anio").value = anio || "";
+      const at = $f("[data-sgf-atemporal]"); at.classList.toggle("on", !anio); at.setAttribute("aria-pressed", !anio);
+    }
+    const ok = $f("[data-sgf-ok]");
+    const nTambien = conVisto && nota != null && tambien() ? tuyas.length : 0;
+    ok.disabled = !nSel && !nTambien;
+    ok.textContent = nSel ? `Añadir ${nSel === 1 ? "1 temporada" : nSel + " temporadas"}${nTambien ? ` · nota a ${nTambien} más` : ""}` : nTambien ? `Poner ${fmtNota(nota)} a ${nTambien === 1 ? "1 temporada" : nTambien + " temporadas"}` : faltan.length ? "Marca alguna temporada" : "Elige una nota";
+  };
+  const num = $f("#sgf-num");
+  const redondea = (n) => Math.min(10, Math.max(0, Math.round(n * 10) / 10));
+  const ponNota = (n) => { nota = n == null ? null : redondea(n); num.value = nota == null ? "" : fmtNota(nota); pinta(); };
+
+  $$f("[data-sgf-estado]").forEach((b) => b.addEventListener("click", () => {
+    estado = b.dataset.sgfEstado;
+    // Pendientes: también lo que no se ha estrenado; vistas: lo de antes
+    marcadas.clear();
+    faltan.filter((n) => estado === "pendiente" || n.status !== "NOT_YET_RELEASED").forEach((n) => marcadas.add(n.id));
+    pinta();
+  }));
+  $$f("[data-sgf-t]").forEach((b) => b.addEventListener("click", () => {
+    const nid = +b.dataset.sgfT;
+    marcadas.has(nid) ? marcadas.delete(nid) : marcadas.add(nid);
+    pinta();
+  }));
+  $$f("[data-sgf-paso]").forEach((b) => b.addEventListener("click", () => ponNota((nota ?? 7) + +b.dataset.sgfPaso / 10)));
+  $f(".sgf-rango").addEventListener("input", (ev) => ponNota(+ev.target.value));
+  $f("[data-sgf-sin-nota]").addEventListener("click", () => ponNota(null));
+  num.addEventListener("focus", () => num.select());
+  num.addEventListener("keydown", (ev) => { if (ev.key === "Enter") { ev.preventDefault(); num.blur(); } });
+  num.addEventListener("change", () => {
+    const t = num.value.trim().replace(",", ".");
+    ponNota(t && Number.isFinite(+t) ? +t : null);
+  });
+  $f("[data-sgf-tambien]")?.addEventListener("change", pinta);
+  $$f("[data-sgf-anio]").forEach((b) => b.addEventListener("click", () => {
+    anio = Math.min(hoy, Math.max(1960, anio ? anio + +b.dataset.sgfAnio : hoy)); pinta();
+  }));
+  $f("[data-sgf-atemporal]")?.addEventListener("click", () => { anio = anio ? null : hoy; pinta(); });
+  const inAnio = $f("#sgf-anio");
+  inAnio?.addEventListener("focus", () => inAnio.select());
+  inAnio?.addEventListener("keydown", (ev) => { if (ev.key === "Enter") { ev.preventDefault(); inAnio.blur(); } });
+  inAnio?.addEventListener("change", () => {
+    const a = parseInt(inAnio.value, 10);
+    anio = a >= 1960 ? Math.min(hoy, a) : null; pinta();
+  });
+  $f("[data-sgf-cancela]").addEventListener("click", () => d.querySelector("[data-sg-todo]")?.click());
+
+  $f("[data-sgf-ok]").addEventListener("click", async (ev) => {
+    const b = ev.currentTarget;
+    const conVisto = estado === "visto" || !faltan.length;
+    const ids = faltan.filter((n) => marcadas.has(n.id)).map((n) => n.id);
+    b.disabled = true; b.textContent = "Consultando AniList…";
+    // Lo que no tienes llega con la ficha corta de la saga: se pide la completa
+    // de todas en una sola consulta (AniList cuenta peticiones, no títulos)
+    let fichas = [];
+    try { fichas = ids.length ? await refrescar(ids) : []; }
+    catch (err) { aviso("AniList no responde: " + err.message); pinta(); return; }
+    const porId = new Map(fichas.map((m) => [m.id, m]));
+    const lista = [];
+    for (const nid of ids) {
+      const m = porId.get(nid), n = s.cadena.find((x) => x.id === nid);
+      if (!m || porMedia(nid)) continue;   // AniList no la dio, o se añadió mientras tanto
+      const como = comoEntra(n);
+      const total = (m.type === "MANGA" ? m.chapters : m.episodes) || 0;
+      const media = { ...m, saga: marcaSaga({ raiz: s.raiz, n: s.cadena.indexOf(n) + 1, cadena: s.cadena }) };
+      const alta = { mediaId: m.id, media, titulo: tituloApi(m), tipo: tipoDe(m), estado: como,
+        progreso: como === "visto" ? total : como === "viendo" ? Math.max(0, (m.nextAiringEpisode?.episode || 1) - 1) : 0 };
+      // La nota vale para lo visto y lo que estás viendo; el año, solo para lo visto
+      if (como !== "pendiente" && conVisto) alta.nota = nota;
+      if (como === "visto") Object.assign(alta, { anio, mes: null });
+      lista.push(alta);
+    }
+    const cambios = conVisto && nota != null && tambien() ? Object.fromEntries(tuyas.map((e) => [e.uid, { nota }])) : {};
+    if (!lista.length && !Object.keys(cambios).length) { aviso("No había nada que añadir."); pinta(); return; }
+    const nuevas = anadeLote(lista, cambios);
+    const nC = Object.keys(cambios).length, serie = s.cadena[0] ? titulo(s.cadena[0]) : "la saga";
+    const partes = [nuevas.length ? `${nuevas.length} ${nuevas.length === 1 ? "temporada" : "temporadas"} al archivo` : null,
+      nC ? `nota ${fmtNota(nota)} a ${nC === 1 ? "1 que ya tenías" : nC + " que ya tenías"}` : null].filter(Boolean);
+    aviso(`«${serie}»: ${partes.join(" y ")}.`, { accion: "Deshacer", alPulsar: () => { deshaz(); aviso("Deshecho."); } });
+    if (nota >= 10 && (nuevas.some((e) => e.nota >= 10) || nC)) tarjetaTitulo({ jp: "傑作", linea1: "OBRA MAESTRA", linea2: serie, clase: "oro" });
+    // Repinta la ficha: si la que estaba abierta es tuya ahora, con su registro
+    const abierta = porMedia(id);
+    if (abierta) { const y = d.scrollTop; abre(abierta.uid); d.scrollTop = y; }
+    else cargaSaga(d, id);
+  });
+  pinta();
 }
 
 // "Te lo recomendó…": el perfil se pide aparte (puede haber borrado su cuenta)

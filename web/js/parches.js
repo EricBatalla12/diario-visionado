@@ -15,6 +15,7 @@ export const PARCHES = [
       { titulo: "Novedades", ico: "✦", items: [
         "**Sagas**: las temporadas de un mismo anime se juntan en una sola carta apilada en el Archivo. Tócala para ver sus temporadas; el botón **⧉ Sagas** lo desactiva. Cada saga cuenta como un título.",
         "Sección **Temporadas** en la ficha: la saga entera en orden, con tu estado y tu nota en cada una, y **＋** para apuntar las que te faltan.",
+        "**⧉ Añadir la saga**, en Temporadas: apunta todas las temporadas de golpe, como vistas o pendientes, con **una nota para toda la saga** y el año en que la viste (o ∞ Atemporal). Si ya las tienes todas, **⧉ Nota a la saga** les pone la misma nota. Se deshace de una vez.",
         "**Tier list por sagas** (⧉ Sagas): una portada por saga con la nota media de sus temporadas.",
         "**Continúa**, en Temporada: la siguiente temporada de lo que sigues, en emisión, con fecha o anunciada.",
         "**Ya terminados**: si tenías en pendientes un anime en emisión, KIROKU te avisa cuando termina, con **▶ Empezar** en Temporada y la etiqueta **✓ Completo** en su carta.",

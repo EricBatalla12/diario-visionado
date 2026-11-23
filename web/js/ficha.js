@@ -30,6 +30,7 @@ export function abre(uid, previa = null) {
   actual = uid;
   const m = e ? e.media : previa;
   const d = dlg();
+  d.dataset.media = m?.id || "";
   d.innerHTML = plantilla(e, m);
   d.style.setProperty("--tinte", e ? tinte(e) : (m?.coverImage?.color || "#ff6b1a"));
   if (!d.open) d.showModal();
@@ -43,6 +44,25 @@ export function abre(uid, previa = null) {
 }
 
 export function cierra() { if (dlg().open) dlg().close(); }
+
+// Vista previa de algo que no tienes, a partir de la ficha corta de una saga
+// (título, portada, formato, año…): se abre al momento y, cuando llega la
+// completa de AniList (banner, géneros, nota…), se repinta sin mover el
+// scroll. Antes se esperaba a la completa y, si AniList iba lento, parecía
+// que pulsar no hacía nada.
+const CAMPOS_CORTA = ["id", "type", "format", "status", "season", "seasonYear", "episodes", "chapters", "title", "coverImage", "nextAiringEpisode"];
+export function abrePrevia(nodo) {
+  const ya = porMedia(nodo.id);
+  if (ya) return abre(ya.uid);
+  abre(null, Object.fromEntries(CAMPOS_CORTA.map((k) => [k, nodo[k] ?? null])));
+  refrescar([nodo.id]).then(([m]) => {
+    const d = dlg();
+    if (!m || !d.open || actual !== null || d.dataset.media !== String(nodo.id)) return;
+    const y = d.scrollTop;
+    abre(null, m);
+    d.scrollTop = y;
+  }).catch(() => {});
+}
 
 function plantilla(e, m) {
   const titulo = e ? e.titulo : tituloApi(m);
@@ -413,13 +433,10 @@ async function cargaSaga(d, id) {
   // Lo que no tienes llega con la ficha corta de la saga: antes de abrirlo o
   // añadirlo se pide la completa, como cualquier otro título
   const completa = async (nid) => (await refrescar([nid]))[0];
-  caja.querySelectorAll("[data-sg]").forEach((b) => b.addEventListener("click", async () => {
+  caja.querySelectorAll("[data-sg]").forEach((b) => b.addEventListener("click", () => {
     const nid = +b.dataset.sg;
-    if (nid === id) return;
-    const mia = porMedia(nid);
-    if (mia) return abre(mia.uid);
-    b.disabled = true;
-    try { abre(null, await completa(nid)); } catch (err) { aviso("AniList no responde: " + err.message); b.disabled = false; }
+    if (nid === id) return;   // es la que ya tienes abierta
+    abrePrevia(s.cadena.find((n) => n.id === nid));
   }));
   caja.querySelectorAll("[data-sg-anade]").forEach((b) => b.addEventListener("click", async () => {
     const nid = +b.dataset.sgAnade;

@@ -3,6 +3,7 @@
 import { esc, cartel, cuentaAtras, FORMATOS, tituloApi, aviso, genero, tipoDe } from "../ui.js";
 import { entradas, porMedia, anade, actualiza } from "../almacen.js";
 import { recientes, haceDias } from "../terminados.js";
+import { abrePrevia } from "../ficha.js";
 import { temporada, TEMPORADAS, temporadaActual, sagas, refrescar } from "../anilist.js";
 
 let sel = temporadaActual();
@@ -163,10 +164,10 @@ async function continua(caja, abreFicha) {
     const id = +(a || b).dataset[a ? "cn" : "cnAnade"];
     const ya = porMedia(id);
     if (ya) return abreFicha(ya.uid);
+    if (a) return abrePrevia(items.find((x) => x.n.id === id).n);
     (a || b).disabled = true;
     let m;
     try { m = await completa(id); } catch (err) { aviso("AniList no responde: " + err.message); (a || b).disabled = false; return; }
-    if (a) return abreFicha(null, m);
     const e = anade({ mediaId: m.id, media: m, titulo: tituloApi(m), tipo: tipoDe(m), estado: "pendiente" });
     aviso(`«${e.titulo}» a pendientes.`);
   };

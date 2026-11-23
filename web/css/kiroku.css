@@ -879,6 +879,8 @@ dialog::backdrop { background: rgba(3, 3, 6, .78); backdrop-filter: blur(6px) sa
 .sg-item:not(.mia) .sg-img img { filter: grayscale(.85) brightness(.6); }
 .sg-img b { position: absolute; left: 0; top: 0; padding: 1px 6px; font: 800 11px var(--f-mono); background: rgba(6, 6, 9, .85); color: var(--texto); }
 .sg-item.actual .sg-img { outline: 2px solid var(--naranja); outline-offset: 2px; }
+.sg-item.actual .sg-abre { cursor: default; }
+.sg-item.actual .sg-abre:hover .sg-img { border-color: var(--linea-2); }
 .sg-abre:hover .sg-img { border-color: var(--naranja); }
 .sg-t { display: grid; line-height: 1.25; }
 .sg-t small { font: 10px var(--f-mono); color: var(--texto-3); }

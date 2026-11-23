@@ -38,7 +38,7 @@ export function abre(uid, previa = null) {
   else conectaAlta(d, m, e);
   d.querySelector("[data-cierra]").addEventListener("click", () => d.close());
   d.querySelector("[data-mio]")?.addEventListener("click", (ev) => abre(ev.currentTarget.dataset.mio));
-  if (m?.id) { cargaSaga(d, m.id); cargaDetalle(d, m.id); cargaOtros(d, m.id, e); botonRecomendar(d.querySelector("#fi-recomienda"), m); }
+  if (m?.id) { cargaDetalle(d, m.id); cargaSaga(d, m.id); cargaOtros(d, m.id, e); botonRecomendar(d.querySelector("#fi-recomienda"), m); }
   if (e?.recomendadoPor) quienRecomendo(d, e.recomendadoPor);
 }
 

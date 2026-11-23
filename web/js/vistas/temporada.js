@@ -108,7 +108,7 @@ async function continua(caja, abreFicha) {
   const mias = entradas().filter((e) => e.mediaId && e.media?.saga);
   if (!mias.length) return;
   let s;
-  try { s = await sagas([...new Set(mias.map((e) => e.mediaId))]); } catch { return; }
+  try { s = await sagas([...new Set(mias.map((e) => e.mediaId))], { fondo: true }); } catch { return; }
   if (!caja.isConnected) return;
 
   const items = [], hechas = new Set();

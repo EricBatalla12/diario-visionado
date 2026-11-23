@@ -180,7 +180,7 @@ async function refresca(forzar = false) {
   const ids = [...new Set(A.propias().map((e) => e.mediaId).filter(Boolean))];
   if (!ids.length) return;
   try {
-    const fichas = await refrescar(ids);
+    const fichas = await refrescar(ids, { fondo: true });
     const n = A.aplicaFichas(fichas);
     actualizaSagas(true);
     terminados.avisaNuevos(A.propias(), A.yoMismo().id);
@@ -202,7 +202,7 @@ async function refrescaEmision() {
     && (e.media?.status === "RELEASING" || e.media?.status === "NOT_YET_RELEASED" || (e.media && !("endDate" in e.media))))
     .map((e) => e.mediaId))];
   try {
-    if (ids.length) A.aplicaFichas(await refrescar(ids), { marca: false });
+    if (ids.length) A.aplicaFichas(await refrescar(ids, { fondo: true }), { marca: false });
     localStorage.setItem(clave, String(Date.now()));
   } catch { return; }
   terminados.avisaNuevos(A.propias(), A.yoMismo().id);
@@ -219,7 +219,7 @@ async function actualizaSagas(todas = false) {
   if (!ids.length) return;
   sagaEnCurso = (async () => {
     try {
-      const s = await sagas(ids);
+      const s = await sagas(ids, { fondo: true });
       A.ponSagas(new Map(ids.map((id) => [id, marcaSaga(s.get(id))])));
     } catch { /* AniList no responde: se reintenta en el próximo arranque */ }
   })();

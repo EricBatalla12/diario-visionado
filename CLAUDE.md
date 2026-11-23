@@ -124,6 +124,9 @@ tras 30 s y cada 3 min a la vista), sin tiempo real.
   (una vez por título y navegador), "Ya terminados" en Temporada con "▶ Empezar" y "✓ Completo"
   en la carta. `refrescaEmision` mira cada 3 h lo pendiente/viendo en emisión
   (`aplicaFichas(..., { marca: false })` para no retrasar el refresco de 12 h).
+- Cola de AniList (`anilist.js`, publicado el 23-11): dos niveles; lo de
+  pantalla va antes que lo de fondo (`{ fondo: true }` en refrescos, sagas y "Continúa"). Frena
+  con `X-RateLimit-Remaining` ≤ 2. El 23-11 AniList estaba en 30 peticiones/min.
 - `gql` reintenta los fallos de red (AniList manda el 429 sin CORS). Los nodos de las sagas se
   guardan en `sessionStorage` (`kiroku:nodos-saga:v1`) para no repetir peticiones al recargar.
 

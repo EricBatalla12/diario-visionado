@@ -1,7 +1,13 @@
 // Cliente mínimo de la API GraphQL de AniList (https://graphql.anilist.co).
 // No necesita clave. El límite es de unas 90 peticiones por minuto (a veces
-// lo bajan a 30), así que todas pasan por una cola que las espacia y, si llega
-// un 429, espera lo que diga Retry-After antes de seguir.
+// lo bajan a 30), así que todas pasan por una cola que las espacia, frena
+// antes de agotar el cupo (cabeceras X-RateLimit) y, si llega un 429, espera
+// lo que diga Retry-After.
+//
+// La cola tiene dos niveles: lo que pides en pantalla (abrir una ficha,
+// buscar, el catálogo de la temporada) pasa por delante de lo que se hace de
+// fondo (refrescos, sagas, "Continúa"). Sin esto, abrir una ficha al arrancar
+// esperaba detrás de una docena de peticiones de fondo.
 
 const URL_API = "https://graphql.anilist.co";
 const HUECO_MS = 700;
@@ -13,45 +19,66 @@ export const CAMPOS = `id idMal type format status episodes duration chapters se
   coverImage { extraLarge large color } bannerImage siteUrl
   studios(isMain: true) { nodes { name } } nextAiringEpisode { airingAt episode } endDate { year month day }`;
 
-let cola = Promise.resolve();
-let ultima = 0;
+const pendientes = [];      // { fondo, query, variables, signal, resolve, reject }
+let trabajando = false;
+let ultima = 0;            // cuándo salió la última petición
+let pausaHasta = 0;        // freno por cupo agotado o 429
 const espera = (ms) => new Promise((r) => setTimeout(r, ms));
 
-export function gql(query, variables = {}, { signal } = {}) {
-  const tarea = cola.then(async () => {
-    if (signal?.aborted) throw new DOMException("cancelada", "AbortError");
-    const falta = ultima + HUECO_MS - Date.now();
-    if (falta > 0) await espera(falta);
-    for (let intento = 0; intento < 3; intento++) {
-      ultima = Date.now();
-      let r;
-      try {
-        r = await fetch(URL_API, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Accept: "application/json" },
-          body: JSON.stringify({ query, variables }),
-          signal,
-        });
-      } catch (err) {
-        // AniList devuelve el 429 sin cabeceras CORS: el navegador solo ve un
-        // fallo de red. Se trata igual que un 429: esperar y reintentar.
-        if (err.name === "AbortError" || intento === 2) throw err;
-        await espera(20000);
-        continue;
-      }
-      if (r.status === 429) {
-        const s = +(r.headers.get("Retry-After") || 30);
-        await espera(Math.min(s, 60) * 1000);
-        continue;
-      }
-      const json = await r.json();
-      if (json.errors?.length && !json.data) throw new Error(json.errors[0].message);
-      return json.data;
-    }
-    throw new Error("AniList no responde (límite de peticiones)");
+export function gql(query, variables = {}, { signal, fondo = false } = {}) {
+  return new Promise((resolve, reject) => {
+    const t = { fondo, query, variables, signal, resolve, reject };
+    // Lo urgente se pone detrás de lo urgente que ya espera, pero delante de lo de fondo
+    const i = fondo ? -1 : pendientes.findIndex((x) => x.fondo);
+    if (i < 0) pendientes.push(t); else pendientes.splice(i, 0, t);
+    procesa();
   });
-  cola = tarea.catch(() => {});
-  return tarea;
+}
+
+async function procesa() {
+  if (trabajando) return;
+  trabajando = true;
+  while (pendientes.length) {
+    const t = pendientes.shift();
+    try { t.resolve(await pide(t)); } catch (err) { t.reject(err); }
+  }
+  trabajando = false;
+}
+
+async function pide({ query, variables, signal }) {
+  for (let intento = 0; intento < 3; intento++) {
+    if (signal?.aborted) throw new DOMException("cancelada", "AbortError");
+    const falta = Math.max(ultima + HUECO_MS, pausaHasta) - Date.now();
+    if (falta > 0) await espera(falta);
+    if (signal?.aborted) throw new DOMException("cancelada", "AbortError");
+    ultima = Date.now();
+    let r;
+    try {
+      r = await fetch(URL_API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ query, variables }),
+        signal,
+      });
+    } catch (err) {
+      // AniList devuelve el 429 sin cabeceras CORS: el navegador solo ve un
+      // fallo de red. Se trata igual que un 429: esperar y reintentar.
+      if (err.name === "AbortError" || intento === 2) throw err;
+      pausaHasta = Date.now() + 20000;
+      continue;
+    }
+    if (r.status === 429) {
+      pausaHasta = Date.now() + Math.min(+(r.headers.get("Retry-After") || 30), 60) * 1000;
+      continue;
+    }
+    // Quedan pocas en este minuto: se para hasta que se renueve el cupo
+    const quedan = r.headers.get("X-RateLimit-Remaining"), renueva = r.headers.get("X-RateLimit-Reset");
+    if (quedan != null && +quedan <= 2) pausaHasta = renueva ? +renueva * 1000 + 500 : Date.now() + 30000;
+    const json = await r.json();
+    if (json.errors?.length && !json.data) throw new Error(json.errors[0].message);
+    return json.data;
+  }
+  throw new Error("AniList no responde (límite de peticiones)");
 }
 
 // Aplana lo que devuelve la API al formato que guarda el archivo
@@ -87,11 +114,11 @@ export async function detalle(id) {
 }
 
 // Refresca las fichas guardadas (episodios emitidos, próximo episodio, portada)
-export async function refrescar(ids) {
+export async function refrescar(ids, { fondo = false } = {}) {
   const out = [];
   for (let i = 0; i < ids.length; i += 50) {
     const d = await gql(`query($ids: [Int]) { Page(perPage: 50) { media(id_in: $ids) { ${CAMPOS} } } }`,
-      { ids: ids.slice(i, i + 50) });
+      { ids: ids.slice(i, i + 50) }, { fondo });
     out.push(...d.Page.media.map(ficha));
   }
   return out;
@@ -153,11 +180,11 @@ function reduce(m) {
   };
 }
 
-async function pideNodos(ids) {
+async function pideNodos(ids, fondo) {
   const faltan = [...new Set(ids)].filter((id) => !nodos.has(id));
   for (let i = 0; i < faltan.length; i += 50) {
     const d = await gql(`query($ids: [Int]) { Page(perPage: 50) { media(id_in: $ids) { ${CAMPOS_SAGA} } } }`,
-      { ids: faltan.slice(i, i + 50) });
+      { ids: faltan.slice(i, i + 50) }, { fondo });
     for (const m of d.Page.media) nodos.set(m.id, reduce(m));
     // Los que AniList no devuelve (borrados, adultos) no se vuelven a pedir
     for (const id of faltan.slice(i, i + 50)) if (!nodos.has(id)) nodos.set(id, null);
@@ -166,11 +193,11 @@ async function pideNodos(ids) {
 }
 
 // ids → Map(id → { raiz, n, cadena: [nodos en orden] }) para los ids pedidos
-export async function sagas(ids) {
+export async function sagas(ids, { fondo = false } = {}) {
   let frontera = [...new Set(ids)];
   const vistos = new Set(frontera);
   for (let r = 0; r < MAX_RONDAS && frontera.length; r++) {
-    await pideNodos(frontera);
+    await pideNodos(frontera, fondo);
     const sig = [];
     for (const id of frontera) {
       const n = nodos.get(id);

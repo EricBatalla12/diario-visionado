@@ -612,6 +612,11 @@ kbd {
 .tier-c .cartel-gen { padding: 4px; } .tier-c .cg-t { font-size: 9.5px; } .tier-c .cg-jp, .tier-c .cg-tipo { display: none; }
 .tier-c span { position: absolute; left: 0; right: 0; bottom: 0; padding: 8px 2px 2px; font: 800 10px var(--f-mono); text-align: center; background: linear-gradient(transparent, rgba(0, 0, 0, .9)); }
 .tier-vacio { color: var(--texto-3); padding: 0 10px; }
+/* Saga en la tier list: una carta asomando detrás y cuántas temporadas suma */
+.tier-c.tier-saga { overflow: visible; box-shadow: 4px -4px 0 -1px var(--panel-3), 4px -4px 0 0 var(--linea-2); }
+.tier-c.tier-saga img { position: relative; }
+.tier-n { position: absolute; top: 0; left: 0; padding: 1px 4px; font: 800 9.5px var(--f-mono); color: var(--negro); background: var(--naranja); }
+.chip-sagas::before { display: none; }
 
 /* ── Temporada ────────────────────────────────────────────────────────── */
 .selector-temp { display: flex; align-items: center; gap: 10px; margin-left: auto; }

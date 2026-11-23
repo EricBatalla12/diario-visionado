@@ -116,6 +116,10 @@ tras 30 s y cada 3 min a la vista), sin tiempo real.
   emisión o anunciada que no tienes y va después de la última que sigues; 6 visibles + "Ver
   las N", plegable y recordado. Los nodos de la saga traen `nextAiringEpisode` y `season`.
 
+- Tier list: chip "⧉ Sagas" (publicado el 23-11): una portada por saga con la
+  nota media de sus temporadas puntuadas; se recuerda en `localStorage`.
+- Propuesta del aviso de pendientes en emisión que terminan: `docs/ideas/aviso-terminados.md`.
+
 ## Ideas del 22-11 (publicado el 23-11)
 
 - Progreso por **capítulos** en manga (`totalDe`/`unidad`/`seLee` en `ui.js`). Manhwa y

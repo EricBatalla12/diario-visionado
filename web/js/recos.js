@@ -7,9 +7,9 @@
 //
 // No hay historial: resolver una recomendación la borra. Si la añades al
 // archivo, la entrada guarda quién te la recomendó (`recomendadoPor`).
-import { esc, aviso, fmtNota, tituloApi, rango } from "./ui.js";
+import { esc, aviso, fmtNota, tituloApi, rango, tipoDe } from "./ui.js";
 import { yoMismo, porMedia, anade } from "./almacen.js";
-import { recosRecibidas, recosEnviadas, mandaReco, borraReco, destinatarios } from "./nube.js";
+import { recosRecibidas, recosEnviadas, mandaReco, borraReco, destinatarios, otrosDe } from "./nube.js";
 import { refrescar } from "./anilist.js";
 
 const SONDEO_MS = 3 * 60 * 1000;
@@ -56,7 +56,7 @@ export function arranca() {
 // Lo justo para pintar la carta del buzón (la base de datos admite 4 KB).
 export function reducida(m) {
   return {
-    id: m.id, type: m.type, format: m.format, episodes: m.episodes ?? null, chapters: m.chapters ?? null,
+    id: m.id, type: m.type, format: m.format, episodes: m.episodes ?? null, chapters: m.chapters ?? null, countryOfOrigin: m.countryOfOrigin ?? null,
     seasonYear: m.seasonYear ?? null, genres: (m.genres || []).slice(0, 6),
     title: { romaji: m.title?.romaji || null, english: m.title?.english || null, native: m.title?.native || null },
     coverImage: { large: m.coverImage?.large || null, color: m.coverImage?.color || null },
@@ -85,8 +85,8 @@ export async function acepta(r, estado) {
   const m = await fichaCompleta(r);
   const e = anade({
     mediaId: m.id, media: m, titulo: tituloApi(m), estado, recomendadoPor: r.de,
-    tipo: m.type === "MANGA" ? "manga" : m.format === "MOVIE" ? "peli" : "anime",
-    progreso: estado === "visto" ? (m.episodes || 0) : 0,
+    tipo: tipoDe(m),
+    progreso: estado === "visto" ? ((m.type === "MANGA" ? m.chapters : m.episodes) || 0) : 0,
   });
   await quita(r).catch((err) => aviso("Añadido, pero no se pudo quitar del buzón: " + err.message));
   return e;
@@ -117,10 +117,15 @@ export const enviadas = () => recosEnviadas(yoMismo().id);
 export const cancela = (r) => borraReco(r.id);
 
 // ── Formulario "Recomendar a…" (dentro de la ficha) ──────────────────────
-// Quién puede recibirla y, si no, por qué. No se mira si el receptor ya
-// tiene el título: eso revelaría archivos privados.
-function motivo(p, { meAceptan, enviadas }, mediaId) {
+// Quién puede recibirla y, si no, por qué. Si ya lo ha visto, no tiene
+// sentido recomendárselo. Eso solo se sabe de los archivos que puedes leer
+// (públicos o privados que te dejan ver): de un privado sin permiso no se
+// pregunta nada, para no revelarlo. Si lo tiene en pendientes sí se puede:
+// es un empujón para que lo vea.
+const YA = { visto: "Ya lo ha visto", revisto: "Ya lo ha visto", viendo: "Lo está viendo", abandonado: "Lo abandonó" };
+function motivo(p, { meAceptan, enviadas }, mediaId, suyo) {
   const modo = p.recibe_recos || "todos";
+  if (suyo && YA[suyo.estado]) return YA[suyo.estado] + (suyo.nota != null ? ` · ${fmtNota(suyo.nota)}` : "");
   if (modo === "nadie") return "No acepta recomendaciones";
   if (modo === "lista" && !meAceptan.has(p.id)) return "Solo de su lista";
   if (enviadas.some((x) => x.para === p.id && x.media_id === mediaId)) return "Ya se lo has recomendado";
@@ -142,12 +147,15 @@ export function boton(caja, m) {
 
 async function formulario(caja, m) {
   caja.innerHTML = `<section class="fi-sec fi-reco"><div class="cargando"><span></span>Buscando operadores…</div></section>`;
-  let datos;
-  try { datos = await destinatarios(yoMismo().id); }
+  let datos, suyos;
+  try {
+    const [d, otros] = await Promise.all([destinatarios(yoMismo().id), otrosDe(m.id, yoMismo().id).catch(() => [])]);
+    datos = d; suyos = new Map(otros.map((x) => [x.usuario, x]));
+  }
   catch (err) { if (caja.isConnected) caja.innerHTML = `<section class="fi-sec fi-reco"><p class="ac-error">▲ ${esc(err.message)}</p></section>`; return; }
   if (!caja.isConnected) return;
   const mia = porMedia(m.id);
-  const ops = datos.perfiles.map((p) => ({ ...p, motivo: motivo(p, datos, m.id) }))
+  const ops = datos.perfiles.map((p) => ({ ...p, suyo: suyos.get(p.id), motivo: motivo(p, datos, m.id, suyos.get(p.id)) }))
     .sort((a, b) => (a.motivo ? 1 : 0) - (b.motivo ? 1 : 0) || a.nombre.localeCompare(b.nombre, "es"));
   const elegidos = new Set();
   const r = mia?.nota != null ? rango(mia.nota) : null;
@@ -156,7 +164,7 @@ async function formulario(caja, m) {
     <h3 class="p-tit"><span>Recomendar</span><i>推薦</i></h3>
     ${ops.length ? `<div class="rc-ops" role="group" aria-label="Operadores">${ops.map((p) => `
       <button class="rc-op" data-para="${esc(p.id)}" ${p.motivo ? `disabled title="${esc(p.motivo)}"` : ""} aria-pressed="false">
-        <span class="rc-av">${avatar(p)}</span><span class="rc-n"><b>${esc(p.nombre)}</b><small>${p.motivo ? esc(p.motivo) : "@" + esc(p.alias)}</small></span>
+        <span class="rc-av">${avatar(p)}</span><span class="rc-n"><b>${esc(p.nombre)}</b><small>${p.motivo ? esc(p.motivo) : "@" + esc(p.alias) + (p.suyo?.estado === "pendiente" ? " · lo tiene pendiente" : "")}</small></span>
       </button>`).join("")}</div>`
       : `<p class="tenue">Todavía no hay más operadores. Pásales el enlace desde Operadores.</p>`}
     <label class="campo rc-msg"><span>Mensaje · <b>sin spoilers</b></span>

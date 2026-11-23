@@ -1,6 +1,6 @@
 // 01 · ARCHIVO — la colección: cifras del HUD, filtros y cartas holográficas
 // (o la vista "dossier", en filas).
-import { esc, cartel, rango, fmtNota, ESTADOS, TIPOS, MESES, FORMATOS, subtitulo, tinte, cuenta, genero } from "../ui.js";
+import { esc, cartel, rango, fmtNota, ESTADOS, TIPOS, MESES, subtitulo, tinte, cuenta, genero, formato, totalDe, unidad, seLee, infoTipo } from "../ui.js";
 import { entradas, esPropio, sujetoActual } from "../almacen.js";
 import { episodios, generosDe } from "../stats.js";
 
@@ -20,7 +20,7 @@ function filtra(lista) {
   return lista.filter((e) =>
     (f.estado === "todos" || e.estado === f.estado) &&
     (f.tipo === "todos" || e.tipo === f.tipo) &&
-    (f.anio === "todos" || String(e.anio) === f.anio) &&
+    (f.anio === "todos" || (f.anio === "sin" ? !e.anio : String(e.anio) === f.anio)) &&
     (f.genero === "todos" || generosDe(e).includes(f.genero)) &&
     (!q || norm(e.titulo + " " + (e.media?.title.romaji || "") + " " + (e.media?.title.english || "") + " " + e.comentario).includes(q)));
 }
@@ -39,8 +39,8 @@ export function carta(e, { indice = 0 } = {}) {
   const r = rango(e.nota);
   const es = ESTADOS[e.estado];
   const m = e.media;
-  const total = m?.episodes;
-  const meta = [m ? FORMATOS[m.format] || m.format : TIPOS[e.tipo]?.nombre, m?.seasonYear, total ? total + " ep" : (m?.chapters ? m.chapters + " cap" : null)].filter(Boolean).join(" · ");
+  const total = totalDe(e);
+  const meta = [m ? formato(m) : infoTipo(e.tipo).nombre, m?.seasonYear, total ? `${total} ${unidad(e)}` : null].filter(Boolean).join(" · ");
   const prog = e.estado === "viendo" && total ? Math.min(1, (e.progreso || 0) / total) : null;
   const sig = e.estado !== "visto" && m?.nextAiringEpisode;
   return `<article class="carta holo ${r ? r.clase : "sin-nota"}" data-uid="${esc(e.uid)}" tabindex="0" role="button"
@@ -64,13 +64,13 @@ const diasA = (t) => { const s = t - Date.now() / 1000; const d = Math.floor(s /
 function fila(e) {
   const r = rango(e.nota);
   const es = ESTADOS[e.estado];
-  const total = e.media?.episodes;
-  const ep = episodios(e);
+  const total = totalDe(e);
+  const ep = seLee(e) ? e.progreso || 0 : episodios(e);
   return `<article class="fila ${r ? r.clase : ""}" data-uid="${esc(e.uid)}" tabindex="0" role="button" style="--tinte:${esc(tinte(e))}">
     <div class="fila-img">${cartel(e)}</div>
     <div class="fila-t"><h3>${esc(e.titulo)}</h3><p>${esc(subtitulo(e))}</p></div>
     <span class="fila-estado" style="--c:${es.color}">${es.jp} ${es.nombre}</span>
-    <div class="fila-ep">${total ? `<div class="barra"><span style="width:${Math.min(100, ep / total * 100)}%"></span></div><small>${ep}/${total}</small>` : `<small>${TIPOS[e.tipo]?.nombre}</small>`}</div>
+    <div class="fila-ep">${total ? `<div class="barra"><span style="width:${Math.min(100, ep / total * 100)}%"></span></div><small>${ep}/${total}</small>` : `<small>${infoTipo(e.tipo).nombre}</small>`}</div>
     <p class="fila-com">${esc(e.comentario || "")}</p>
     <span class="fila-nota">${r ? `<b>${fmtNota(e.nota)}</b><i>${r.r}</i>` : "—"}</span>
   </article>`;
@@ -99,7 +99,7 @@ export function pinta(raiz, { stats, primera }) {
     <div class="filtros-fila">
       <label class="campo-busca"><span>⌕</span><input id="f-texto" type="search" placeholder="Filtrar el archivo…" value="${esc(f.texto)}" autocomplete="off"></label>
       ${sel("tipo", "Tipo", [["todos", "Todo"], ...Object.entries(TIPOS).map(([k, v]) => [k, v.nombre])])}
-      ${sel("anio", "Año", [["todos", "Siempre"], ...anios.map((a) => [String(a), String(a)])])}
+      ${sel("anio", "Año", [["todos", "Siempre"], ...anios.map((a) => [String(a), String(a)]), ...(todas.some((e) => !e.anio) ? [["sin", "∞ Atemporal"]] : [])])}
       ${sel("genero", "Género", [["todos", "Cualquiera"], ...generos.map((g) => [g, genero(g)])])}
       ${sel("orden", "Orden", Object.entries(ORDENES).map(([k, v]) => [k, v.nombre]))}
       <div class="conmuta" role="group" aria-label="Vista">
@@ -141,8 +141,8 @@ export function pinta(raiz, { stats, primera }) {
     }
     let i = 0;
     return grupos.map((g) => `<div class="grupo">
-      <h2 class="rotulo"><span class="rotulo-n">${g.e.anio || "—"}</span><span class="rotulo-m">${g.e.mes ? MESES[g.e.mes - 1] : (g.e.anio ? "Sin mes" : "Sin fecha")}</span>
-      <span class="rotulo-jp">${g.e.mes ? g.e.mes + "月" : "年"}</span><span class="rotulo-c">${g.items.length}</span></h2>
+      <h2 class="rotulo ${g.e.anio ? "" : "rotulo-atemporal"}"><span class="rotulo-n">${g.e.anio || "∞"}</span><span class="rotulo-m">${g.e.mes ? MESES[g.e.mes - 1] : (g.e.anio ? "Sin mes" : "Atemporal")}</span>
+      <span class="rotulo-jp">${g.e.mes ? g.e.mes + "月" : g.e.anio ? "年" : "永遠"}</span><span class="rotulo-c">${g.items.length}</span></h2>
       <div class="rejilla">${g.items.map((e) => carta(e, { indice: i++ })).join("")}</div></div>`).join("");
   }
 }

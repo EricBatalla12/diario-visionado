@@ -139,7 +139,7 @@ export async function aciertosDe(id) {
 // Lo que otros operadores tienen registrado de un mismo título
 export async function otrosDe(mediaId, yo) {
   const { data, error } = await sb.from("entradas")
-    .select("id, estado, nota, comentario, progreso, editado, perfiles!inner(alias, nombre, avatar_url)")
+    .select("id, usuario, estado, nota, comentario, progreso, editado, perfiles!inner(alias, nombre, avatar_url)")
     .eq("media_id", mediaId).neq("usuario", yo).order("nota", { ascending: false, nullsFirst: false }).limit(50);
   if (error) throw error;
   return data;

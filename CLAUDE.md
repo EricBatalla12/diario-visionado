@@ -1,7 +1,7 @@
 # Diario de visionado / KIROKU 記録
 
-Lee esto antes de nada. Estado al 22-11-2026: recomendaciones, nota afinable y total de
-episodios en Temporada publicados; no hay trabajo a medias en la web.
+Lee esto antes de nada. Estado al 23-11-2026: recomendaciones, nota afinable y total de
+episodios en Temporada publicados. A medias: rama `ideas-23-11` (ver abajo).
 
 ## Qué es
 
@@ -100,6 +100,24 @@ tras 30 s y cada 3 min a la vista), sin tiempo real.
   valor por defecto de `--rc` en una clase posterior los pisa (pasó en `.fi-nota`,
   `.fa-nota`, `.fo-nota`…: la letra EX salía gris). Los valores por defecto van en
   `:where(.clase) { --rc: … }`.
+
+## Ideas del 22-11 (rama `ideas-23-11`, sin commit ni publicar)
+
+- Progreso por **capítulos** en manga (`totalDe`/`unidad`/`seLee` en `ui.js`). Manhwa y
+  manhua salen de `media.countryOfOrigin` (KR/CN/TW), que ahora pide `CAMPOS`.
+- Ficha: selector de **año (◀ ▶) + 12 meses + "∞ Atemporal"** (= sin año; grupo al final del
+  archivo y opción en el filtro Año).
+- Recomendar: desactiva a quien **ya lo ha visto/viendo/abandonado** (solo archivos que puedes
+  leer, vía `otrosDe`, que ahora trae `usuario`); con pendiente se deja.
+- Móvil (≤720 px): **pestañas abajo** con kanji de icono, cabecera fija, sin teletipo ni pie,
+  archivo compacto. `manifest.webmanifest` + `web/img/` para instalarla como app.
+- `tutorial.js`: recorrido guiado; sale solo a cuentas nuevas y desde ⋮ → Ver el tutorial.
+- Donaciones: `DONAR` en `config.js` (vacío = oculto). Falta el enlace de Eric.
+- **Sin series**: `TIPOS` = anime, manga y peli (pelis de anime, filtrables). `serie` ya no se
+  elige; las entradas viejas se pintan con `infoTipo()` y Eric gestiona las suyas a mano.
+- Móvil compactado (ficha, perfil, temporada, gacha); «En emisión» plegable y recordado.
+- Idea de agrupar temporadas en sagas: `docs/ideas/temporadas.md`.
+- Rama `diseno-limpio`: la versión "lite" (`limpio.css`), guardada por si acaso.
 
 ## Vídeos promocionales (`video/`, local y sin versionar)
 

@@ -17,12 +17,20 @@ export const ESTADOS = {
   revisto:    { nombre: "Revisto",    jp: "再視聴", color: "var(--e-revisto)" },
   abandonado: { nombre: "Abandonado", jp: "中断",   color: "var(--e-abandonado)" },
 };
+// KIROKU es de anime y manga (manhwa y manhua van dentro de manga); "peli"
+// son las películas de anime. "serie" es de cuando también se apuntaba imagen
+// real: ya no se puede elegir, pero las entradas viejas se pintan con su nombre.
 export const TIPOS = {
   anime: { nombre: "Anime",    jp: "アニメ" },
   manga: { nombre: "Manga",    jp: "漫画" },
   peli:  { nombre: "Película", jp: "映画" },
-  serie: { nombre: "Serie",    jp: "ドラマ" },
 };
+const TIPOS_VIEJOS = {
+  serie: { nombre: "Serie", jp: "ドラマ" },
+};
+export const infoTipo = (k) => TIPOS[k] || TIPOS_VIEJOS[k] || TIPOS.anime;
+// Tipo de una ficha de AniList
+export const tipoDe = (m) => m?.type === "MANGA" ? "manga" : m?.format === "MOVIE" ? "peli" : "anime";
 export const MESES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio",
   "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 export const FORMATOS = { TV: "TV", TV_SHORT: "TV corto", MOVIE: "Película", SPECIAL: "Especial",
@@ -34,6 +42,22 @@ export const GENEROS_ES = {
   "Slice of Life": "Recuentos", Sports: "Deportes", Supernatural: "Sobrenatural", Thriller: "Thriller",
 };
 export const genero = (g) => GENEROS_ES[g] || g;
+
+// AniList da manga, manhwa y manhua como MANGA: lo que los distingue es el
+// país de origen. Las fichas guardadas antes de pedir `countryOfOrigin` lo
+// reciben en el siguiente refresco de AniList; hasta entonces dicen "Manga".
+const PAIS_MANGA = { KR: "Manhwa", CN: "Manhua", TW: "Manhua" };
+export const formato = (m) => {
+  if (!m) return null;
+  if (m.type === "MANGA" && m.format !== "NOVEL" && PAIS_MANGA[m.countryOfOrigin]) return PAIS_MANGA[m.countryOfOrigin];
+  return FORMATOS[m.format] || m.format || null;
+};
+export const nombreTipo = (tipo, m) => tipo === "manga" && PAIS_MANGA[m?.countryOfOrigin] ? PAIS_MANGA[m.countryOfOrigin] : infoTipo(tipo).nombre;
+
+// Progreso: capítulos en lo que se lee, episodios en lo que se ve
+export const seLee = (e) => e.tipo === "manga";
+export const totalDe = (e) => (seLee(e) ? e.media?.chapters : e.media?.episodes) || null;
+export const unidad = (e) => seLee(e) ? "cap" : "ep";
 
 // ── Rangos por nota ──────────────────────────────────────────────────────
 // La letra hace de "rango de carta": el 10 tiene su propia categoría (EX) y
@@ -55,7 +79,7 @@ export const fmtNota = (n) => n == null ? "—" : (Number.isInteger(+n) ? String
 export const tituloApi = (m) => m ? (m.title.english || m.title.romaji || m.title.native) : "";
 export const subtitulo = (e) => {
   const m = e.media;
-  if (!m) return TIPOS[e.tipo]?.nombre || "";
+  if (!m) return infoTipo(e.tipo).nombre;
   const t = m.title.romaji && m.title.romaji !== e.titulo ? m.title.romaji : (m.title.english || "");
   return t;
 };
@@ -67,7 +91,7 @@ export function hash(s) {
   return h >>> 0;
 }
 
-// Sin AniList (series y pelis de imagen real) se genera un cartel tipográfico:
+// Sin AniList (lo que AniList no tiene) se genera un cartel tipográfico:
 // el tono sale del título, así cada uno tiene su color y no cambia entre visitas.
 export function cartel(e, { grande = false } = {}) {
   const m = e.media;
@@ -76,7 +100,7 @@ export function cartel(e, { grande = false } = {}) {
     return `<img src="${esc(src)}" alt="" loading="lazy" decoding="async">`;
   }
   const h = hash(e.titulo) % 360;
-  const tipo = TIPOS[e.tipo] || TIPOS.anime;
+  const tipo = infoTipo(e.tipo);
   return `<div class="cartel-gen" style="--h:${h}">
     <span class="cg-jp">${tipo.jp}</span>
     <span class="cg-t">${esc(e.titulo)}</span>

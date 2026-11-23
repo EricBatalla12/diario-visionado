@@ -3,7 +3,7 @@
 // sirve de vista previa para algo que aún no está en el archivo, y de ficha
 // en solo lectura cuando el registro es de otro operador.
 import { $, esc, cartel, rango, fmtNota, ESTADOS, TIPOS, MESES, FORMATOS, tituloApi, genero, aviso,
-  tarjetaTitulo, htmlSeguro, cuentaAtras, tinte } from "./ui.js";
+  tarjetaTitulo, htmlSeguro, cuentaAtras, tinte, formato, nombreTipo, totalDe, unidad, seLee, infoTipo, tipoDe } from "./ui.js";
 import { entrada, actualiza, borra, anade, porMedia, deshaz, esMia, sujetoActual, yoMismo } from "./almacen.js";
 import { detalle } from "./anilist.js";
 import { otrosDe, perfilCorto } from "./nube.js";
@@ -46,10 +46,11 @@ export function cierra() { if (dlg().open) dlg().close(); }
 
 function plantilla(e, m) {
   const titulo = e ? e.titulo : tituloApi(m);
-  const tipo = e ? TIPOS[e.tipo] : TIPOS[m?.type === "MANGA" ? "manga" : m?.format === "MOVIE" ? "peli" : "anime"];
+  const claveTipo = e ? e.tipo : tipoDe(m);
+  const tipo = infoTipo(claveTipo);
   const falso = e || { titulo, media: m, tipo: "anime" };
   const meta = m ? [
-    FORMATOS[m.format] || m.format,
+    formato(m),
     m.episodes ? `${m.episodes} ep${m.duration ? " × " + m.duration + " min" : ""}` : (m.chapters ? m.chapters + " capítulos" : null),
     m.season ? `${SEASON[m.season]} ${m.seasonYear}` : m.seasonYear,
     m.studio, STATUS[m.status],
@@ -61,7 +62,7 @@ function plantilla(e, m) {
   <header class="fi-cab">
     <div class="fi-cartel holo"><div class="carta-img">${cartel(falso, { grande: true })}</div><div class="carta-brillo"></div></div>
     <div class="fi-tit">
-      <span class="etq">${esc(tipo?.jp || "")} · ${esc(tipo?.nombre || "")}</span>
+      <span class="etq">${esc(tipo?.jp || "")} · ${esc(nombreTipo(claveTipo, m))}</span>
       <h2>${esc(titulo)}</h2>
       ${m ? `<p class="fi-alt">${esc([m.title.romaji !== titulo ? m.title.romaji : null, m.title.native].filter(Boolean).join(" · "))}</p>` : ""}
       <ul class="fi-meta">${meta.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>
@@ -81,9 +82,9 @@ function plantilla(e, m) {
 function registro(e) {
   const r = rango(e.nota);
   const m = e.media;
-  const total = m?.episodes;
-  const conEp = e.tipo !== "manga" && e.tipo !== "peli";
-  const anio = new Date().getFullYear();
+  const total = totalDe(e);
+  const conProg = e.tipo !== "peli";
+  const cosa = seLee(e) ? "capítulo" : "episodio";
   return `<section class="fi-reg panel esquinas">
     <h3 class="p-tit"><span>Tu registro</span><i>記録</i><small class="fi-guardado" aria-live="polite"></small></h3>
     ${e.recomendadoPor ? `<p class="fi-recomendado" hidden></p>` : ""}
@@ -104,15 +105,13 @@ function registro(e) {
         <div class="fn-pie"><span>0</span><button class="enlace" data-sin-nota>${e.nota == null ? "Arrastra para puntuar" : "Quitar nota"}</button><span>10</span></div>
       </div>
       <div class="fi-campos">
-        ${conEp ? `<label class="campo"><span>Progreso</span>
-          <div class="paso"><button data-ep="-1" aria-label="Un episodio menos">−</button>
+        ${conProg ? `<label class="campo"><span>Progreso · ${seLee(e) ? "capítulos" : "episodios"}</span>
+          <div class="paso"><button data-ep="-1" aria-label="Un ${cosa} menos">−</button>
           <input id="fi-prog" type="number" min="0" ${total ? `max="${total}"` : ""} value="${e.progreso || 0}">
-          <em>/ ${total || "?"}</em><button data-ep="1" aria-label="Un episodio más">＋</button></div></label>` : ""}
-        <label class="campo"><span>Cuándo</span><div class="cuando">
-          <select id="fi-mes"><option value="">Sin mes</option>${MESES.map((n, i) => `<option value="${i + 1}" ${e.mes === i + 1 ? "selected" : ""}>${n}</option>`).join("")}</select>
-          <input id="fi-anio" type="number" min="1960" max="${anio + 1}" value="${e.anio || ""}" placeholder="Año"></div></label>
-        <label class="campo"><span>Tipo</span><select id="fi-tipo">${Object.entries(TIPOS).map(([k, v]) => `<option value="${k}" ${e.tipo === k ? "selected" : ""}>${v.nombre}</option>`).join("")}</select></label>
-        <label class="campo"><span>Tu título</span><input id="fi-titulo" value="${esc(e.titulo)}" maxlength="120"></label>
+          <em>/ ${total || "?"}</em><button data-ep="1" aria-label="Un ${cosa} más">＋</button></div></label>` : ""}
+        <label class="campo"><span>Tipo</span><select id="fi-tipo">${Object.entries(TIPOS[e.tipo] ? TIPOS : { ...TIPOS, [e.tipo]: infoTipo(e.tipo) }).map(([k, v]) => `<option value="${k}" ${e.tipo === k ? "selected" : ""}>${v.nombre}</option>`).join("")}</select></label>
+        ${cuando(e)}
+        <label class="campo campo-ancho"><span>Tu título</span><input id="fi-titulo" value="${esc(e.titulo)}" maxlength="120"></label>
       </div>
     </div>
     <label class="campo"><span>Comentario</span><textarea id="fi-com" rows="3" maxlength="600" placeholder="Lo que te pareció, sin spoilers… o con.">${esc(e.comentario || "")}</textarea></label>
@@ -125,17 +124,39 @@ function registro(e) {
   </section>`;
 }
 
+// Cuándo lo viste: año con ◀ ▶ (o escrito), los doce meses a la vista y
+// "Atemporal" para lo que no tiene fecha (lo de la infancia, lo que ya ni
+// recuerdas). Atemporal es simplemente no tener año: va al final del archivo.
+function cuando(e) {
+  const sin = !e.anio;
+  return `<div class="campo campo-ancho"><span>Cuándo</span>
+    <div class="cuando ${sin ? "atemporal" : ""}" id="fi-cuando">
+      <div class="cu-cab">
+        <div class="cu-anio">
+          <button data-cu-anio="-1" aria-label="Año anterior">◀</button>
+          <input id="fi-anio" inputmode="numeric" maxlength="4" autocomplete="off" value="${e.anio || ""}" placeholder="∞" aria-label="Año">
+          <button data-cu-anio="1" aria-label="Año siguiente">▶</button>
+        </div>
+        <button class="cu-atemporal ${sin ? "on" : ""}" data-atemporal aria-pressed="${sin}" title="Sin fecha: no importa cuándo lo viste">∞ Atemporal</button>
+      </div>
+      <div class="cu-meses" role="group" aria-label="Mes (púlsalo otra vez para quitarlo)">
+        ${MESES.map((n, i) => { const on = !sin && e.mes === i + 1;
+          return `<button data-mes="${i + 1}" class="${on ? "on" : ""}" aria-pressed="${on}" title="${n}">${n.slice(0, 3)}</button>`; }).join("")}
+      </div>
+    </div></div>`;
+}
+
 // Registro de otro operador, en solo lectura
 function ajeno(e) {
   const r = rango(e.nota), es = ESTADOS[e.estado], dueno = sujetoActual();
-  const total = e.media?.episodes;
+  const total = totalDe(e);
   return `<section class="fi-reg panel esquinas fi-ajeno">
     <h3 class="p-tit"><span>Registro de ${esc(dueno?.nombre || "otro operador")}</span><i>記録</i><small>@${esc(dueno?.alias || "")} · solo lectura</small></h3>
     <div class="fa-fila">
       <div class="fa-nota ${r ? r.clase : "sin-nota"}"><b>${e.nota == null ? "—" : fmtNota(e.nota)}</b><i>${r ? r.r : ""}</i></div>
       <div class="fa-datos">
         <span class="fa-estado" style="--c:${es.color}"><i>${es.jp}</i>${es.nombre}</span>
-        <small>${[total ? `${e.progreso || 0}/${total} ep` : null, e.mes ? MESES[e.mes - 1] : null, e.anio].filter(Boolean).join(" · ")}</small>
+        <small>${[total ? `${e.progreso || 0}/${total} ${unidad(e)}` : null, e.anio && e.mes ? MESES[e.mes - 1] : null, e.anio || "∞ Atemporal"].filter(Boolean).join(" · ")}</small>
       </div>
     </div>
     ${e.comentario ? `<blockquote class="fa-com">${esc(e.comentario)}</blockquote>` : ""}
@@ -158,11 +179,11 @@ function conectaAlta(d, m, ajena = null) {
     const ya = m?.id ? porMedia(m.id) : null;
     if (ya) return abre(ya.uid);
     const estado = b.dataset.alta;
-    // Sin ficha de AniList (serie o peli de un amigo) se copia su título y tipo
+    // Sin ficha de AniList (algo que AniList no tiene) se copia su título y tipo
     const e = m ? anade({ mediaId: m.id, media: m, titulo: tituloApi(m), estado,
-      tipo: m.type === "MANGA" ? "manga" : m.format === "MOVIE" ? "peli" : "anime",
-      progreso: estado === "visto" ? (m.episodes || 0) : 0 })
-      : anade({ titulo: ajena.titulo, tipo: ajena.tipo, estado });
+      tipo: tipoDe(m),
+      progreso: estado === "visto" ? ((m.type === "MANGA" ? m.chapters : m.episodes) || 0) : 0 })
+      : anade({ titulo: ajena.titulo, tipo: TIPOS[ajena.tipo] ? ajena.tipo : "anime", estado });
     aviso(`«${e.titulo}» entra en el archivo.`);
     abre(e.uid);
   }));
@@ -180,13 +201,13 @@ function conectaRegistro(d, e0) {
   d.querySelectorAll("[data-estado]").forEach((b) => b.addEventListener("click", () => {
     const estado = b.dataset.estado, x = e();
     const cambios = { estado };
-    const total = x.media?.episodes;
+    const total = totalDe(x);
     if ((estado === "visto" || estado === "revisto") && total && (x.progreso || 0) < total) cambios.progreso = total;
     if (estado === "visto" && x.estado !== "visto") { const h = new Date(); cambios.mes = h.getMonth() + 1; cambios.anio = h.getFullYear(); }
     pon(cambios);
     d.querySelectorAll("[data-estado]").forEach((o) => { o.classList.toggle("on", o === b); o.setAttribute("aria-checked", o === b); });
     if (cambios.progreso != null) { const p = d.querySelector("#fi-prog"); if (p) p.value = cambios.progreso; }
-    if (cambios.mes) { d.querySelector("#fi-mes").value = cambios.mes; d.querySelector("#fi-anio").value = cambios.anio; }
+    if (cambios.mes) pintaCuando();
   }));
 
   // Nota: la barra para ir rápido; − y ＋ (o escribirla) para afinar la décima,
@@ -258,24 +279,62 @@ function conectaRegistro(d, e0) {
   // Progreso
   const prog = d.querySelector("#fi-prog");
   const ponProg = (v) => {
-    const x = e(), total = x.media?.episodes;
+    const x = e(), total = totalDe(x);
     v = Math.max(0, total ? Math.min(total, v) : v);
     prog.value = v;
     const cambios = { progreso: v };
     if (x.estado === "pendiente" && v > 0) cambios.estado = "viendo";
     if (total && v >= total && x.estado === "viendo") {
       cambios.estado = "visto"; const h = new Date(); cambios.mes = h.getMonth() + 1; cambios.anio = h.getFullYear();
-      tarjetaTitulo({ jp: "完", linea1: "TERMINADA", linea2: x.titulo });
+      tarjetaTitulo({ jp: "完", linea1: seLee(x) ? "LEÍDO" : "TERMINADA", linea2: x.titulo });
     }
     pon(cambios, { agrupa: true });
+    if (cambios.mes) pintaCuando();
     if (cambios.estado) d.querySelectorAll("[data-estado]").forEach((o) => { o.classList.toggle("on", o.dataset.estado === cambios.estado); o.setAttribute("aria-checked", o.dataset.estado === cambios.estado); });
   };
   d.querySelectorAll("[data-ep]").forEach((b) => b.addEventListener("click", () => ponProg((+prog.value || 0) + +b.dataset.ep)));
   prog?.addEventListener("change", () => ponProg(+prog.value || 0));
 
+  // Cuándo
+  const cu = d.querySelector("#fi-cuando"), inAnio = d.querySelector("#fi-anio");
+  function pintaCuando() {
+    const x = e(), sin = !x.anio;
+    cu.classList.toggle("atemporal", sin);
+    inAnio.value = x.anio || "";
+    const at = cu.querySelector("[data-atemporal]");
+    at.classList.toggle("on", sin); at.setAttribute("aria-pressed", sin);
+    cu.querySelectorAll("[data-mes]").forEach((b) => {
+      const on = !sin && x.mes === +b.dataset.mes;
+      b.classList.toggle("on", on); b.setAttribute("aria-pressed", on);
+    });
+  }
+  const hoy = () => new Date();
+  const ponCuando = (cambios) => { pon(cambios); pintaCuando(); };
+  const ponAnio = (a) => ponCuando({ anio: Math.min(hoy().getFullYear() + 1, Math.max(1960, a)) });
+  // Desde Atemporal, ◀ ▶ empiezan en el año actual
+  cu.querySelectorAll("[data-cu-anio]").forEach((b) => b.addEventListener("click", () => {
+    const a = e().anio;
+    ponAnio(a ? a + +b.dataset.cuAnio : hoy().getFullYear());
+  }));
+  inAnio.addEventListener("focus", () => inAnio.select());
+  inAnio.addEventListener("keydown", (ev) => { if (ev.key === "Enter") { ev.preventDefault(); inAnio.blur(); } });
+  inAnio.addEventListener("change", () => {
+    const v = inAnio.value.trim();
+    if (!v) return ponCuando({ anio: null, mes: null });
+    const a = parseInt(v, 10);
+    if (a >= 1960) ponAnio(a); else pintaCuando();
+  });
+  cu.querySelectorAll("[data-mes]").forEach((b) => b.addEventListener("click", () => {
+    const x = e(), mes = +b.dataset.mes;
+    if (!x.anio) ponCuando({ anio: hoy().getFullYear(), mes });
+    else ponCuando({ mes: x.mes === mes ? null : mes });
+  }));
+  cu.querySelector("[data-atemporal]").addEventListener("click", () => {
+    if (e().anio) ponCuando({ anio: null, mes: null });
+    else ponCuando({ anio: hoy().getFullYear(), mes: hoy().getMonth() + 1 });
+  });
+
   // Campos sueltos
-  d.querySelector("#fi-mes").addEventListener("change", (ev) => pon({ mes: +ev.target.value || null }));
-  d.querySelector("#fi-anio").addEventListener("change", (ev) => pon({ anio: +ev.target.value || null }));
   d.querySelector("#fi-tipo").addEventListener("change", (ev) => pon({ tipo: ev.target.value }));
   let tt;
   d.querySelector("#fi-titulo").addEventListener("input", (ev) => { clearTimeout(tt); tt = setTimeout(() => { const v = ev.target.value.trim(); if (v) { pon({ titulo: v }, { agrupa: true }); d.querySelector(".fi-tit h2").textContent = v; } }, 400); });
@@ -311,7 +370,7 @@ async function cargaDetalle(d, id) {
     ${rel.length ? `<section class="fi-sec"><h3 class="p-tit"><span>Relacionados</span><i>関連</i></h3>
       <div class="fi-rel">${rel.map((r) => { const n = r.node; const ya = porMedia(n.id);
         return `<button class="rel ${ya ? "ya" : ""}" data-rel="${n.id}"><div class="rel-img">${n.coverImage ? `<img src="${esc(n.coverImage.large)}" alt="" loading="lazy">` : ""}</div>
-          <span class="rel-t"><small>${RELACION[r.relationType] || r.relationType} · ${esc(FORMATOS[n.format] || n.format || "")}${n.seasonYear ? " · " + n.seasonYear : ""}</small>${esc(tituloApi(n))}</span>
+          <span class="rel-t"><small>${RELACION[r.relationType] || r.relationType} · ${esc(formato(n) || "")}${n.seasonYear ? " · " + n.seasonYear : ""}</small>${esc(tituloApi(n))}</span>
           <em>${ya ? "✓" : "＋"}</em></button>`; }).join("")}</div></section>` : ""}`;
   caja.querySelectorAll("[data-rel]").forEach((b) => b.addEventListener("click", () => {
     const n = x.relations.edges.find((r) => r.node.id === +b.dataset.rel).node;

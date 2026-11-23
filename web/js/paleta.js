@@ -2,7 +2,7 @@
 // AniList. Intro abre la ficha previa; los botones de cada resultado lo añaden
 // directamente. En modo "revincula" sirve para cambiar el título de AniList al
 // que apunta una entrada.
-import { $, esc, FORMATOS, tituloApi, ESTADOS, aviso, TIPOS } from "./ui.js";
+import { $, esc, FORMATOS, tituloApi, ESTADOS, aviso, TIPOS, infoTipo, tipoDe } from "./ui.js";
 import { propias, porMedia, anade, actualiza, entrada } from "./almacen.js";
 import { buscar } from "./anilist.js";
 import * as ficha from "./ficha.js";
@@ -81,14 +81,14 @@ function pinta(estado, msg) {
     if (r.clase === "local") {
       const e = r.e, es = ESTADOS[e.estado];
       return `<div class="pa-f ${idx === activo ? "on" : ""}" data-i="${idx}" role="option">
-        <div class="pa-img">${e.media?.coverImage ? `<img src="${esc(e.media.coverImage.large)}" alt="">` : `<span>${esc(TIPOS[e.tipo]?.jp || "")}</span>`}</div>
+        <div class="pa-img">${e.media?.coverImage ? `<img src="${esc(e.media.coverImage.large)}" alt="">` : `<span>${esc(infoTipo(e.tipo).jp)}</span>`}</div>
         <div class="pa-t"><b>${esc(e.titulo)}</b><small style="color:${es.color}">${es.jp} ${es.nombre}${e.nota != null ? " · " + e.nota : ""}</small></div>
         <span class="pa-k">abrir</span></div>`;
     }
     if (r.clase === "manual") return `<div class="pa-f pa-manual ${idx === activo ? "on" : ""}" data-i="${idx}" role="option">
         <div class="pa-img"><span>＋</span></div>
-        <div class="pa-t"><b>Añadir «${esc(r.texto)}» sin AniList</b><small>Para series y pelis de imagen real, que AniList no tiene</small></div>
-        <div class="pa-btns">${["serie", "peli", "anime"].map((k) => `<button data-manual="${k}" data-i="${idx}">${TIPOS[k].nombre}</button>`).join("")}</div></div>`;
+        <div class="pa-t"><b>Añadir «${esc(r.texto)}» sin AniList</b><small>Para lo que AniList no tiene</small></div>
+        <div class="pa-btns">${["anime", "manga"].map((k) => `<button data-manual="${k}" data-i="${idx}">${TIPOS[k].nombre}</button>`).join("")}</div></div>`;
     const m = r.m, ya = porMedia(m.id);
     return `<div class="pa-f ${idx === activo ? "on" : ""} ${ya ? "ya" : ""}" data-i="${idx}" role="option">
       <div class="pa-img">${m.coverImage ? `<img src="${esc(m.coverImage.large)}" alt="">` : ""}</div>
@@ -135,11 +135,10 @@ function elige() {
   const r = resultados[activo];
   if (!r) return;
   if (r.clase === "local") { dlg().close(); ficha.abre(r.e.uid); return; }
-  if (r.clase === "manual") { anadeManual(r.texto, "serie"); return; }
+  if (r.clase === "manual") { anadeManual(r.texto, tipo === "MANGA" ? "manga" : "anime"); return; }
   if (modo.revincula) {
     const e = entrada(modo.revincula);
-    const tipoE = r.m.type === "MANGA" ? "manga" : r.m.format === "MOVIE" ? "peli" : e.tipo === "serie" ? "anime" : e.tipo;
-    actualiza(modo.revincula, { mediaId: r.m.id, media: r.m, tipo: tipoE });
+    actualiza(modo.revincula, { mediaId: r.m.id, media: r.m, tipo: tipoDe(r.m) });
     aviso(`Vinculado con «${tituloApi(r.m)}».`);
     dlg().close(); ficha.abre(modo.revincula);
     return;
@@ -153,8 +152,8 @@ function anadeApi(m, estado) {
   const ya = porMedia(m.id);
   if (ya) { dlg().close(); ficha.abre(ya.uid); return; }
   const e = anade({ mediaId: m.id, media: m, titulo: tituloApi(m), estado,
-    tipo: m.type === "MANGA" ? "manga" : m.format === "MOVIE" ? "peli" : "anime",
-    progreso: estado === "visto" ? (m.episodes || 0) : 0 });
+    tipo: tipoDe(m),
+    progreso: estado === "visto" ? ((m.type === "MANGA" ? m.chapters : m.episodes) || 0) : 0 });
   aviso(`«${e.titulo}» → ${ESTADOS[estado].nombre}.`);
   dlg().close();
   ficha.abre(e.uid);

@@ -2,10 +2,17 @@
 <html lang="es">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>KIROKU 記録</title>
-  <meta name="description" content="Archivo personal de anime, manga, series y pelis, con datos de AniList.">
+  <meta name="description" content="Archivo personal de anime, manga, manhwa y manhua, con datos de AniList.">
   <meta name="theme-color" content="#060609">
+  <!-- Se puede añadir a la pantalla de inicio del móvil y se abre como una app -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="img/icono-180.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="KIROKU">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23ff6b1a'/%3E%3Ctext x='32' y='46' font-size='40' text-anchor='middle' font-family='serif' font-weight='900' fill='%23060609'%3E記%3C/text%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -43,6 +50,9 @@
           <button data-acc="refresca"><i>↻</i>Actualizar fichas de AniList</button>
           <button data-acc="deshaz"><i>↶</i>Deshacer último cambio</button>
           <hr>
+          <button data-acc="tutorial"><i>?</i>Ver el tutorial</button>
+          <a data-acc="donar" data-donar href="#" target="_blank" rel="noopener" hidden><i>♥</i>Apoyar KIROKU</a>
+          <hr>
           <button data-acc="privacidad"><i>⚿</i>Privacidad del perfil</button>
           <button data-acc="sal"><i>⏻</i>Cerrar sesión</button>
           <button data-acc="borra-cuenta" class="peligro"><i>⚠</i>Borrar mi cuenta y mi archivo</button>
@@ -53,12 +63,13 @@
   </header>
 
   <nav class="nav" id="nav" aria-label="Secciones"></nav>
+  <div class="visita-movil" id="visita-movil"></div>
 
   <main id="vista" class="vista"></main>
 
   <footer class="pie">
     <div class="teletipo" id="teletipo" aria-hidden="true"></div>
-    <div class="pie-der"><span id="estado-red" class="estado-red ok"></span><span id="estado-guardado" class="estado-guardado">Guardado</span><span class="pie-sep">·</span><span>Datos de <a href="https://anilist.co" target="_blank" rel="noopener">AniList</a></span></div>
+    <div class="pie-der"><span id="estado-red" class="estado-red ok"></span><span id="estado-guardado" class="estado-guardado">Guardado</span><span class="pie-sep">·</span><span>Datos de <a href="https://anilist.co" target="_blank" rel="noopener">AniList</a></span><a class="pie-donar" data-donar href="#" target="_blank" rel="noopener" hidden>♥ Apoyar</a></div>
   </footer>
 
   <dialog id="ficha" class="ficha" aria-label="Ficha del título"></dialog>

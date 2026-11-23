@@ -4,3 +4,7 @@
 // no esconder esto. La clave service_role/secret NUNCA va aquí.
 export const SUPABASE_URL = "https://ihxokfwwoxzrynhfoips.supabase.co";
 export const SUPABASE_ANON_KEY = "sb_publishable_zjmrSOQIwCaGheW_r_XajQ_gKi91ETF";
+
+// Enlace de donaciones (Ko-fi, Buy Me a Coffee, PayPal.me…). Vacío = no se
+// enseña el botón de apoyar. Tiene que empezar por https://
+export const DONAR = "";

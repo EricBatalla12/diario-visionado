@@ -1,6 +1,6 @@
 // 05 · GACHA — ¿qué veo ahora? Invoca un pendiente al azar. La rareza sale de
 // la nota media de AniList: cuanto mejor valorado, más brilla al salir.
-import { esc, cartel, tinte, reducido, aviso, FORMATOS, TIPOS } from "../ui.js";
+import { esc, cartel, tinte, reducido, aviso, formato, infoTipo } from "../ui.js";
 import { entradas, actualiza } from "../almacen.js";
 
 const RAREZAS = [
@@ -61,8 +61,8 @@ function revelada(e) {
     <div class="cg-marco"><div class="carta-img">${cartel(e, { grande: true })}</div><div class="carta-brillo"></div>
       <span class="cg-rar">${r.nombre}</span><span class="cg-est">${"★".repeat(r.estrellas)}</span></div>
     <div class="cg-info"><h3>${esc(e.titulo)}</h3>
-      <p>${esc([m ? FORMATOS[m.format] || m.format : TIPOS[e.tipo]?.nombre, m?.episodes ? m.episodes + " ep" : null, m?.averageScore ? "AniList " + (m.averageScore / 10).toFixed(1) : null].filter(Boolean).join(" · "))}</p>
-      <div class="cg-acc"><button class="btn primario" data-empieza="${esc(e.uid)}">▶ Empezar a verla</button>
+      <p>${esc([m ? formato(m) : infoTipo(e.tipo).nombre, m?.episodes ? m.episodes + " ep" : null, m?.averageScore ? "AniList " + (m.averageScore / 10).toFixed(1) : null].filter(Boolean).join(" · "))}</p>
+      <div class="cg-acc"><button class="btn primario" data-empieza="${esc(e.uid)}">▶ ${e.tipo === "manga" ? "Empezar a leerlo" : "Empezar a verla"}</button>
       <button class="btn" data-ficha="${esc(e.uid)}">Ficha</button></div></div>
   </div>`;
 }

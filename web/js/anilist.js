@@ -8,7 +8,7 @@ const HUECO_MS = 700;
 
 // Lo que se guarda de cada título dentro del archivo: lo justo para pintar
 // cartel, cifras y estadísticas sin volver a preguntar.
-export const CAMPOS = `id idMal type format status episodes duration chapters season seasonYear
+export const CAMPOS = `id idMal type format status episodes duration chapters season seasonYear countryOfOrigin
   genres averageScore popularity title { romaji english native }
   coverImage { extraLarge large color } bannerImage siteUrl
   studios(isMain: true) { nodes { name } } nextAiringEpisode { airingAt episode }`;

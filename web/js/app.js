@@ -18,14 +18,19 @@ import * as gacha from "./vistas/gacha.js";
 import * as operadores from "./vistas/operadores.js";
 import * as buzon from "./vistas/buzon.js";
 import * as recos from "./recos.js";
+import * as tutorial from "./tutorial.js";
+// Como espacio de nombres: si a config.js le falta DONAR (copias viejas,
+// página de pruebas) no rompe el arranque
+import * as config from "./config.js";
 
+// `ic`: el kanji que hace de icono en la barra de abajo del móvil
 const VISTAS = {
-  archivo:    { n: "01", nombre: "Archivo",    jp: "アーカイブ", mod: archivo },
-  perfil:     { n: "02", nombre: "Perfil",     jp: "プロフィール", mod: perfil },
-  tier:       { n: "03", nombre: "Tier",       jp: "ティア", mod: tier },
-  temporada:  { n: "04", nombre: "Temporada",  jp: "シーズン", mod: temporada },
-  gacha:      { n: "05", nombre: "Gacha",      jp: "ガチャ", mod: gacha },
-  operadores: { n: "06", nombre: "Operadores", jp: "オペレーター", mod: operadores },
+  archivo:    { n: "01", ic: "蔵", nombre: "Archivo",    jp: "アーカイブ", mod: archivo },
+  perfil:     { n: "02", ic: "人", nombre: "Perfil",     jp: "プロフィール", mod: perfil },
+  tier:       { n: "03", ic: "格", nombre: "Tier",       jp: "ティア", mod: tier },
+  temporada:  { n: "04", ic: "季", nombre: "Temporada",  jp: "シーズン", mod: temporada },
+  gacha:      { n: "05", ic: "運", nombre: "Gacha",      jp: "ガチャ", mod: gacha },
+  operadores: { n: "06", ic: "友", nombre: "Operadores", jp: "オペレーター", mod: operadores },
 };
 // Vistas que no van en la barra de pestañas (se abren desde la cabecera)
 const OCULTAS = { buzon: { nombre: "Buzón", jp: "受信箱", mod: buzon } };
@@ -47,11 +52,15 @@ function pintaNav() {
   const ajeno = !A.esPropio();
   const claves = ajeno ? VISTAS_AJENAS : Object.keys(VISTAS);
   const s = A.sujetoActual();
-  $("#nav").innerHTML = (ajeno ? `<a href="#/operadores" class="pestana volver" title="Volver"><span class="pe-n">◀</span><span class="pe-t">Volver</span><span class="pe-jp">戻る</span></a>
-      <div class="visita">${s.avatar_url ? `<img src="${esc(s.avatar_url)}" alt="" referrerpolicy="no-referrer">` : ""}<span><small>Archivo de</small><b>${esc(s.nombre)}</b><em>@${esc(s.alias)}</em></span></div>` : "") +
+  // De quién es el archivo: en escritorio va dentro de la barra; en el móvil,
+  // con la barra abajo, en una franja aparte encima de la vista
+  const visita = ajeno ? `<div class="visita">${s.avatar_url ? `<img src="${esc(s.avatar_url)}" alt="" referrerpolicy="no-referrer">` : ""}<span><small>Archivo de</small><b>${esc(s.nombre)}</b><em>@${esc(s.alias)}</em></span></div>` : "";
+  $("#nav").innerHTML = (ajeno ? `<a href="#/operadores" class="pestana volver" title="Volver"><span class="pe-ic" aria-hidden="true">◀</span><span class="pe-n">◀</span><span class="pe-t">Volver</span><span class="pe-jp">戻る</span></a>
+      ${visita}` : "") +
     claves.map((k) => { const v = VISTAS[k];
       return `<a href="${ruta(k)}" class="pestana ${k === vista ? "on" : ""}" ${k === vista ? 'aria-current="page"' : ""}>
-        <span class="pe-n">${v.n}</span><span class="pe-t">${v.nombre}</span><span class="pe-jp">${v.jp}</span></a>`; }).join("");
+        <span class="pe-ic" aria-hidden="true">${v.ic}</span><span class="pe-n">${v.n}</span><span class="pe-t">${v.nombre}</span><span class="pe-jp">${v.jp}</span></a>`; }).join("");
+  $("#visita-movil").innerHTML = visita;
   document.body.classList.toggle("visitando", ajeno);
 }
 
@@ -193,6 +202,9 @@ function conectaGuardado() {
 // ── Menú de datos ────────────────────────────────────────────────────────
 function conectaMenu() {
   const menu = $("#menu");
+  // Donaciones: el enlace sale solo si config.js tiene DONAR
+  const donar = typeof config.DONAR === "string" && /^https:\/\//.test(config.DONAR) ? config.DONAR : null;
+  for (const a of document.querySelectorAll("[data-donar]")) { a.hidden = !donar; if (donar) a.href = donar; }
   $("#btn-menu").addEventListener("click", (ev) => { ev.stopPropagation(); menu.hidden = !menu.hidden; });
   document.addEventListener("click", (ev) => { if (!menu.contains(ev.target)) menu.hidden = true; });
   menu.addEventListener("click", async (ev) => {
@@ -208,6 +220,7 @@ function conectaMenu() {
       if (location.hash !== "#/perfil") { location.hash = "#/perfil"; await new Promise((r) => setTimeout(r, 300)); }
       document.getElementById("privacidad")?.scrollIntoView({ behavior: reducido() ? "auto" : "smooth", block: "start" });
     }
+    if (acc === "tutorial") tutorial.arranca();
     if (acc === "sal") { await A.vacia(); await sal(); location.hash = ""; location.reload(); }
     if (acc === "borra-cuenta") borraCuenta();
   });
@@ -346,6 +359,8 @@ async function inicio() {
     tarjetaTitulo({ jp: "登録", linea1: "EXPEDIENTE CREADO", linea2: `@${yo.alias} · acceso concedido` });
     try { sessionStorage.setItem("kiroku:arrancado", "1"); } catch {}
     $("#arranque")?.remove();
+    // El tutorial, cuando se haya ido la tarjeta de bienvenida
+    if (!tutorial.visto()) setTimeout(tutorial.arranca, 2600);
   } else arranque();
   refresca();
   setInterval(() => mias && pintaTeletipo(), 60000);

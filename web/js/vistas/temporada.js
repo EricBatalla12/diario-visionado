@@ -1,12 +1,18 @@
 // 04 · TEMPORADA — lo que sigues en emisión con la cuenta atrás al próximo
 // episodio, y el catálogo de la temporada de AniList para apuntarte cosas.
-import { esc, cartel, cuentaAtras, FORMATOS, tituloApi, aviso, genero } from "../ui.js";
+import { esc, cartel, cuentaAtras, FORMATOS, tituloApi, aviso, genero, tipoDe } from "../ui.js";
 import { entradas, porMedia, anade } from "../almacen.js";
 import { temporada, TEMPORADAS, temporadaActual } from "../anilist.js";
 
 let sel = temporadaActual();
 let cache = new Map();    // "FALL-2026" → { media, hayMas, pagina }
 let reloj = null;
+
+// "En emisión en tu archivo" se puede plegar para ir directo al catálogo; se
+// recuerda en este navegador (en el móvil ocupa casi toda la pantalla)
+const CLAVE_PLIEGUE = "kiroku:emision-plegada";
+let plegada = false;
+try { plegada = localStorage.getItem(CLAVE_PLIEGUE) === "1"; } catch {}
 
 export function pinta(raiz, { abreFicha }) {
   const t = TEMPORADAS[sel.i];
@@ -23,9 +29,10 @@ export function pinta(raiz, { abreFicha }) {
     </div>
   </header>
 
-  ${siguiendo.length ? `<section class="panel esquinas emision">
-    <h2 class="p-tit"><span>En emisión en tu archivo</span><i>放送中</i><small>${siguiendo.length}</small></h2>
-    <div class="emision-lista">${siguiendo.map((e) => {
+  ${siguiendo.length ? `<section class="panel esquinas emision ${plegada ? "plegada" : ""}">
+    <h2 class="p-tit"><button class="em-pliega" data-pliega aria-expanded="${!plegada}" aria-controls="emision-lista">
+      <span>En emisión en tu archivo</span><i>放送中</i><small>${siguiendo.length}</small><b aria-hidden="true">▾</b></button></h2>
+    <div class="emision-lista" id="emision-lista" ${plegada ? "hidden" : ""}>${siguiendo.map((e) => {
       const n = e.media.nextAiringEpisode;
       return `<button class="em-item" data-uid="${esc(e.uid)}" style="--tinte:${esc(e.media.coverImage?.color || "var(--naranja)")}">
         <div class="em-img">${cartel(e)}</div>
@@ -41,6 +48,14 @@ export function pinta(raiz, { abreFicha }) {
     if (i < 0) { i = 3; anio--; } if (i > 3) { i = 0; anio++; }
     sel = { i, anio }; pinta(raiz, { abreFicha });
   }));
+  raiz.querySelector("[data-pliega]")?.addEventListener("click", (ev) => {
+    plegada = !plegada;
+    try { localStorage.setItem(CLAVE_PLIEGUE, plegada ? "1" : "0"); } catch {}
+    const sec = ev.currentTarget.closest(".emision");
+    sec.classList.toggle("plegada", plegada);
+    sec.querySelector(".emision-lista").hidden = plegada;
+    ev.currentTarget.setAttribute("aria-expanded", !plegada);
+  });
   raiz.querySelectorAll(".em-item").forEach((b) => b.addEventListener("click", () => abreFicha(b.dataset.uid)));
 
   clearInterval(reloj);
@@ -85,7 +100,7 @@ async function catalogo(caja, abreFicha) {
       const m = c.media.find((x) => x.id === +b.dataset.anade);
       const ya = porMedia(m.id);
       if (ya) return abreFicha(ya.uid);
-      const e = anade({ mediaId: m.id, media: m, titulo: tituloApi(m), tipo: m.format === "MOVIE" ? "peli" : "anime", estado: "pendiente" });
+      const e = anade({ mediaId: m.id, media: m, titulo: tituloApi(m), tipo: tipoDe(m), estado: "pendiente" });
       aviso(`«${e.titulo}» a pendientes.`);
       b.outerHTML = `<button class="t-ya" data-anade="${m.id}">✓ En el archivo</button>`;
       return;

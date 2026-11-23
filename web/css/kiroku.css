@@ -694,19 +694,21 @@ dialog::backdrop { background: rgba(3, 3, 6, .78); backdrop-filter: blur(6px) sa
 }
 .ficha[open] { animation: abreFicha .35s cubic-bezier(.2, .9, .2, 1) both; }
 @keyframes abreFicha { from { opacity: 0; transform: translateY(20px) scale(.98); } }
+/* El banner de AniList mide 1900×400: con esa proporción se ve entero, sin
+   recortar por los lados, sea cual sea el ancho. Solo se funde el último 20 %. */
 .fi-banner {
-  height: 300px;
-  background: linear-gradient(135deg, color-mix(in srgb, var(--tinte) 60%, #000), #000) center 30% / cover;
-  mask-image: linear-gradient(#000 50%, transparent);
+  aspect-ratio: 1900 / 400;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--tinte) 60%, #000), #000) center / cover;
+  mask-image: linear-gradient(#000 80%, transparent);
 }
 .fi-banner::after { content: ""; display: block; height: 100%; background: repeating-linear-gradient(0deg, rgba(0, 0, 0, .2) 0 1px, transparent 1px 3px); }
-.fi-cierra { position: sticky; top: 12px; float: right; margin: -288px 12px 0 0; z-index: 5; display: grid; place-items: center; width: 44px; height: 44px; background: rgba(6, 6, 9, .8); border: 1px solid var(--linea-2); font-size: 16px; line-height: 1; }
+.fi-cierra { position: sticky; top: 12px; float: right; margin: calc(-100% * 400 / 1900 + 12px) 12px 0 0; z-index: 5; display: grid; place-items: center; width: 44px; height: 44px; background: rgba(6, 6, 9, .8); border: 1px solid var(--linea-2); font-size: 16px; line-height: 1; }
 .fi-cierra small { font: 600 7px var(--f-mono); color: var(--texto-3); letter-spacing: .1em; }
 .fi-cierra:hover { border-color: var(--naranja); }
-.fi-cab { position: relative; display: grid; grid-template-columns: 190px 1fr; gap: 26px; padding: 0 30px; margin-top: -150px; }
+.fi-cab { position: relative; display: grid; grid-template-columns: 190px 1fr; gap: 26px; padding: 0 30px; margin-top: -70px; }
 .fi-cartel { position: relative; aspect-ratio: 2 / 3; overflow: hidden; clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px)); box-shadow: var(--sombra); transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform .3s; }
 .fi-cartel .carta-img::after { display: none; }
-.fi-tit { padding-top: 112px; min-width: 0; }
+.fi-tit { padding-top: 62px; min-width: 0; }
 .fi-tit h2 { margin: 6px 0 4px; font: 800 clamp(28px, 4vw, 46px)/1.02 var(--f-display); letter-spacing: -.01em; text-wrap: balance; }
 .fi-alt { margin: 0 0 12px; font: 13px var(--f-texto); color: var(--texto-3); }
 .fi-meta { list-style: none; display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 14px; padding: 0; }
@@ -1283,10 +1285,8 @@ body.visitando .vista { --naranja: var(--cian); }
   .cg-marco { width: 200px; }
   .cg-acc { justify-content: center; }
   .ficha { width: 100vw; max-width: 100vw; max-height: 100dvh; height: 100dvh; margin: 0; border: 0; }
-  .fi-banner { height: 220px; }
-  .fi-cierra { margin-top: -208px; }
-  .fi-cab { grid-template-columns: 110px 1fr; gap: 14px; padding: 0 16px; margin-top: -70px; }
-  .fi-tit { padding-top: 64px; }
+  .fi-cab { grid-template-columns: 110px 1fr; gap: 14px; padding: 0 16px; margin-top: -40px; }
+  .fi-tit { padding-top: 36px; }
   .fi-tit h2 { font-size: 26px; }
   .fi-cifras { gap: 16px; }
   .fi-reg { margin: 20px 16px 0; padding: 14px; }
@@ -1409,11 +1409,10 @@ body.visitando .vista { --naranja: var(--cian); }
 
   /* Ficha: cabecera corta, datos en una línea, registro compacto */
   .ficha { padding-bottom: env(safe-area-inset-bottom); }
-  .fi-banner { height: 200px; mask-image: linear-gradient(#000 60%, transparent); }
-  .fi-cierra { top: calc(8px + env(safe-area-inset-top)); margin-top: -192px; width: 36px; height: 36px; font-size: 14px; }
+  .fi-cierra { top: calc(8px + env(safe-area-inset-top)); margin-top: calc(-100% * 400 / 1900 + 8px); width: 36px; height: 36px; font-size: 14px; }
   .fi-cierra small { display: none; }
-  .fi-cab { grid-template-columns: 82px 1fr; gap: 12px; padding: 0 14px; margin-top: -40px; }
-  .fi-tit { padding-top: 48px; }
+  .fi-cab { grid-template-columns: 82px 1fr; gap: 12px; padding: 0 14px; margin-top: -18px; }
+  .fi-tit { padding-top: 20px; }
   .fi-tit .etq { font-size: 9px; }
   .fi-tit h2 { font-size: 20px; margin: 2px 0; }
   .fi-alt { font-size: 11.5px; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

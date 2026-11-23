@@ -112,7 +112,7 @@ export function temporadaActual(fecha = new Date()) {
 // por las relaciones PREQUEL/SEQUEL. Una saga es esa cadena entera: se
 // recorre en anchura pidiendo en lotes de 50 solo lo que aún no se conoce, y
 // se ordena por fecha de estreno. La raíz (la primera temporada) da el id.
-const CAMPOS_SAGA = `id type format status seasonYear episodes chapters
+const CAMPOS_SAGA = `id type format status season seasonYear episodes chapters nextAiringEpisode { airingAt episode }
   startDate { year month day } title { romaji english native } coverImage { large color }
   relations { edges { relationType node { id type format } } }`;
 const nodos = new Map();          // id → nodo reducido (caché de la sesión)
@@ -131,7 +131,8 @@ function reduce(m) {
   }
   const d = m.startDate || {};
   return {
-    id: m.id, type: m.type, format: m.format, status: m.status, seasonYear: m.seasonYear,
+    id: m.id, type: m.type, format: m.format, status: m.status, season: m.season, seasonYear: m.seasonYear,
+    nextAiringEpisode: m.nextAiringEpisode,
     episodes: m.episodes, chapters: m.chapters, title: m.title, coverImage: m.coverImage,
     inicio: (d.year || m.seasonYear || 9999) * 10000 + (d.month || 0) * 100 + (d.day || 0),
     pre, suc,

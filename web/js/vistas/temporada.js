@@ -2,7 +2,7 @@
 // episodio, y el catálogo de la temporada de AniList para apuntarte cosas.
 import { esc, cartel, cuentaAtras, FORMATOS, tituloApi, aviso, genero, tipoDe } from "../ui.js";
 import { entradas, porMedia, anade } from "../almacen.js";
-import { temporada, TEMPORADAS, temporadaActual } from "../anilist.js";
+import { temporada, TEMPORADAS, temporadaActual, sagas, refrescar } from "../anilist.js";
 
 let sel = temporadaActual();
 let cache = new Map();    // "FALL-2026" → { media, hayMas, pagina }
@@ -41,6 +41,8 @@ export function pinta(raiz, { abreFicha }) {
       </button>`; }).join("")}</div>
   </section>` : ""}
 
+  <div id="continua"></div>
+
   <section id="catalogo"><div class="cargando"><span></span>Consultando AniList…</div></section>`;
 
   raiz.querySelectorAll("[data-mueve]").forEach((b) => b.addEventListener("click", () => {
@@ -64,7 +66,89 @@ export function pinta(raiz, { abreFicha }) {
     raiz.querySelectorAll("[data-en]").forEach((r) => (r.textContent = cuentaAtras(+r.dataset.en - Date.now() / 1000)));
   }, 30000);
 
+  continua(raiz.querySelector("#continua"), abreFicha);
   catalogo(raiz.querySelector("#catalogo"), abreFicha);
+}
+
+// ── Continúa… ────────────────────────────────────────────────────────────
+// La siguiente temporada de las sagas que sigues: lo que está en emisión o
+// anunciado, que aún no tienes y que va después de la última que has visto
+// (o estás viendo). Sale de las mismas relaciones que agrupan las sagas.
+const SIGUES = new Set(["visto", "revisto", "viendo"]);
+const PROXIMA = new Set(["RELEASING", "NOT_YET_RELEASED"]);
+const SEASON_ES = Object.fromEntries(TEMPORADAS.map((t) => [t.id, t.nombre]));
+const tituloNodo = (n) => n.title?.english || n.title?.romaji || n.title?.native || "";
+const VISIBLES = 6;
+const CLAVE_CONTINUA = "kiroku:continua-plegada";
+let continuaPlegada = false, continuaTodas = false;
+try { continuaPlegada = localStorage.getItem(CLAVE_CONTINUA) === "1"; } catch {}
+
+async function continua(caja, abreFicha) {
+  const mias = entradas().filter((e) => e.mediaId && e.media?.saga);
+  if (!mias.length) return;
+  let s;
+  try { s = await sagas([...new Set(mias.map((e) => e.mediaId))]); } catch { return; }
+  if (!caja.isConnected) return;
+
+  const items = [], hechas = new Set();
+  for (const e of mias) {
+    const x = s.get(e.mediaId);
+    if (!x || hechas.has(x.raiz)) continue;
+    hechas.add(x.raiz);
+    // La última de la cadena que ya sigues
+    let ultima = -1;
+    x.cadena.forEach((n, i) => { const m = porMedia(n.id); if (m && SIGUES.has(m.estado)) ultima = i; });
+    if (ultima < 0) continue;
+    const sig = x.cadena.slice(ultima + 1).find((n) => !porMedia(n.id) && PROXIMA.has(n.status) && n.format !== "MUSIC");
+    if (sig) items.push({ n: sig, tras: x.cadena[ultima], cuando: sig.nextAiringEpisode?.airingAt || Infinity });
+  }
+  if (!items.length) { caja.innerHTML = ""; return; }
+  items.sort((a, b) => a.cuando - b.cuando || a.n.inicio - b.n.inicio);
+
+  const ahora = Date.now() / 1000;
+  const estado = (n) => {
+    const p = n.nextAiringEpisode;
+    if (n.status === "RELEASING") return p ? `En emisión · EP ${p.episode} en ${cuentaAtras(p.airingAt - ahora)}` : "En emisión";
+    if (p) return `Empieza en ${cuentaAtras(p.airingAt - ahora)}`;
+    const anio = n.seasonYear || (n.inicio < 99990000 ? Math.floor(n.inicio / 10000) : null);
+    return n.season && n.seasonYear ? `Próximamente · ${SEASON_ES[n.season]} ${n.seasonYear}` : anio ? `Próximamente · ${anio}` : "Anunciada, sin fecha";
+  };
+  const vistos = continuaTodas ? items : items.slice(0, VISIBLES);
+  caja.innerHTML = `<section class="panel esquinas emision continua ${continuaPlegada ? "plegada" : ""}">
+    <h2 class="p-tit"><button class="em-pliega" data-pliega-cn aria-expanded="${!continuaPlegada}" aria-controls="continua-lista">
+      <span>Continúa</span><i>続き</i><small>${items.length}</small><b aria-hidden="true">▾</b></button></h2>
+    <div class="emision-lista" id="continua-lista" ${continuaPlegada ? "hidden" : ""}>${vistos.map(({ n, tras }) => `
+      <div class="em-item cn-item" style="--tinte:${esc(n.coverImage?.color || "var(--naranja)")}">
+        <button class="cn-abre" data-cn="${n.id}">
+          <div class="em-img">${n.coverImage?.large ? `<img src="${esc(n.coverImage.large)}" alt="" loading="lazy">` : ""}</div>
+          <div class="em-t"><b>${esc(tituloNodo(n))}</b><small>${esc(estado(n))}</small><small class="cn-tras">Sigue a «${esc(tituloNodo(tras))}»</small></div>
+        </button>
+        <button class="cn-anade" data-cn-anade="${n.id}" title="Añadir a pendientes">＋ Pendiente</button>
+      </div>`).join("")}
+      ${items.length > VISIBLES ? `<button class="enlace cn-mas" data-cn-mas>${continuaTodas ? "Ver menos" : `Ver las ${items.length}`}</button>` : ""}</div>
+  </section>`;
+
+  // La ficha de la saga es corta: para abrirla o añadirla se pide la completa
+  const completa = async (id) => (await refrescar([id]))[0];
+  caja.onclick = async (ev) => {
+    if (ev.target.closest("[data-pliega-cn]")) {
+      continuaPlegada = !continuaPlegada;
+      try { localStorage.setItem(CLAVE_CONTINUA, continuaPlegada ? "1" : "0"); } catch {}
+      return continua(caja, abreFicha);
+    }
+    if (ev.target.closest("[data-cn-mas]")) { continuaTodas = !continuaTodas; return continua(caja, abreFicha); }
+    const a = ev.target.closest("[data-cn]"), b = ev.target.closest("[data-cn-anade]");
+    if (!a && !b) return;
+    const id = +(a || b).dataset[a ? "cn" : "cnAnade"];
+    const ya = porMedia(id);
+    if (ya) return abreFicha(ya.uid);
+    (a || b).disabled = true;
+    let m;
+    try { m = await completa(id); } catch (err) { aviso("AniList no responde: " + err.message); (a || b).disabled = false; return; }
+    if (a) return abreFicha(null, m);
+    const e = anade({ mediaId: m.id, media: m, titulo: tituloApi(m), tipo: tipoDe(m), estado: "pendiente" });
+    aviso(`«${e.titulo}» a pendientes.`);
+  };
 }
 
 async function catalogo(caja, abreFicha) {

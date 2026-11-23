@@ -112,7 +112,9 @@ tras 30 s y cada 3 min a la vista), sin tiempo real.
 - Archivo: botón "⧉ Sagas" (por defecto activo) → una carta apilada por saga con 2+
   temporadas; se despliega al tocarla. El HUD "Títulos" cuenta cada saga como uno.
 - Ficha: sección "Temporadas" con la cadena entera, lo tuyo marcado y ＋ para pendientes.
-- Falta: el "Continúa…" en Temporada (paso 3 de la idea).
+- Temporada → "Continúa" (publicado el 23-11): por saga, la primera temporada en
+  emisión o anunciada que no tienes y va después de la última que sigues; 6 visibles + "Ver
+  las N", plegable y recordado. Los nodos de la saga traen `nextAiringEpisode` y `season`.
 
 ## Ideas del 22-11 (publicado el 23-11)
 

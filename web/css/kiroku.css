@@ -394,6 +394,38 @@ kbd {
   background: rgba(6, 6, 9, .82); color: var(--cian); border: 1px solid rgba(57, 216, 255, .4);
 }
 .carta-comunidad { top: 8px; left: auto; right: 8px; color: var(--texto); border-color: var(--linea-2); }
+
+/* Saga: dos cartas asomando por detrás, desplazadas arriba a la derecha */
+.carta-saga { position: relative; isolation: isolate; }
+.carta-saga::before, .carta-saga::after {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  clip-path: polygon(0 0, calc(100% - var(--bisel)) 0, 100% var(--bisel), 100% 100%, var(--bisel) 100%, 0 calc(100% - var(--bisel)));
+  background: color-mix(in srgb, var(--tinte) 30%, var(--panel-2)); border: 1px solid var(--linea-2);
+  transition: transform .25s cubic-bezier(.2, .8, .2, 1);
+}
+.carta-saga::before { transform: translate(5px, -5px); opacity: .75; }
+.carta-saga::after { transform: translate(10px, -10px); opacity: .4; }
+.carta-saga:hover::before { transform: translate(7px, -7px); }
+.carta-saga:hover::after { transform: translate(14px, -14px); }
+.carta-saga.abierta::before, .carta-saga.abierta::after { transform: none; opacity: 0; }
+.carta-saga-n {
+  position: absolute; left: 8px; bottom: 64px; display: flex; align-items: baseline; gap: 3px;
+  padding: 2px 7px; font: 800 13px var(--f-mono); color: var(--negro); background: var(--naranja);
+}
+.carta-saga-n small { font-size: 10px; }
+.carta-saga .carta-pie p { color: var(--naranja-2); }
+.carta-saga.abierta .carta-marco::after { border-color: var(--naranja); border-width: 2px; }
+/* Las temporadas de una saga desplegada, un poco hundidas */
+.carta.en-saga { transform: scale(.94); transform-origin: top; }
+.carta.en-saga .carta-marco::before {
+  content: ""; position: absolute; inset: 0 0 auto 0; height: 3px; z-index: 2; background: var(--naranja);
+}
+.btn-sagas {
+  height: 40px; padding: 0 12px; border: 1px solid var(--linea-2); background: var(--negro);
+  font: 600 12px var(--f-hud); letter-spacing: .08em; text-transform: uppercase; color: var(--texto-3);
+}
+.btn-sagas:hover { color: var(--texto); border-color: var(--naranja); }
+.btn-sagas.on { color: var(--naranja); border-color: var(--naranja); background: rgba(255, 107, 26, .1); }
 /* Sin fecha de próximo episodio: solo el total confirmado, en neutro */
 .carta-emision.total { color: var(--texto-2); border-color: var(--linea-2); }
 .carta-pie { position: absolute; left: 0; right: 0; bottom: 0; padding: 10px 12px 12px; }
@@ -812,6 +844,22 @@ dialog::backdrop { background: rgba(3, 3, 6, .78); backdrop-filter: blur(6px) sa
 .fi-alta .fi-acc { margin-top: 14px; }
 
 .fi-sec { margin: 26px 30px 0; }
+/* Temporadas de la saga: fila de miniaturas en orden */
+.sg-lista { list-style: none; margin: 0; padding: 0 0 6px; display: flex; gap: 8px; overflow-x: auto; scrollbar-width: thin; }
+.sg-item { position: relative; flex: 0 0 92px; }
+.sg-abre { display: grid; gap: 5px; width: 100%; padding: 0; text-align: left; }
+.sg-img { position: relative; display: block; aspect-ratio: 2 / 3; overflow: hidden; background: var(--panel-2); border: 1px solid var(--linea-2); border-bottom: 3px solid var(--c); }
+.sg-img img { width: 100%; height: 100%; object-fit: cover; }
+.sg-item:not(.mia) .sg-img img { filter: grayscale(.85) brightness(.6); }
+.sg-img b { position: absolute; left: 0; top: 0; padding: 1px 6px; font: 800 11px var(--f-mono); background: rgba(6, 6, 9, .85); color: var(--texto); }
+.sg-item.actual .sg-img { outline: 2px solid var(--naranja); outline-offset: 2px; }
+.sg-abre:hover .sg-img { border-color: var(--naranja); }
+.sg-t { display: grid; line-height: 1.25; }
+.sg-t small { font: 10px var(--f-mono); color: var(--texto-3); }
+.sg-t em { font: 600 11px var(--f-hud); font-style: normal; color: var(--c); }
+.sg-t em i { font-style: normal; font-weight: 800; color: var(--rc, var(--texto)); }
+.sg-anade { position: absolute; right: 4px; top: 4px; width: 26px; height: 26px; display: grid; place-items: center; font: 700 15px var(--f-mono); color: var(--negro); background: var(--naranja); }
+.sg-anade:disabled { opacity: .6; }
 .fi-sec:last-child { padding-bottom: 30px; }
 #fi-det:empty { padding-bottom: 30px; }
 #fi-det > .cargando, .fi-error { margin: 10px 30px 30px; }
@@ -1387,8 +1435,9 @@ body.visitando .vista { --naranja: var(--cian); }
   .filtros > .chips { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0 -10px; padding: 0 10px; }
   .filtros > .chips .chip { flex-shrink: 0; }
   .filtros-fila { gap: 8px; }
-  .filtros-fila .campo-busca { flex: 1 1 calc(100% - 98px); min-width: 0; order: -2; }
-  .filtros-fila .conmuta { order: -1; }
+  .filtros-fila .campo-busca { flex: 1 1 calc(100% - 180px); min-width: 0; order: -3; }
+  .filtros-fila .conmuta { order: -2; }
+  .filtros-fila .btn-sagas { order: -1; height: 36px; padding: 0 9px; font-size: 10.5px; }
   .filtros-fila > .sel { flex: 1 1 calc(50% - 8px); }
   .sel span { font-size: 8.5px; }
 

@@ -5,7 +5,7 @@
 import { $, esc, cartel, rango, fmtNota, ESTADOS, TIPOS, MESES, FORMATOS, tituloApi, genero, aviso,
   tarjetaTitulo, htmlSeguro, cuentaAtras, tinte, formato, nombreTipo, totalDe, unidad, seLee, infoTipo, tipoDe } from "./ui.js";
 import { entrada, actualiza, borra, anade, porMedia, deshaz, esMia, sujetoActual, yoMismo } from "./almacen.js";
-import { detalle } from "./anilist.js";
+import { detalle, sagas, refrescar } from "./anilist.js";
 import { otrosDe, perfilCorto } from "./nube.js";
 import { boton as botonRecomendar } from "./recos.js";
 
@@ -38,7 +38,7 @@ export function abre(uid, previa = null) {
   else conectaAlta(d, m, e);
   d.querySelector("[data-cierra]").addEventListener("click", () => d.close());
   d.querySelector("[data-mio]")?.addEventListener("click", (ev) => abre(ev.currentTarget.dataset.mio));
-  if (m?.id) { cargaDetalle(d, m.id); cargaOtros(d, m.id, e); botonRecomendar(d.querySelector("#fi-recomienda"), m); }
+  if (m?.id) { cargaSaga(d, m.id); cargaDetalle(d, m.id); cargaOtros(d, m.id, e); botonRecomendar(d.querySelector("#fi-recomienda"), m); }
   if (e?.recomendadoPor) quienRecomendo(d, e.recomendadoPor);
 }
 
@@ -75,7 +75,7 @@ function plantilla(e, m) {
     </div>
   </header>
   ${e && esMia(e.uid) ? registro(e) : e ? ajeno(e) + alta(m, e) : alta(m)}
-  ${m?.id ? `<div id="fi-recomienda"></div><div id="fi-otros"></div>` : ""}
+  ${m?.id ? `<div id="fi-saga"></div><div id="fi-recomienda"></div><div id="fi-otros"></div>` : ""}
   <div id="fi-det">${m?.id ? `<div class="cargando"><span></span>Descargando expediente…</div>` : ""}</div>`;
 }
 
@@ -380,6 +380,57 @@ async function cargaDetalle(d, id) {
     const ya = porMedia(n.id);
     const { studios, ...resto } = n;
     abre(ya ? ya.uid : null, ya ? null : { ...resto, studio: studios?.nodes?.[0]?.name || null });
+  }));
+}
+
+// Temporadas: la saga entera en orden, con lo que tienes de cada una. Lo que
+// no tienes se abre como vista previa o se apunta como pendiente con ＋.
+const ESTADO_CORTO = { visto: "Vista", viendo: "Viendo", pendiente: "Pendiente", revisto: "Revista", abandonado: "Abandonada" };
+async function cargaSaga(d, id) {
+  const caja = d.querySelector("#fi-saga");
+  let s;
+  try { s = (await sagas([id])).get(id); } catch { return; }
+  if (!caja?.isConnected || !d.open || !s || s.cadena.length < 2) return;
+  const tiene = s.cadena.filter((n) => porMedia(n.id)).length;
+  caja.innerHTML = `<section class="fi-sec fi-saga">
+    <h3 class="p-tit"><span>Temporadas</span><i>シリーズ</i><small>${tiene} de ${s.cadena.length} en tu archivo</small></h3>
+    <ol class="sg-lista">${s.cadena.map((n, i) => {
+      const mia = porMedia(n.id), es = mia ? ESTADOS[mia.estado] : null, r = mia ? rango(mia.nota) : null;
+      const t = n.title.english || n.title.romaji || n.title.native || "";
+      const extra = n.format && !["TV", "TV_SHORT", "ONA", "MANGA"].includes(n.format) ? FORMATOS[n.format] || n.format : null;
+      return `<li class="sg-item ${n.id === id ? "actual" : ""} ${mia ? "mia" : ""}" style="--c:${es ? es.color : "var(--linea-2)"}">
+        <button class="sg-abre" data-sg="${n.id}" title="${esc(t)}" ${n.id === id ? 'aria-current="true"' : ""}>
+          <span class="sg-img">${n.coverImage?.large ? `<img src="${esc(n.coverImage.large)}" alt="" loading="lazy">` : ""}<b>${i + 1}</b></span>
+          <span class="sg-t"><small>${esc([extra, n.seasonYear || (n.status === "NOT_YET_RELEASED" ? "Próx." : null)].filter(Boolean).join(" · "))}</small>
+            <em>${mia ? `${ESTADO_CORTO[mia.estado]}${mia.nota != null ? ` · <i class="${r.clase}">${fmtNota(mia.nota)}</i>` : ""}` : "—"}</em></span>
+        </button>
+        ${mia ? "" : `<button class="sg-anade" data-sg-anade="${n.id}" title="Añadir a pendientes" aria-label="Añadir «${esc(t)}» a pendientes">＋</button>`}
+      </li>`; }).join("")}</ol>
+  </section>`;
+  // La temporada abierta, a la vista dentro de la fila (sin mover la ficha)
+  const lista = caja.querySelector(".sg-lista"), act = lista.querySelector(".actual");
+  if (act) lista.scrollLeft = act.offsetLeft - lista.offsetLeft - (lista.clientWidth - act.offsetWidth) / 2;
+  // Lo que no tienes llega con la ficha corta de la saga: antes de abrirlo o
+  // añadirlo se pide la completa, como cualquier otro título
+  const completa = async (nid) => (await refrescar([nid]))[0];
+  caja.querySelectorAll("[data-sg]").forEach((b) => b.addEventListener("click", async () => {
+    const nid = +b.dataset.sg;
+    if (nid === id) return;
+    const mia = porMedia(nid);
+    if (mia) return abre(mia.uid);
+    b.disabled = true;
+    try { abre(null, await completa(nid)); } catch (err) { aviso("AniList no responde: " + err.message); b.disabled = false; }
+  }));
+  caja.querySelectorAll("[data-sg-anade]").forEach((b) => b.addEventListener("click", async () => {
+    const nid = +b.dataset.sgAnade;
+    b.disabled = true; b.textContent = "…";
+    try {
+      const m = await completa(nid);
+      const ya = porMedia(nid);
+      const e = ya || anade({ mediaId: m.id, media: m, titulo: tituloApi(m), tipo: tipoDe(m), estado: "pendiente" });
+      aviso(`«${e.titulo}» a pendientes.`);
+      cargaSaga(d, id);
+    } catch (err) { aviso("AniList no responde: " + err.message); b.disabled = false; b.textContent = "＋"; }
   }));
 }
 

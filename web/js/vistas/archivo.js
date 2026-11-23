@@ -5,10 +5,30 @@ import { entradas, esPropio, sujetoActual } from "../almacen.js";
 import { episodios, generosDe } from "../stats.js";
 
 const CLAVE_F = "kiroku:filtros";
-const def = { estado: "todos", tipo: "todos", anio: "todos", genero: "todos", orden: "fecha", texto: "", modo: "cartas" };
+const def = { estado: "todos", tipo: "todos", anio: "todos", genero: "todos", orden: "fecha", texto: "", modo: "cartas", agrupa: true };
 let f = { ...def };
 try { f = { ...def, ...JSON.parse(localStorage.getItem(CLAVE_F) || "{}"), texto: "" }; } catch {}
 const guardaF = () => { try { localStorage.setItem(CLAVE_F, JSON.stringify({ ...f, texto: "" })); } catch {} };
+
+// Sagas desplegadas en esta visita (por id de la primera temporada)
+const abiertas = new Set();
+const sagaDe = (e) => e.media?.saga?.id || null;
+
+// Junta las temporadas de una misma saga en un solo elemento, en la posición
+// de la primera que aparezca (con el orden por fecha, la más reciente). Una
+// saga de la que solo hay una temporada se pinta como carta normal.
+function agrupa(l) {
+  const out = [], porSaga = new Map();
+  for (const e of l) {
+    const id = sagaDe(e);
+    if (!id) { out.push({ e }); continue; }
+    if (!porSaga.has(id)) { const g = { saga: id, e, miembros: [] }; porSaga.set(id, g); out.push(g); }
+    porSaga.get(id).miembros.push(e);
+  }
+  return out.map((x) => x.saga && x.miembros.length < 2 ? { e: x.e } : x);
+}
+// Títulos distintos: una saga cuenta como uno
+export const cuentaTitulos = (l) => new Set(l.map((e) => sagaDe(e) ? "s" + sagaDe(e) : e.uid)).size;
 
 const norm = (t) => String(t || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 
@@ -35,7 +55,7 @@ const ORDENES = {
 };
 function dif(e) { return e.nota != null && e.media?.averageScore ? Math.abs(e.nota - e.media.averageScore / 10) : -1; }
 
-export function carta(e, { indice = 0 } = {}) {
+export function carta(e, { indice = 0, clase = "" } = {}) {
   const r = rango(e.nota);
   const es = ESTADOS[e.estado];
   const m = e.media;
@@ -43,7 +63,7 @@ export function carta(e, { indice = 0 } = {}) {
   const meta = [m ? formato(m) : infoTipo(e.tipo).nombre, m?.seasonYear, total ? `${total} ${unidad(e)}` : null].filter(Boolean).join(" · ");
   const prog = e.estado === "viendo" && total ? Math.min(1, (e.progreso || 0) / total) : null;
   const sig = e.estado !== "visto" && m?.nextAiringEpisode;
-  return `<article class="carta holo ${r ? r.clase : "sin-nota"}" data-uid="${esc(e.uid)}" tabindex="0" role="button"
+  return `<article class="carta holo ${r ? r.clase : "sin-nota"} ${clase}" data-uid="${esc(e.uid)}" tabindex="0" role="button"
       aria-label="${esc(e.titulo)}" style="--tinte:${esc(tinte(e))};--i:${indice}">
     <div class="carta-marco">
       <div class="carta-img">${cartel(e)}</div>
@@ -59,6 +79,34 @@ export function carta(e, { indice = 0 } = {}) {
     </div>
   </article>`;
 }
+// Carta de una saga: la portada de la temporada que va primero, la nota
+// media de las puntuadas y cuántas tienes de cuántas hay
+function cartaSaga(g, indice) {
+  const ms = g.miembros, rep = ms[0], sg = rep.media.saga;
+  const notas = ms.filter((e) => e.nota != null).map((e) => e.nota);
+  const media = notas.length ? Math.round(notas.reduce((a, b) => a + b, 0) / notas.length * 10) / 10 : null;
+  const r = rango(media);
+  const vistas = ms.filter((e) => e.estado === "visto" || e.estado === "revisto").length;
+  const estado = ms.some((e) => e.estado === "viendo") ? "viendo" : vistas === ms.length ? "visto" : rep.estado;
+  const es = ESTADOS[estado];
+  const abierta = abiertas.has(g.saga);
+  const titulo = sg.t || rep.titulo;
+  return `<article class="carta holo carta-saga ${abierta ? "abierta" : ""} ${r ? r.clase : "sin-nota"}" data-saga="${g.saga}" tabindex="0" role="button"
+      aria-expanded="${abierta}" aria-label="${esc(titulo)}: ${ms.length} temporadas en tu archivo" style="--tinte:${esc(tinte(rep))};--i:${indice}">
+    <div class="carta-marco">
+      <div class="carta-img">${cartel(rep)}</div>
+      <div class="carta-brillo"></div>
+      <span class="carta-estado" style="--c:${es.color}"><i>${es.jp}</i>${es.nombre}</span>
+      ${r ? `<span class="carta-rango" title="Nota media de la saga"><b>${fmtNota(media)}</b><i>${r.r}</i></span>` : ""}
+      <span class="carta-saga-n">${ms.length}<small>${abierta ? "▴" : "▾"}</small></span>
+      <div class="carta-pie">
+        <h3>${esc(titulo)}</h3>
+        <p>Saga · ${ms.length} de ${sg.de} · ${vistas} vista${vistas === 1 ? "" : "s"}</p>
+      </div>
+    </div>
+  </article>`;
+}
+
 const diasA = (t) => { const s = t - Date.now() / 1000; const d = Math.floor(s / 86400); return d > 0 ? `${d}d` : `${Math.max(0, Math.floor(s / 3600))}h`; };
 
 function fila(e) {
@@ -85,7 +133,7 @@ export function pinta(raiz, { stats, primera }) {
 
   raiz.innerHTML = `
   <section class="hud-cifras">
-    ${cifra("TÍTULOS", "作品数", stats.total, 0, "")}
+    ${cifra("TÍTULOS", "作品数", cuentaTitulos(todas), 0, "")}
     ${cifra("EPISODIOS", "話数", stats.eps, 0, "")}
     ${cifra("HORAS DE VIDA", "時間", stats.horas, 0, "h")}
     ${cifra("NOTA MEDIA", "平均", stats.media ?? 0, 2, "")}
@@ -106,6 +154,7 @@ export function pinta(raiz, { stats, primera }) {
         <button class="${f.modo === "cartas" ? "on" : ""}" data-f="modo" data-v="cartas" title="Cartas">▦</button>
         <button class="${f.modo === "dossier" ? "on" : ""}" data-f="modo" data-v="dossier" title="Dossier">☰</button>
       </div>
+      ${f.modo === "cartas" ? `<button class="btn-sagas ${f.agrupa ? "on" : ""}" data-agrupa aria-pressed="${f.agrupa}" title="Agrupar las temporadas de un mismo anime en una carta">⧉ Sagas</button>` : ""}
     </div>
   </section>
 
@@ -120,6 +169,18 @@ export function pinta(raiz, { stats, primera }) {
   // Eventos
   raiz.querySelectorAll("[data-f]").forEach((b) => b.addEventListener("click", () => { f[b.dataset.f] = b.dataset.v; guardaF(); pinta(raiz, { stats }); }));
   raiz.querySelectorAll("select[data-sel]").forEach((s) => s.addEventListener("change", () => { f[s.dataset.sel] = s.value; guardaF(); pinta(raiz, { stats }); }));
+  raiz.querySelector("[data-agrupa]")?.addEventListener("click", () => { f.agrupa = !f.agrupa; guardaF(); pinta(raiz, { stats }); });
+  // Desplegar o plegar una saga: sus temporadas salen detrás de la carta
+  const col = raiz.querySelector("#coleccion");
+  const despliega = (c) => {
+    const id = +c.dataset.saga;
+    abiertas.has(id) ? abiertas.delete(id) : abiertas.add(id);
+    const l = filtra(todas).sort(ORDENES[f.orden]?.fn || ORDENES.fecha.fn);
+    col.innerHTML = l.length ? cuerpo(l) : vacio(todas.length);
+    col.querySelector(`[data-saga="${id}"]`)?.focus({ preventScroll: true });
+  };
+  col.onclick = (ev) => { const c = ev.target.closest("[data-saga]"); if (c) despliega(c); };
+  col.onkeydown = (ev) => { const c = ev.target.closest?.("[data-saga]"); if (c && (ev.key === "Enter" || ev.key === " ")) { ev.preventDefault(); despliega(c); } };
   raiz.querySelector("[data-limpia]")?.addEventListener("click", () => { f = { ...def, orden: f.orden, modo: f.modo }; guardaF(); pinta(raiz, { stats }); });
   const t = raiz.querySelector("#f-texto");
   t.addEventListener("input", () => {
@@ -131,19 +192,24 @@ export function pinta(raiz, { stats, primera }) {
 
   function cuerpo(l) {
     if (f.modo === "dossier") return `<div class="dossier">${l.map(fila).join("")}</div>`;
-    // Ordenado por fecha, las cartas se agrupan por mes con un rótulo
-    if (f.orden !== "fecha") return `<div class="rejilla">${l.map((e, i) => carta(e, { indice: i })).join("")}</div>`;
+    const items = f.agrupa ? agrupa(l) : l.map((e) => ({ e }));
+    let i = 0;
+    const pintaItem = (x) => !x.saga ? carta(x.e, { indice: i++ })
+      : cartaSaga(x, i++) + (abiertas.has(x.saga) ? x.miembros.map((e) => carta(e, { indice: i++, clase: "en-saga" })).join("") : "");
+    // Ordenado por fecha, las cartas se agrupan por mes con un rótulo (una
+    // saga va en el mes de su temporada más reciente)
+    if (f.orden !== "fecha") return `<div class="rejilla">${items.map(pintaItem).join("")}</div>`;
     const grupos = [];
-    for (const e of l) {
+    for (const x of items) {
+      const e = x.e;
       const k = e.anio ? `${e.anio}-${e.mes || 0}` : "sin";
       if (!grupos.length || grupos.at(-1).k !== k) grupos.push({ k, e, items: [] });
-      grupos.at(-1).items.push(e);
+      grupos.at(-1).items.push(x);
     }
-    let i = 0;
     return grupos.map((g) => `<div class="grupo">
       <h2 class="rotulo ${g.e.anio ? "" : "rotulo-atemporal"}"><span class="rotulo-n">${g.e.anio || "∞"}</span><span class="rotulo-m">${g.e.mes ? MESES[g.e.mes - 1] : (g.e.anio ? "Sin mes" : "Atemporal")}</span>
       <span class="rotulo-jp">${g.e.mes ? g.e.mes + "月" : g.e.anio ? "年" : "永遠"}</span><span class="rotulo-c">${g.items.length}</span></h2>
-      <div class="rejilla">${g.items.map((e) => carta(e, { indice: i++ })).join("")}</div></div>`).join("");
+      <div class="rejilla">${g.items.map(pintaItem).join("")}</div></div>`).join("");
   }
 }
 

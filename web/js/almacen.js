@@ -236,11 +236,30 @@ export function aplicaFichas(fichas) {
   const porId = new Map(fichas.map((m) => [m.id, m]));
   let n = 0;
   for (const e of mias) {
-    const m = porId.get(e.mediaId);
+    let m = porId.get(e.mediaId);
+    // La saga no viene en la ficha de AniList: se calcula aparte y se conserva
+    if (m && e.media && "saga" in e.media && !("saga" in m)) m = { ...m, saga: e.media.saga };
     if (m && JSON.stringify(m) !== JSON.stringify(e.media)) { e.media = m; encola(e.uid, "guarda"); n++; }
   }
   try { localStorage.setItem(CLAVE_SINC(), String(Date.now())); } catch {}
   avisa("fichas");
+  return n;
+}
+
+// Sagas: `marcas` es Map(mediaId → marca | null). null = calculada y sin
+// saga (un título suelto), para no volver a calcularla en cada arranque.
+export const sinSaga = () => mias.filter((e) => e.mediaId && e.media && !("saga" in e.media)).map((e) => e.mediaId);
+export function ponSagas(marcas) {
+  let n = 0;
+  for (const e of mias) {
+    if (!e.mediaId || !e.media || !marcas.has(e.mediaId)) continue;
+    const nueva = marcas.get(e.mediaId);
+    if ("saga" in e.media && JSON.stringify(e.media.saga) === JSON.stringify(nueva)) continue;
+    e.media = { ...e.media, saga: nueva };
+    encola(e.uid, "guarda");
+    n++;
+  }
+  if (n) avisa("fichas");
   return n;
 }
 

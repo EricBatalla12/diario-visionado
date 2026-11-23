@@ -106,3 +106,86 @@ export const TEMPORADAS = [
 export function temporadaActual(fecha = new Date()) {
   return { i: Math.floor(fecha.getMonth() / 3), anio: fecha.getFullYear() };
 }
+
+// ── Sagas: las temporadas de un mismo anime ──────────────────────────────
+// AniList trata cada temporada como un título distinto, unido a los demás
+// por las relaciones PREQUEL/SEQUEL. Una saga es esa cadena entera: se
+// recorre en anchura pidiendo en lotes de 50 solo lo que aún no se conoce, y
+// se ordena por fecha de estreno. La raíz (la primera temporada) da el id.
+const CAMPOS_SAGA = `id type format status seasonYear episodes chapters
+  startDate { year month day } title { romaji english native } coverImage { large color }
+  relations { edges { relationType node { id type format } } }`;
+const nodos = new Map();          // id → nodo reducido (caché de la sesión)
+const MAX_RONDAS = 8, MAX_NODOS = 60;
+
+// Las novelas ligeras van por su lado: una secuela en novela no es otra
+// temporada del manga
+const enlazable = (a, b) => a.type === b.type && (a.format === "NOVEL") === (b.format === "NOVEL") && b.format !== "MUSIC";
+
+function reduce(m) {
+  const pre = [], suc = [];
+  for (const ed of m.relations?.edges || []) {
+    if (!ed.node || !enlazable(m, ed.node)) continue;
+    if (ed.relationType === "PREQUEL") pre.push(ed.node.id);
+    if (ed.relationType === "SEQUEL") suc.push(ed.node.id);
+  }
+  const d = m.startDate || {};
+  return {
+    id: m.id, type: m.type, format: m.format, status: m.status, seasonYear: m.seasonYear,
+    episodes: m.episodes, chapters: m.chapters, title: m.title, coverImage: m.coverImage,
+    inicio: (d.year || m.seasonYear || 9999) * 10000 + (d.month || 0) * 100 + (d.day || 0),
+    pre, suc,
+  };
+}
+
+async function pideNodos(ids) {
+  const faltan = [...new Set(ids)].filter((id) => !nodos.has(id));
+  for (let i = 0; i < faltan.length; i += 50) {
+    const d = await gql(`query($ids: [Int]) { Page(perPage: 50) { media(id_in: $ids) { ${CAMPOS_SAGA} } } }`,
+      { ids: faltan.slice(i, i + 50) });
+    for (const m of d.Page.media) nodos.set(m.id, reduce(m));
+    // Los que AniList no devuelve (borrados, adultos) no se vuelven a pedir
+    for (const id of faltan.slice(i, i + 50)) if (!nodos.has(id)) nodos.set(id, null);
+  }
+}
+
+// ids → Map(id → { raiz, n, cadena: [nodos en orden] }) para los ids pedidos
+export async function sagas(ids) {
+  let frontera = [...new Set(ids)];
+  const vistos = new Set(frontera);
+  for (let r = 0; r < MAX_RONDAS && frontera.length; r++) {
+    await pideNodos(frontera);
+    const sig = [];
+    for (const id of frontera) {
+      const n = nodos.get(id);
+      if (!n) continue;
+      for (const x of [...n.pre, ...n.suc]) if (!vistos.has(x) && vistos.size < ids.length + MAX_NODOS * 4) { vistos.add(x); sig.push(x); }
+    }
+    frontera = sig;
+  }
+  // Componentes conexas por las relaciones, entre los nodos conocidos
+  const out = new Map();
+  for (const id of new Set(ids)) {
+    if (out.has(id) || !nodos.get(id)) continue;
+    const comp = [], pila = [id], dentro = new Set([id]);
+    while (pila.length && comp.length < MAX_NODOS) {
+      const n = nodos.get(pila.pop());
+      if (!n) continue;
+      comp.push(n);
+      for (const x of [...n.pre, ...n.suc]) if (!dentro.has(x) && nodos.get(x)) { dentro.add(x); pila.push(x); }
+    }
+    comp.sort((a, b) => a.inicio - b.inicio || a.id - b.id);
+    const raiz = comp[0];
+    comp.forEach((n, i) => { if (ids.includes(n.id) || n.id === id) out.set(n.id, { raiz: raiz.id, n: i + 1, cadena: comp }); });
+  }
+  return out;
+}
+
+// Lo que se guarda en la ficha de cada entrada (va con `media` a la base de
+// datos): la raíz, la posición, cuántos hay en la cadena y el título de la
+// serie, para pintar la carta de la saga sin volver a preguntar
+export function marcaSaga(s) {
+  if (!s || s.cadena.length < 2) return null;
+  const r = s.cadena[0];
+  return { id: s.raiz, n: s.n, de: s.cadena.length, t: r.title?.english || r.title?.romaji || r.title?.native || "" };
+}

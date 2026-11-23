@@ -1,7 +1,7 @@
 # Diario de visionado / KIROKU 記録
 
-Lee esto antes de nada. Estado al 23-11-2026: recomendaciones, nota afinable y total de
-episodios en Temporada publicados. A medias: rama `ideas-23-11` (ver abajo).
+Lee esto antes de nada. Estado al 23-11-2026: publicadas las ideas del 22-11 (móvil, tutorial, Atemporal…) y
+las sagas (pasos 1 y 2). Pendiente: el "Continúa…" de las sagas y el aviso de iPhone.
 
 ## Qué es
 
@@ -101,7 +101,20 @@ tras 30 s y cada 3 min a la vista), sin tiempo real.
   `.fa-nota`, `.fo-nota`…: la letra EX salía gris). Los valores por defecto van en
   `:where(.clase) { --rc: … }`.
 
-## Ideas del 22-11 (rama `ideas-23-11`, sin commit ni publicar)
+## Sagas (publicado el 23-11-2026)
+
+- Idea completa en `docs/ideas/temporadas.md` (local). Hecho: pasos 1 y 2.
+- `anilist.js` → `sagas(ids)`: recorre PREQUEL/SEQUEL en lotes de 50 (caché de sesión, tope
+  8 rondas/60 nodos), ordena por fecha de estreno; `marcaSaga` da `{id raíz, n, de, t}` que se
+  guarda en `entradas.media.saga` (`null` = título suelto). Sin cambios en la base de datos.
+- `app.js` → `actualizaSagas`: al arrancar para lo que no la tiene, tras añadir algo y en el
+  refresco de 12 h para todo. `aplicaFichas` conserva la saga al refrescar.
+- Archivo: botón "⧉ Sagas" (por defecto activo) → una carta apilada por saga con 2+
+  temporadas; se despliega al tocarla. El HUD "Títulos" cuenta cada saga como uno.
+- Ficha: sección "Temporadas" con la cadena entera, lo tuyo marcado y ＋ para pendientes.
+- Falta: el "Continúa…" en Temporada (paso 3 de la idea).
+
+## Ideas del 22-11 (publicado el 23-11)
 
 - Progreso por **capítulos** en manga (`totalDe`/`unidad`/`seLee` en `ui.js`). Manhwa y
   manhua salen de `media.countryOfOrigin` (KR/CN/TW), que ahora pide `CAMPOS`.

@@ -5,7 +5,7 @@
 import { $, esc, aviso, tarjetaTitulo, activaHolo, reducido, cuentaAtras } from "./ui.js";
 import * as A from "./almacen.js";
 import { calcula } from "./stats.js";
-import { refrescar } from "./anilist.js";
+import { refrescar, sagas, marcaSaga } from "./anilist.js";
 import { configurado, sesion, miPerfil, sal, alCambiarSesion, borraPerfil } from "./nube.js";
 import { pantallaEntrada, pantallaRegistro, pantallaSinConfig, pantallaError, quitaCapa } from "./acceso.js";
 import * as ficha from "./ficha.js";
@@ -180,11 +180,34 @@ async function refresca(forzar = false) {
   try {
     const fichas = await refrescar(ids);
     const n = A.aplicaFichas(fichas);
+    actualizaSagas(true);
     if (forzar) aviso(`${fichas.length} fichas revisadas en AniList, ${n} con cambios.`);
   } catch (err) {
     if (forzar) aviso("AniList no responde: " + err.message);
   }
 }
+
+// ── Sagas ────────────────────────────────────────────────────────────────
+// Agrupan las temporadas de un mismo anime. Se calculan al arrancar para lo
+// que aún no la tiene (lo recién añadido, o todo la primera vez), y para
+// todo en el refresco de 12 h (AniList anuncia temporadas nuevas).
+let sagaEnCurso = null, sagaPendiente = false;
+async function actualizaSagas(todas = false) {
+  if (sagaEnCurso) { sagaPendiente = true; return; }
+  const ids = todas ? [...new Set(A.propias().map((e) => e.mediaId).filter(Boolean))] : A.sinSaga();
+  if (!ids.length) return;
+  sagaEnCurso = (async () => {
+    try {
+      const s = await sagas(ids);
+      A.ponSagas(new Map(ids.map((id) => [id, marcaSaga(s.get(id))])));
+    } catch { /* AniList no responde: se reintenta en el próximo arranque */ }
+  })();
+  await sagaEnCurso;
+  sagaEnCurso = null;
+  if (sagaPendiente) { sagaPendiente = false; actualizaSagas(); }
+}
+let tSaga = null;
+const sagaLuego = () => { clearTimeout(tSaga); tSaga = setTimeout(() => actualizaSagas(), 2500); };
 
 // ── Estado del guardado (pie) ────────────────────────────────────────────
 function conectaGuardado() {
@@ -339,7 +362,7 @@ async function inicio() {
   A.escucha((motivo) => {
     // Desde la ficha se repinta la vista de detrás, pero sin la animación de entrada
     pinta();
-    if (motivo !== "fichas") vigila();
+    if (motivo !== "fichas") { vigila(); if (A.sinSaga().length) sagaLuego(); }
   });
 
   // Al volver a la pestaña tras un rato, trae lo hecho en otro dispositivo
@@ -363,6 +386,7 @@ async function inicio() {
     if (!tutorial.visto()) setTimeout(tutorial.arranca, 2600);
   } else arranque();
   refresca();
+  setTimeout(() => actualizaSagas(), 3000);
   setInterval(() => mias && pintaTeletipo(), 60000);
 }
 

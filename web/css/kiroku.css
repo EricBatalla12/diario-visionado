@@ -695,15 +695,15 @@ dialog::backdrop { background: rgba(3, 3, 6, .78); backdrop-filter: blur(6px) sa
 .ficha[open] { animation: abreFicha .35s cubic-bezier(.2, .9, .2, 1) both; }
 @keyframes abreFicha { from { opacity: 0; transform: translateY(20px) scale(.98); } }
 .fi-banner {
-  height: 220px;
-  background: linear-gradient(135deg, color-mix(in srgb, var(--tinte) 60%, #000), #000) center / cover;
-  mask-image: linear-gradient(#000 40%, transparent);
+  height: 300px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--tinte) 60%, #000), #000) center 30% / cover;
+  mask-image: linear-gradient(#000 50%, transparent);
 }
 .fi-banner::after { content: ""; display: block; height: 100%; background: repeating-linear-gradient(0deg, rgba(0, 0, 0, .2) 0 1px, transparent 1px 3px); }
-.fi-cierra { position: sticky; top: 12px; float: right; margin: -208px 12px 0 0; z-index: 5; display: grid; place-items: center; width: 44px; height: 44px; background: rgba(6, 6, 9, .8); border: 1px solid var(--linea-2); font-size: 16px; line-height: 1; }
+.fi-cierra { position: sticky; top: 12px; float: right; margin: -288px 12px 0 0; z-index: 5; display: grid; place-items: center; width: 44px; height: 44px; background: rgba(6, 6, 9, .8); border: 1px solid var(--linea-2); font-size: 16px; line-height: 1; }
 .fi-cierra small { font: 600 7px var(--f-mono); color: var(--texto-3); letter-spacing: .1em; }
 .fi-cierra:hover { border-color: var(--naranja); }
-.fi-cab { position: relative; display: grid; grid-template-columns: 190px 1fr; gap: 26px; padding: 0 30px; margin-top: -120px; }
+.fi-cab { position: relative; display: grid; grid-template-columns: 190px 1fr; gap: 26px; padding: 0 30px; margin-top: -150px; }
 .fi-cartel { position: relative; aspect-ratio: 2 / 3; overflow: hidden; clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px)); box-shadow: var(--sombra); transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform .3s; }
 .fi-cartel .carta-img::after { display: none; }
 .fi-tit { padding-top: 112px; min-width: 0; }
@@ -773,9 +773,12 @@ dialog::backdrop { background: rgba(3, 3, 6, .78); backdrop-filter: blur(6px) sa
 .paso button:hover { background: var(--panel-2); }
 .paso input { width: 56px; height: 100%; border: 0 !important; text-align: center; font: 800 16px var(--f-mono) !important; padding: 0 !important; -moz-appearance: textfield; }
 .paso input::-webkit-inner-spin-button { appearance: none; }
-/* "0 / 13" centrado entre − y ＋: el número pegado a la barra por la derecha */
-.paso input { flex: 1; min-width: 0; text-align: right !important; padding-right: 4px !important; }
-.paso em { flex: 1; font: 15px var(--f-mono); font-style: normal; color: var(--texto-3); text-align: left; }
+/* "12 / 222" centrado entre − y ＋ como un solo bloque: el campo mide lo que
+   el número (--d = cifras, lo pone ficha.js) y los botones se van a los lados */
+.paso > button:first-child { margin-right: auto; }
+.paso > button:last-child { margin-left: auto; }
+.paso input { flex: none; width: calc(var(--d, 1) * 1ch + 6px); min-width: 0; text-align: right !important; padding-right: 3px !important; }
+.paso em { flex: none; font: 15px var(--f-mono); font-style: normal; color: var(--texto-3); white-space: nowrap; }
 .campo-ancho { grid-column: 1 / -1; }
 
 /* Cuándo: año con ◀ ▶, los doce meses y Atemporal */
@@ -1280,8 +1283,8 @@ body.visitando .vista { --naranja: var(--cian); }
   .cg-marco { width: 200px; }
   .cg-acc { justify-content: center; }
   .ficha { width: 100vw; max-width: 100vw; max-height: 100dvh; height: 100dvh; margin: 0; border: 0; }
-  .fi-banner { height: 160px; }
-  .fi-cierra { margin-top: -148px; }
+  .fi-banner { height: 220px; }
+  .fi-cierra { margin-top: -208px; }
   .fi-cab { grid-template-columns: 110px 1fr; gap: 14px; padding: 0 16px; margin-top: -70px; }
   .fi-tit { padding-top: 64px; }
   .fi-tit h2 { font-size: 26px; }
@@ -1406,10 +1409,10 @@ body.visitando .vista { --naranja: var(--cian); }
 
   /* Ficha: cabecera corta, datos en una línea, registro compacto */
   .ficha { padding-bottom: env(safe-area-inset-bottom); }
-  .fi-banner { height: 104px; }
-  .fi-cierra { top: calc(8px + env(safe-area-inset-top)); margin-top: -96px; width: 36px; height: 36px; font-size: 14px; }
+  .fi-banner { height: 200px; mask-image: linear-gradient(#000 60%, transparent); }
+  .fi-cierra { top: calc(8px + env(safe-area-inset-top)); margin-top: -192px; width: 36px; height: 36px; font-size: 14px; }
   .fi-cierra small { display: none; }
-  .fi-cab { grid-template-columns: 82px 1fr; gap: 12px; padding: 0 14px; margin-top: -44px; }
+  .fi-cab { grid-template-columns: 82px 1fr; gap: 12px; padding: 0 14px; margin-top: -40px; }
   .fi-tit { padding-top: 48px; }
   .fi-tit .etq { font-size: 9px; }
   .fi-tit h2 { font-size: 20px; margin: 2px 0; }

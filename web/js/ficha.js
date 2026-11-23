@@ -107,7 +107,7 @@ function registro(e) {
       <div class="fi-campos">
         ${conProg ? `<label class="campo"><span>Progreso · ${seLee(e) ? "capítulos" : "episodios"}</span>
           <div class="paso"><button data-ep="-1" aria-label="Un ${cosa} menos">−</button>
-          <input id="fi-prog" type="number" min="0" ${total ? `max="${total}"` : ""} value="${e.progreso || 0}">
+          <input id="fi-prog" type="number" min="0" ${total ? `max="${total}"` : ""} value="${e.progreso || 0}" style="--d:${String(e.progreso || 0).length}">
           <em>/ ${total || "?"}</em><button data-ep="1" aria-label="Un ${cosa} más">＋</button></div></label>` : ""}
         <label class="campo"><span>Tipo</span><select id="fi-tipo">${Object.entries(TIPOS[e.tipo] ? TIPOS : { ...TIPOS, [e.tipo]: infoTipo(e.tipo) }).map(([k, v]) => `<option value="${k}" ${e.tipo === k ? "selected" : ""}>${v.nombre}</option>`).join("")}</select></label>
         ${cuando(e)}
@@ -282,6 +282,7 @@ function conectaRegistro(d, e0) {
     const x = e(), total = totalDe(x);
     v = Math.max(0, total ? Math.min(total, v) : v);
     prog.value = v;
+    prog.style.setProperty("--d", String(v).length);
     const cambios = { progreso: v };
     if (x.estado === "pendiente" && v > 0) cambios.estado = "viendo";
     if (total && v >= total && x.estado === "viendo") {
@@ -294,6 +295,8 @@ function conectaRegistro(d, e0) {
   };
   d.querySelectorAll("[data-ep]").forEach((b) => b.addEventListener("click", () => ponProg((+prog.value || 0) + +b.dataset.ep)));
   prog?.addEventListener("change", () => ponProg(+prog.value || 0));
+  // El campo mide lo que el número, para que "12 / 222" quede centrado
+  prog?.addEventListener("input", () => prog.style.setProperty("--d", Math.max(1, prog.value.length)));
 
   // Cuándo
   const cu = d.querySelector("#fi-cuando"), inAnio = d.querySelector("#fi-anio");

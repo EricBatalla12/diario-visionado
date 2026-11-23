@@ -120,7 +120,7 @@ export async function directorio(yo) {
     todas(() => sb.from("perfiles").select(COLS_PERFIL).order("creado")),
     todas(() => sb.from("entradas").select(`id, usuario, media_id, titulo, tipo, estado, nota, comentario, progreso, anio, mes, generos, editado, recomendado_por,
       episodes:media->episodes, duration:media->duration, genres:media->genres, studio:media->>studio, seasonYear:media->seasonYear,
-      status:media->>status, averageScore:media->averageScore, cover:media->coverImage->>large`).order("editado", { ascending: false })),
+      status:media->>status, averageScore:media->averageScore, cover:media->coverImage->>large, sagaId:media->saga->id`).order("editado", { ascending: false })),
     permisosRecibidos(yo),
   ]);
   return { perfiles, filas, recibidos };

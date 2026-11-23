@@ -202,6 +202,34 @@ kbd {
 .menu button i, .menu a i { font-style: normal; width: 16px; color: var(--naranja); }
 .menu button:hover, .menu a:hover { background: var(--panel-3); }
 .menu a[hidden] { display: none; }
+.menu-nuevo { margin-left: auto; padding: 1px 6px; font: 700 9px var(--f-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--negro); background: var(--naranja); }
+.menu-nuevo[hidden] { display: none; }
+#btn-menu { position: relative; }
+#btn-menu.con-nuevo::after { content: ""; position: absolute; top: 5px; right: 5px; width: 7px; height: 7px; border-radius: 50%; background: var(--naranja); box-shadow: 0 0 8px var(--naranja); }
+
+/* ── Novedades (notas del parche) ─────────────────────────────────────── */
+.parches { display: grid; gap: 16px; max-width: 860px; }
+.parche { padding: 20px 22px; }
+.parche.ultimo { border-color: rgba(255, 107, 26, .45); }
+.pc-cab { display: flex; align-items: center; gap: 16px; margin-bottom: 14px; }
+.pc-jp { font: 700 26px/1 "Zen Kaku Gothic New", sans-serif; color: var(--naranja); }
+.pc-cab small { font: 600 10.5px var(--f-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--texto-3); }
+.pc-cab small em { font-style: normal; color: var(--naranja); }
+.pc-cab h2 { margin: 2px 0 0; font: 800 26px/1.1 var(--f-display); }
+.pc-sec + .pc-sec { margin-top: 14px; }
+.pc-sec h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 6px; font: 700 12px var(--f-hud); letter-spacing: .16em; text-transform: uppercase; color: var(--texto-2); }
+.pc-sec h3 i { font-style: normal; color: var(--naranja); width: 14px; text-align: center; }
+.pc-sec ul { margin: 0; padding: 0 0 0 22px; display: grid; gap: 6px; }
+.pc-sec li { font: 14px/1.55 var(--f-texto); color: var(--texto-2); }
+.pc-sec li::marker { color: var(--naranja); }
+.pc-sec li b { color: var(--texto); font-weight: 700; }
+@media (max-width: 720px) {
+  .parche { padding: 14px 12px; }
+  .pc-jp { font-size: 22px; }
+  .pc-cab h2 { font-size: 20px; }
+  .pc-sec ul { padding-left: 18px; }
+  .pc-sec li { font-size: 13px; }
+}
 .menu .peligro, .menu .peligro i { color: var(--rojo); }
 .menu hr { border: 0; border-top: 1px solid var(--linea); margin: 6px 0; }
 

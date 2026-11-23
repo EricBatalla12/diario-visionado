@@ -61,6 +61,9 @@ las sagas (pasos 1 y 2). Pendiente: el "Continúa…" de las sagas y el aviso de
 - Commits: rama temporal → `git merge --ff-only` a `main` → push → borrar rama.
   Solo cuando Eric lo pida. Buscar secretos antes (`grep -rIl sb_secret`).
 - Tras el push, esperar en segundo plano a que la web publicada sirva el cambio.
+- **Novedades** (`web/js/parches.js`, vista `#/novedades`): al publicar algo que se note, añadir
+  arriba de `PARCHES` un parche con `id` nuevo (la fecha) o ampliar el del día. Un `id` nuevo
+  saca el aviso "KIROKU se ha actualizado" y la marca NUEVO del menú ⋮ a quien ya había entrado.
 - Sueltos sin versionar a propósito: `kiroku-icono.png` (copia del usuario; el bueno
   está en `docs/marca/`), `datos/archivo-estrella.json` (gitignored, copia de seguridad).
 

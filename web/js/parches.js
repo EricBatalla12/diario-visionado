@@ -1,0 +1,71 @@
+// Notas del parche: lo que cambia en KIROKU, en palabras de quien lo usa.
+// El primero de la lista es el último. Para un parche nuevo, se añade arriba
+// con un `id` nuevo (la fecha): a quien ya había entrado le sale el aviso de
+// "Novedades" una vez y la marca de NUEVO en el menú hasta que lo abre.
+//
+// En los textos, **así** va en negrita; el resto se escapa al pintar.
+
+export const PARCHES = [
+  {
+    id: "2026-11-23",
+    fecha: "23 de noviembre de 2026",
+    titulo: "Sagas, avisos y móvil",
+    jp: "連作",
+    secciones: [
+      { titulo: "Novedades", ico: "✦", items: [
+        "**Sagas**: las temporadas de un mismo anime se juntan en una sola carta apilada en el Archivo. Tócala para ver sus temporadas; el botón **⧉ Sagas** lo desactiva. Cada saga cuenta como un título.",
+        "Sección **Temporadas** en la ficha: la saga entera en orden, con tu estado y tu nota en cada una, y **＋** para apuntar las que te faltan.",
+        "**Tier list por sagas** (⧉ Sagas): una portada por saga con la nota media de sus temporadas.",
+        "**Continúa**, en Temporada: la siguiente temporada de lo que sigues, en emisión, con fecha o anunciada.",
+        "**Ya terminados**: si tenías en pendientes un anime en emisión, KIROKU te avisa cuando termina, con **▶ Empezar** en Temporada y la etiqueta **✓ Completo** en su carta.",
+        "Progreso por **capítulos** en manga, manhwa y manhua; los manhwa y manhua salen con su nombre.",
+        "Elegir **cuándo lo viste**: el año con ◀ ▶, los 12 meses a la vista y **∞ Atemporal** para lo que no tiene fecha.",
+        "Ya no puedes **recomendar** algo que el otro ya ha visto, está viendo o abandonó (si lo tiene pendiente, sí: es un empujón).",
+        "**Tutorial guiado** para quien llega nuevo; se repite en ⋮ → Ver el tutorial.",
+        "Este apartado de **Novedades**.",
+      ] },
+      { titulo: "Móvil", ico: "▯", items: [
+        "Pestañas **abajo**, como una app, y cabecera más compacta.",
+        "Menos información y botones más pequeños en archivo, ficha, perfil, Temporada y Gacha.",
+        "«En emisión en tu archivo» se puede **plegar**.",
+        "El botón **Invocar** del Gacha se ve sin bajar.",
+        "Se puede **añadir a la pantalla de inicio** y se abre como una app.",
+      ] },
+      { titulo: "Cambios", ico: "⚙", items: [
+        "KIROKU es de **anime, manga, manhwa y manhua**: ya no se añaden series de imagen real (las que tenías siguen ahí). Las pelis de anime siguen como Película y se pueden filtrar.",
+        "El **banner** de la ficha se ve entero, sin recortes.",
+        "El progreso (**13 / 13**) sale centrado.",
+      ] },
+      { titulo: "Arreglos", ico: "✚", items: [
+        "Las fichas cargan aunque **AniList vaya lento**: lo que abres pasa por delante de lo que se actualiza de fondo, y si AniList se satura se reintenta solo.",
+        "Pulsar una **temporada que no tienes** abre su ficha al momento.",
+        "En **Operadores**, los títulos cuentan cada saga como uno, igual que en el Archivo.",
+      ] },
+    ],
+  },
+  {
+    id: "2026-11-22",
+    fecha: "22 de noviembre de 2026",
+    titulo: "Recomendaciones y privacidad",
+    jp: "推薦",
+    secciones: [
+      { titulo: "Novedades", ico: "✦", items: [
+        "**Recomendaciones** entre operadores: «Recomendar a…» desde la ficha y un **buzón** con lo que te mandan. Tú decides quién puede recomendarte y cuántas a la vez.",
+        "Logro **Ojo clínico**: 3 recomendaciones tuyas que el otro puntúa con 9 o más.",
+        "**Perfil privado**, con la lista de operadores que pueden verlo.",
+        "La **nota** se afina con − y ＋ de 0,1 o escribiéndola.",
+        "Las cartas de **Temporada** dicen cuántos episodios tendrá cada anime.",
+      ] },
+      { titulo: "Arreglos", ico: "✚", items: [
+        "La letra del rango de la nota vuelve a tener su color.",
+      ] },
+    ],
+  },
+];
+
+const CLAVE = "kiroku:parche-visto";
+export const ultimo = () => PARCHES[0];
+export function visto() { try { return localStorage.getItem(CLAVE); } catch { return PARCHES[0].id; } }
+export function marcaVisto() { try { localStorage.setItem(CLAVE, PARCHES[0].id); } catch {} }
+// Hay novedades si nunca se abrió este apartado o el último parche es posterior
+export const hayNuevo = () => visto() !== PARCHES[0].id;

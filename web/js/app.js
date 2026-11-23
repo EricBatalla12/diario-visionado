@@ -17,6 +17,8 @@ import * as temporada from "./vistas/temporada.js";
 import * as gacha from "./vistas/gacha.js";
 import * as operadores from "./vistas/operadores.js";
 import * as buzon from "./vistas/buzon.js";
+import * as novedades from "./vistas/parches.js";
+import * as parches from "./parches.js";
 import * as recos from "./recos.js";
 import * as tutorial from "./tutorial.js";
 import * as terminados from "./terminados.js";
@@ -34,7 +36,10 @@ const VISTAS = {
   operadores: { n: "06", ic: "友", nombre: "Operadores", jp: "オペレーター", mod: operadores },
 };
 // Vistas que no van en la barra de pestañas (se abren desde la cabecera)
-const OCULTAS = { buzon: { nombre: "Buzón", jp: "受信箱", mod: buzon } };
+const OCULTAS = {
+  buzon: { nombre: "Buzón", jp: "受信箱", mod: buzon },
+  novedades: { nombre: "Novedades", jp: "更新", mod: novedades },
+};
 const vistaDe = (k) => VISTAS[k] || OCULTAS[k];
 // Lo que se puede mirar del archivo de otro
 const VISTAS_AJENAS = ["archivo", "perfil", "tier"];
@@ -84,6 +89,17 @@ function pintaBuzon() {
   b.setAttribute("aria-label", n ? `Buzón: ${n} recomendaci${n === 1 ? "ón" : "ones"}` : "Buzón de recomendaciones");
 }
 
+// Marca de parche sin ver en el botón ⋮ y en "Novedades" del menú. Se pinta
+// después de la vista: abrir Novedades acaba de marcarlo como visto.
+function pintaNovedades() {
+  queueMicrotask(() => {
+    const nuevo = parches.hayNuevo();
+    $("#btn-menu").classList.toggle("con-nuevo", nuevo);
+    const b = document.querySelector("#menu .menu-nuevo");
+    if (b) b.hidden = !nuevo;
+  });
+}
+
 function pintaTeletipo() {
   const s = mias, lista = A.propias();
   const prox = lista.filter((e) => e.estado === "viendo" && e.media?.nextAiringEpisode)
@@ -114,6 +130,7 @@ function pinta(anima = false) {
   pintaCabecera();
   pintaTeletipo();
   pintaBuzon();
+  pintaNovedades();
   const raiz = $("#vista");
   raiz.dataset.vista = vista;
   raiz.classList.toggle("anima", anima);
@@ -265,6 +282,7 @@ function conectaMenu() {
       document.getElementById("privacidad")?.scrollIntoView({ behavior: reducido() ? "auto" : "smooth", block: "start" });
     }
     if (acc === "tutorial") tutorial.arranca();
+    if (acc === "novedades") location.hash = "#/novedades";
     if (acc === "sal") { await A.vacia(); await sal(); location.hash = ""; location.reload(); }
     if (acc === "borra-cuenta") borraCuenta();
   });
@@ -409,6 +427,12 @@ async function inicio() {
   refresca();
   setTimeout(() => actualizaSagas(), 3000);
   terminados.avisaNuevos(A.propias(), yo.id);
+  // Parche nuevo desde la última vez: un aviso con enlace a las notas. A una
+  // cuenta recién creada no le hace falta: todo es nuevo para ella.
+  if (nuevo) { parches.marcaVisto(); pintaNovedades(); }
+  else if (parches.hayNuevo() && vista !== "novedades") {
+    setTimeout(() => aviso(`KIROKU se ha actualizado: ${parches.ultimo().titulo}.`, { accion: "Ver novedades", alPulsar: () => { location.hash = "#/novedades"; } }), 1800);
+  }
   setTimeout(refrescaEmision, 5000);
   setInterval(refrescaEmision, 30 * 60 * 1000);
   setInterval(() => mias && pintaTeletipo(), 60000);

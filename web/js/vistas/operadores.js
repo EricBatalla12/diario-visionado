@@ -4,6 +4,7 @@ import { esc, aviso, fmtNota, ESTADOS, rango } from "../ui.js";
 import { yoMismo, propias } from "../almacen.js";
 import { directorio } from "../nube.js";
 import { calcula } from "../stats.js";
+import { cuentaTitulos } from "./archivo.js";
 
 let cache = null, cargado = 0;
 
@@ -13,7 +14,7 @@ const comoEntrada = (f) => ({
   comentario: f.comentario || "", progreso: f.progreso || 0, anio: f.anio, mes: f.mes, generos: f.generos || [],
   editado: Date.parse(f.editado), cover: f.cover,
   media: f.media_id ? { episodes: f.episodes, duration: f.duration, genres: f.genres || [], studio: f.studio,
-    seasonYear: f.seasonYear, status: f.status, averageScore: f.averageScore } : null,
+    seasonYear: f.seasonYear, status: f.status, averageScore: f.averageScore, saga: f.sagaId ? { id: f.sagaId } : null } : null,
 });
 
 // Afinidad: con al menos 3 títulos puntuados por los dos, 100 % menos 10
@@ -78,7 +79,9 @@ async function carga(caja) {
     const viendo = lista.filter((e) => e.estado === "viendo").sort((a, b) => b.editado - a.editado).slice(0, 4);
     // Privado y sin permiso: la base de datos no ha mandado sus entradas
     const bloqueado = p.id !== yo.id && p.privado && !cache.recibidos.has(p.id);
-    return { p, s, ultima, viendo, bloqueado, af: p.id === yo.id || bloqueado ? null : afinidad(propias(), lista), soyYo: p.id === yo.id };
+    // Títulos como en el Archivo: cada saga cuenta como uno
+    const titulos = p.id === yo.id ? cuentaTitulos(propias()) : cuentaTitulos(lista);
+    return { p, s, titulos, ultima, viendo, bloqueado, af: p.id === yo.id || bloqueado ? null : afinidad(propias(), lista), soyYo: p.id === yo.id };
   }).sort((a, b) => (a.bloqueado - b.bloqueado) || (b.s.op.xp - a.s.op.xp));
 
   const nombres = new Map(cache.perfiles.map((p) => [p.id, p]));
@@ -104,7 +107,7 @@ function avatar(p) {
   return p.avatar_url ? `<img src="${esc(p.avatar_url)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : `<span class="av-ini">${esc((p.nombre[0] || "?").toUpperCase())}</span>`;
 }
 
-function tarjeta({ p, s, ultima, viendo, af, soyYo, bloqueado }, i) {
+function tarjeta({ p, s, titulos, ultima, viendo, af, soyYo, bloqueado }, i) {
   if (bloqueado) return `<a class="op-tarjeta panel bloqueado" href="#/@${esc(p.alias)}" style="--i:${i}">
     <div class="opt-av">${avatar(p)}<span class="opt-nv opt-candado">非公開</span></div>
     <div class="opt-d">
@@ -120,7 +123,7 @@ function tarjeta({ p, s, ultima, viendo, af, soyYo, bloqueado }, i) {
     <div class="opt-d">
       <h3>${esc(p.nombre)} ${soyYo ? `<small class="opt-tu">TÚ</small>` : ""}</h3>${etiqueta}
       <p class="opt-alias">@${esc(p.alias)} · ${esc(s.op.rango.nombre)} <i>${s.op.rango.jp}</i></p>
-      <dl class="opt-cifras"><div><dt>Títulos</dt><dd>${s.total}</dd></div><div><dt>Horas</dt><dd>${Math.round(s.horas)}</dd></div>
+      <dl class="opt-cifras"><div><dt>Títulos</dt><dd>${titulos}</dd></div><div><dt>Horas</dt><dd>${Math.round(s.horas)}</dd></div>
         <div><dt>Media</dt><dd>${s.media == null ? "—" : fmtNota(+s.media.toFixed(2))}</dd></div><div><dt>Logros</dt><dd>${s.logros.filter((l) => l.hecho).length}</dd></div></dl>
       ${af ? `<div class="opt-af"><span>Afinidad</span>${af.pct == null
         ? `<em>${af.enComun ? `${af.enComun} en común · faltan notas` : "nada en común aún"}</em>`

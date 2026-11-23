@@ -1,7 +1,8 @@
 # Diario de visionado / KIROKU 記録
 
-Lee esto antes de nada. Estado al 23-11-2026: publicadas las ideas del 22-11 (móvil, tutorial, Atemporal…) y
-las sagas (pasos 1 y 2). Pendiente: el "Continúa…" de las sagas y el aviso de iPhone.
+Lee esto antes de nada. Estado al 23-11-2026: todo lo hecho está publicado y no hay
+trabajo a medias en la web. Lo siguiente posible: música y personajes (propuesta en
+`docs/ideas/musica-y-personajes.md`) y el enlace de donaciones.
 
 ## Qué es
 
@@ -22,7 +23,13 @@ las sagas (pasos 1 y 2). Pendiente: el "Continúa…" de las sagas y el aviso de
   enseña los proveedores activos (consulta `/auth/v1/settings`).
 - URL Configuration de Supabase: Site URL = la de Cloudflare; Redirect URLs = esa
   `/**` y `http://localhost:8640/**`.
-- Usuarios reales: `@ratixx_batalla` (Eric, 121 títulos, su archivo) y `@maza`.
+- Usuarios reales: `@ratixx_batalla` (Eric: 184 entradas, 105 títulos contando sagas) y `@maza`.
+- Certificado: Let's Encrypt para `*.el-grimorio.workers.dev`, lo renueva Cloudflare solo
+  (el del 23-11 caduca el 5-1-2027). Comprobado bien: cadena hasta ISRG Root X1, SCTs, TLS 1.2/1.3.
+- **iPhone "conexión no segura" / `ERR_SSL_PROTOCOL_ERROR`**: era la dirección con un **punto
+  final** (`…workers.dev.`), casi seguro copiada de un mensaje. Sin el punto entra. No es la web.
+- **AniList** puede bajar el límite a **30 peticiones/min** (así el 23-11; se ve en
+  `X-RateLimit-Limit`). Manda el 429 **sin cabeceras CORS**: en el navegador es un fallo de red.
 
 ## Probar en local
 
@@ -37,19 +44,36 @@ las sagas (pasos 1 y 2). Pendiente: el "Continúa…" de las sagas y el aviso de
   `auth.users`, `auth.uid()` leyendo `request.jwt.claim.sub`). Probar instalación
   nueva (`esquema.sql` ×2) y actualización (esquema de HEAD + migración ×2).
 - La CLI de Supabase (`npx supabase`) la bloquea la política de permisos: no usarla.
+- Con el panel del navegador: Eric usa a veces la web real en una pestaña; probar en una
+  **pestaña propia** (`tabs_create`) y no recargar la suya. Si el panel está oculto, las
+  animaciones no avanzan (opacidad 0 eterna): medir con `getAnimations()`, no con capturas.
+- Cada recarga de pruebas gasta cupo de AniList; los nodos de sagas sobreviven en
+  `sessionStorage`. En la página de pruebas los filtros (p. ej. `agrupa`) se guardan en
+  `localStorage` (`kiroku:filtros`) y pueden haberse quedado cambiados.
+- Validar una consulta de PostgREST sin sesión: `42501` = se ha entendido, `PGRST100` = sintaxis mal.
 
 ## Arquitectura (web/js)
 
 - `app.js` arranque y sesión (sin config → login → registro → archivo), rutas por
-  hash (`#/archivo`… y `#/@alias/vista` para visitar), cabecera, teletipo, menú ⋮.
+  hash (`#/archivo`… y `#/@alias/vista` para visitar), cabecera, teletipo, menú ⋮,
+  refrescos de AniList (12 h todo; 3 h lo que se emite), sagas, avisos de arranque.
+- `anilist.js` cliente GraphQL con **cola de dos niveles** (lo de pantalla antes que lo de
+  `{ fondo: true }`), freno con `X-RateLimit-Remaining` ≤ 2, reintento en fallo de red;
+  `sagas(ids)` y `marcaSaga`.
+- `ui.js` catálogos y utilidades: `TIPOS` (anime, manga, peli), `infoTipo` (también la
+  vieja `serie`), `tipoDe(m)`, `formato(m)` (Manhwa/Manhua por `countryOfOrigin`),
+  `totalDe`/`unidad`/`seLee` (capítulos en manga, episodios en lo demás).
 - `nube.js` cliente Supabase (supabase-js 2.118.0 de jsDelivr, flujo PKCE), perfiles,
   lecturas paginadas, directorio, privacidad (`misPermisos`, `concede`, `retira`, `puedoVer`).
 - `almacen.js` archivo en memoria + **cola de guardado** (agrupa, reintenta), deshacer
   por operación, importar/exportar, "sujeto" (tu archivo o el de un amigo en solo lectura).
 - `acceso.js` pantallas de login/registro. `ficha.js`, `paleta.js` (buscador).
 - `recos.js` recomendaciones: buzón, sondeo, envío y resolución.
+- `terminados.js` pendientes en emisión recién terminados; `tutorial.js` recorrido guiado;
+  `parches.js` notas de cada parche (datos).
 - `vistas/`: archivo, perfil (+ `privacidad.js` y `ajustes-recos.js`), tier, temporada,
-  gacha, operadores, y `buzon.js` (fuera de la barra de pestañas).
+  gacha, operadores, y fuera de la barra de pestañas `buzon.js` (`#/buzon`) y
+  `parches.js` (`#/novedades`).
 - `supabase/esquema.sql` estado completo e idempotente; cambios nuevos además en
   `supabase/migraciones/AAAA-MM-DD-nombre.sql`. **El usuario ejecuta la migración en
   el SQL Editor ANTES de publicar** la web que la usa; luego comprobarla desde aquí
@@ -67,7 +91,51 @@ las sagas (pasos 1 y 2). Pendiente: el "Continúa…" de las sagas y el aviso de
 - Sueltos sin versionar a propósito: `kiroku-icono.png` (copia del usuario; el bueno
   está en `docs/marca/`), `datos/archivo-estrella.json` (gitignored, copia de seguridad).
 
-## Recomendaciones entre operadores (publicado)
+## Publicado el 23-11-2026
+
+Notas para usuarios en `web/js/parches.js` (parche "Sagas, avisos y móvil").
+
+- **Tipos**: solo anime, manga (incluye manhwa/manhua) y peli (pelis de anime, filtrables).
+  `serie` ya no se elige; las entradas viejas se pintan con `infoTipo()` y Eric gestiona las
+  suyas a mano. No hubo migración.
+- **Registro**: progreso por capítulos en manga; selector de año ◀ ▶ + 12 meses + "∞ Atemporal"
+  (= sin año: grupo al final del archivo y opción en el filtro Año). El progreso "12 / 222" se
+  centra como bloque: el `input` mide `--d` cifras (lo pone `ficha.js`) y el `em` lleva 1ch delante.
+- **Ficha**: banner con `aspect-ratio: 1900/400` (el de AniList, se ve entero); la X va con
+  `margin-top` en % del ancho. `abrePrevia(nodo)` abre al momento con la ficha corta de una saga
+  y repinta con la completa sin mover el scroll.
+- **Recomendar**: desactiva a quien ya lo vio/ve/abandonó (solo archivos legibles, vía
+  `otrosDe`, que trae `usuario`); con pendiente se deja.
+- **Sagas** (idea en `docs/ideas/temporadas.md`): `sagas()` recorre PREQUEL/SEQUEL en lotes de
+  50 (tope 8 rondas/60 nodos, caché en `sessionStorage` `kiroku:nodos-saga:v1`) y ordena por
+  estreno; `marcaSaga` → `entradas.media.saga = {id raíz, n, de, t}` (`null` = suelto). Sin cambios
+  en la base de datos. `actualizaSagas` al arrancar (lo que no la tiene), tras añadir y en el
+  refresco de 12 h; `aplicaFichas` la conserva.
+  - Archivo: "⧉ Sagas" (activo por defecto) → carta apilada por saga con 2+ temporadas.
+    Desplegar **no repinta**: inserta/quita `.en-saga.saga-<id>` tras la carta.
+  - "Títulos" cuenta cada saga como uno (`cuentaTitulos`), en Archivo y en Operadores
+    (el directorio trae `sagaId:media->saga->id`).
+  - Ficha: sección "Temporadas" con la cadena, lo tuyo marcado y ＋ para pendientes.
+  - Tier list: chip "⧉ Sagas" (apagado por defecto): una portada por saga, nota media.
+  - Temporada → "Continúa": por saga, la primera en emisión o anunciada que no tienes tras la
+    última que sigues; 6 visibles + "Ver las N", plegable y recordado.
+- **Pendientes que terminan** (idea en `docs/ideas/aviso-terminados.md`): recién terminado =
+  pendiente + FINISHED + `endDate` hace < 30 días + apuntado antes de que acabara. Aviso al
+  entrar (una vez por título y navegador), "Ya terminados" en Temporada con "▶ Empezar" y
+  "✓ Completo" en la carta. `refrescaEmision` cada 3 h con `aplicaFichas(..., { marca: false })`
+  para no retrasar el refresco de 12 h.
+- **Móvil (≤ 720 px)**: pestañas fijas abajo con kanji de icono, cabecera fija, sin teletipo
+  ni pie, todo más compacto; "En emisión" y "Continúa" plegables; Invocar a la vista.
+  `manifest.webmanifest` + `web/img/` para instalarla como app.
+- **Tutorial** (`tutorial.js`): a cuentas nuevas y desde ⋮ → Ver el tutorial.
+- **Novedades** (`#/novedades`): aviso "KIROKU se ha actualizado" y marca en ⋮ con un parche
+  nuevo; a las cuentas nuevas no.
+- **Donaciones**: `DONAR` en `config.js` (vacío = oculto). Falta el enlace de Eric (se
+  recomendó Ko-fi).
+- **Trampa de animación**: `.vista.anima` relanza la entrada de todas las cartas en cualquier
+  repintado. Los repintados internos del archivo (`repinta()`) quitan `anima` antes.
+
+## Recomendaciones entre operadores (publicado el 22-11-2026)
 
 Implementado el 22-11-2026 con las 4 decisiones recomendadas: por defecto
 "cualquiera" con máximo 3; lista "pueden recomendarme" aparte de la de privacidad;
@@ -93,7 +161,7 @@ tras 30 s y cada 3 min a la vista), sin tiempo real.
   (a propósito, para no revelar nada de ellos). Se carga junto al archivo en
   `almacen.carga` para que el aviso de logro no se repita en cada arranque.
 
-## Ficha y Temporada (publicado)
+## Ficha y Temporada (publicado el 22-11-2026)
 
 - **Nota en la ficha**: además de la barra, − y ＋ de 0,1 (mantener pulsado repite y
   guarda al soltar) y el número se puede escribir (coma o punto, Intro guarda, Esc deshace).
@@ -104,52 +172,13 @@ tras 30 s y cada 3 min a la vista), sin tiempo real.
   `.fa-nota`, `.fo-nota`…: la letra EX salía gris). Los valores por defecto van en
   `:where(.clase) { --rc: … }`.
 
-## Sagas (publicado el 23-11-2026)
+## Ramas e ideas sin publicar
 
-- Idea completa en `docs/ideas/temporadas.md` (local). Hecho: pasos 1 y 2.
-- `anilist.js` → `sagas(ids)`: recorre PREQUEL/SEQUEL en lotes de 50 (caché de sesión, tope
-  8 rondas/60 nodos), ordena por fecha de estreno; `marcaSaga` da `{id raíz, n, de, t}` que se
-  guarda en `entradas.media.saga` (`null` = título suelto). Sin cambios en la base de datos.
-- `app.js` → `actualizaSagas`: al arrancar para lo que no la tiene, tras añadir algo y en el
-  refresco de 12 h para todo. `aplicaFichas` conserva la saga al refrescar.
-- Archivo: botón "⧉ Sagas" (por defecto activo) → una carta apilada por saga con 2+
-  temporadas; se despliega al tocarla. El HUD "Títulos" cuenta cada saga como uno.
-- Ficha: sección "Temporadas" con la cadena entera, lo tuyo marcado y ＋ para pendientes.
-- Temporada → "Continúa" (publicado el 23-11): por saga, la primera temporada en
-  emisión o anunciada que no tienes y va después de la última que sigues; 6 visibles + "Ver
-  las N", plegable y recordado. Los nodos de la saga traen `nextAiringEpisode` y `season`.
-
-- Tier list: chip "⧉ Sagas" (publicado el 23-11): una portada por saga con la
-  nota media de sus temporadas puntuadas; se recuerda en `localStorage`.
-- **Aviso de pendientes que terminan** (publicado el 23-11; idea en
-  `docs/ideas/aviso-terminados.md`): `terminados.js` → recién terminado = pendiente + FINISHED +
-  `endDate` (nuevo en `CAMPOS`) hace < 30 días + apuntado antes de que acabara. Aviso al entrar
-  (una vez por título y navegador), "Ya terminados" en Temporada con "▶ Empezar" y "✓ Completo"
-  en la carta. `refrescaEmision` mira cada 3 h lo pendiente/viendo en emisión
-  (`aplicaFichas(..., { marca: false })` para no retrasar el refresco de 12 h).
-- Cola de AniList (`anilist.js`, publicado el 23-11): dos niveles; lo de
-  pantalla va antes que lo de fondo (`{ fondo: true }` en refrescos, sagas y "Continúa"). Frena
-  con `X-RateLimit-Remaining` ≤ 2. El 23-11 AniList estaba en 30 peticiones/min.
-- `gql` reintenta los fallos de red (AniList manda el 429 sin CORS). Los nodos de las sagas se
-  guardan en `sessionStorage` (`kiroku:nodos-saga:v1`) para no repetir peticiones al recargar.
-
-## Ideas del 22-11 (publicado el 23-11)
-
-- Progreso por **capítulos** en manga (`totalDe`/`unidad`/`seLee` en `ui.js`). Manhwa y
-  manhua salen de `media.countryOfOrigin` (KR/CN/TW), que ahora pide `CAMPOS`.
-- Ficha: selector de **año (◀ ▶) + 12 meses + "∞ Atemporal"** (= sin año; grupo al final del
-  archivo y opción en el filtro Año).
-- Recomendar: desactiva a quien **ya lo ha visto/viendo/abandonado** (solo archivos que puedes
-  leer, vía `otrosDe`, que ahora trae `usuario`); con pendiente se deja.
-- Móvil (≤720 px): **pestañas abajo** con kanji de icono, cabecera fija, sin teletipo ni pie,
-  archivo compacto. `manifest.webmanifest` + `web/img/` para instalarla como app.
-- `tutorial.js`: recorrido guiado; sale solo a cuentas nuevas y desde ⋮ → Ver el tutorial.
-- Donaciones: `DONAR` en `config.js` (vacío = oculto). Falta el enlace de Eric.
-- **Sin series**: `TIPOS` = anime, manga y peli (pelis de anime, filtrables). `serie` ya no se
-  elige; las entradas viejas se pintan con `infoTipo()` y Eric gestiona las suyas a mano.
-- Móvil compactado (ficha, perfil, temporada, gacha); «En emisión» plegable y recordado.
-- Idea de agrupar temporadas en sagas: `docs/ideas/temporadas.md`.
-- Rama `diseno-limpio`: la versión "lite" (`limpio.css`), guardada por si acaso.
+- Rama `diseno-limpio`: la versión "lite" de la interfaz (`limpio.css`), guardada por si
+  acaso. Eric se quedó con la original.
+- `docs/ideas/` (local, sin versionar): `red-social.md`, `musica-y-personajes.md`
+  (AnimeThemes para OP/ED: sin comprobar, no respondía el 22-11), `temporadas.md` (hecho),
+  `aviso-terminados.md` (hecho salvo notificaciones push).
 
 ## Vídeos promocionales (`video/`, local y sin versionar)
 

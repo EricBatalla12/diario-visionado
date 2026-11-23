@@ -40,6 +40,7 @@ export const PARCHES = [
         "Las fichas cargan aunque **AniList vaya lento**: lo que abres pasa por delante de lo que se actualiza de fondo, y si AniList se satura se reintenta solo.",
         "Pulsar una **temporada que no tienes** abre su ficha al momento.",
         "En **Operadores**, los títulos cuentan cada saga como uno, igual que en el Archivo.",
+        "**Desplegar una saga** es instantáneo, y filtrar el Archivo ya no deja la página en negro un momento.",
       ] },
     ],
   },

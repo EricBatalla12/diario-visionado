@@ -444,7 +444,9 @@ kbd {
 .carta-saga .carta-pie p { color: var(--naranja-2); }
 .carta-saga.abierta .carta-marco::after { border-color: var(--naranja); border-width: 2px; }
 /* Las temporadas de una saga desplegada, un poco hundidas */
-.carta.en-saga { transform: scale(.94); transform-origin: top; }
+.carta.en-saga { transform: scale(.94); transform-origin: top; animation: entraSaga .2s ease-out both; animation-delay: calc(min(var(--i, 0), 8) * 30ms); }
+.vista.anima .carta.en-saga { animation: entraSaga .2s ease-out both; animation-delay: calc(min(var(--i, 0), 8) * 30ms); }
+@keyframes entraSaga { from { opacity: 0; transform: translateX(-10px) scale(.94); } }
 .carta.en-saga .carta-marco::before {
   content: ""; position: absolute; inset: 0 0 auto 0; height: 3px; z-index: 2; background: var(--naranja);
 }

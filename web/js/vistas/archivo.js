@@ -168,25 +168,37 @@ export function pinta(raiz, { stats, primera }) {
   raiz.querySelectorAll(".cifra b[data-n]").forEach((b) => primera ? cuenta(b, +b.dataset.n, { dec: +b.dataset.d }) :
     (b.textContent = (+b.dataset.n).toLocaleString("es-ES", { maximumFractionDigits: +b.dataset.d, minimumFractionDigits: +b.dataset.d })));
 
-  // Eventos
-  raiz.querySelectorAll("[data-f]").forEach((b) => b.addEventListener("click", () => { f[b.dataset.f] = b.dataset.v; guardaF(); pinta(raiz, { stats }); }));
-  raiz.querySelectorAll("select[data-sel]").forEach((s) => s.addEventListener("change", () => { f[s.dataset.sel] = s.value; guardaF(); pinta(raiz, { stats }); }));
-  raiz.querySelector("[data-agrupa]")?.addEventListener("click", () => { f.agrupa = !f.agrupa; guardaF(); pinta(raiz, { stats }); });
+  // Eventos. Repintar por un filtro no relanza la entrada animada de las
+  // cartas (la página se quedaba en negro un momento): eso es solo al entrar.
+  const repinta = () => { raiz.classList.remove("anima"); pinta(raiz, { stats }); };
+  raiz.querySelectorAll("[data-f]").forEach((b) => b.addEventListener("click", () => { f[b.dataset.f] = b.dataset.v; guardaF(); repinta(); }));
+  raiz.querySelectorAll("select[data-sel]").forEach((s) => s.addEventListener("change", () => { f[s.dataset.sel] = s.value; guardaF(); repinta(); }));
+  raiz.querySelector("[data-agrupa]")?.addEventListener("click", () => { f.agrupa = !f.agrupa; guardaF(); repinta(); });
   // Desplegar o plegar una saga: sus temporadas salen detrás de la carta
   const col = raiz.querySelector("#coleccion");
+  // Se tocan solo esa carta y sus temporadas: repintar la colección entera
+  // relanzaba la entrada animada de todas las cartas y la página se quedaba
+  // en negro un momento
   const despliega = (c) => {
-    const id = +c.dataset.saga;
-    abiertas.has(id) ? abiertas.delete(id) : abiertas.add(id);
+    const id = +c.dataset.saga, abrir = !abiertas.has(id);
+    abrir ? abiertas.add(id) : abiertas.delete(id);
+    c.classList.toggle("abierta", abrir);
+    c.setAttribute("aria-expanded", abrir);
+    const flecha = c.querySelector(".carta-saga-n small");
+    if (flecha) flecha.textContent = abrir ? "▴" : "▾";
+    if (!abrir) { col.querySelectorAll(`.saga-${id}`).forEach((x) => x.remove()); return; }
     const l = filtra(todas).sort(ORDENES[f.orden]?.fn || ORDENES.fecha.fn);
-    col.innerHTML = l.length ? cuerpo(l) : vacio(todas.length);
-    col.querySelector(`[data-saga="${id}"]`)?.focus({ preventScroll: true });
+    const g = agrupa(l).find((x) => x.saga === id);
+    if (!g) return;
+    c.insertAdjacentHTML("afterend", g.miembros.map((e, k) => carta(e, { indice: k, clase: `en-saga saga-${id}` })).join(""));
   };
   col.onclick = (ev) => { const c = ev.target.closest("[data-saga]"); if (c) despliega(c); };
   col.onkeydown = (ev) => { const c = ev.target.closest?.("[data-saga]"); if (c && (ev.key === "Enter" || ev.key === " ")) { ev.preventDefault(); despliega(c); } };
-  raiz.querySelector("[data-limpia]")?.addEventListener("click", () => { f = { ...def, orden: f.orden, modo: f.modo }; guardaF(); pinta(raiz, { stats }); });
+  raiz.querySelector("[data-limpia]")?.addEventListener("click", () => { f = { ...def, orden: f.orden, modo: f.modo }; guardaF(); repinta(); });
   const t = raiz.querySelector("#f-texto");
   t.addEventListener("input", () => {
     f.texto = t.value;
+    raiz.classList.remove("anima");   // sin la entrada animada en cada tecla
     const l = filtra(todas).sort(ORDENES[f.orden].fn);
     raiz.querySelector("#coleccion").innerHTML = l.length ? cuerpo(l) : vacio(todas.length);
     raiz.querySelector(".resultado-cuenta span").textContent = l.length;
@@ -197,7 +209,7 @@ export function pinta(raiz, { stats, primera }) {
     const items = f.agrupa ? agrupa(l) : l.map((e) => ({ e }));
     let i = 0;
     const pintaItem = (x) => !x.saga ? carta(x.e, { indice: i++ })
-      : cartaSaga(x, i++) + (abiertas.has(x.saga) ? x.miembros.map((e) => carta(e, { indice: i++, clase: "en-saga" })).join("") : "");
+      : cartaSaga(x, i++) + (abiertas.has(x.saga) ? x.miembros.map((e) => carta(e, { indice: i++, clase: `en-saga saga-${x.saga}` })).join("") : "");
     // Ordenado por fecha, las cartas se agrupan por mes con un rótulo (una
     // saga va en el mes de su temporada más reciente)
     if (f.orden !== "fecha") return `<div class="rejilla">${items.map(pintaItem).join("")}</div>`;

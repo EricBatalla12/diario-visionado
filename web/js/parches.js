@@ -7,6 +7,21 @@
 
 export const PARCHES = [
   {
+    id: "2026-11-23b",
+    fecha: "23 de noviembre de 2026",
+    titulo: "Sagas de un golpe",
+    jp: "一括",
+    secciones: [
+      { titulo: "Novedades", ico: "✦", items: [
+        "**⧉ Añadir la saga**, en la sección Temporadas de la ficha: apunta todas las temporadas de golpe, como vistas o pendientes, con **una nota para toda la saga** y el año en que la viste (o ∞ Atemporal). Ideal para pasar a KIROKU todo lo que ya habías visto. Se deshace de una vez.",
+        "Si ya tienes todas las temporadas, **⧉ Nota a la saga** les pone a todas la misma nota.",
+      ] },
+      { titulo: "Cambios", ico: "⚙", items: [
+        "Con **⧉ Sagas** activo, los contadores de **Todos, Visto, Viendo…** del Archivo cuentan cada saga como un título, igual que la cifra de Títulos.",
+      ] },
+    ],
+  },
+  {
     id: "2026-11-23",
     fecha: "23 de noviembre de 2026",
     titulo: "Sagas, avisos y móvil",
@@ -15,7 +30,6 @@ export const PARCHES = [
       { titulo: "Novedades", ico: "✦", items: [
         "**Sagas**: las temporadas de un mismo anime se juntan en una sola carta apilada en el Archivo. Tócala para ver sus temporadas; el botón **⧉ Sagas** lo desactiva. Cada saga cuenta como un título.",
         "Sección **Temporadas** en la ficha: la saga entera en orden, con tu estado y tu nota en cada una, y **＋** para apuntar las que te faltan.",
-        "**⧉ Añadir la saga**, en Temporadas: apunta todas las temporadas de golpe, como vistas o pendientes, con **una nota para toda la saga** y el año en que la viste (o ∞ Atemporal). Si ya las tienes todas, **⧉ Nota a la saga** les pone la misma nota. Se deshace de una vez.",
         "**Tier list por sagas** (⧉ Sagas): una portada por saga con la nota media de sus temporadas.",
         "**Continúa**, en Temporada: la siguiente temporada de lo que sigues, en emisión, con fecha o anunciada.",
         "**Ya terminados**: si tenías en pendientes un anime en emisión, KIROKU te avisa cuando termina, con **▶ Empezar** en Temporada y la etiqueta **✓ Completo** en su carta.",

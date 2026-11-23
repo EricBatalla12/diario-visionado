@@ -131,7 +131,10 @@ export function pinta(raiz, { stats, primera }) {
   const lista = filtra(todas).sort(ORDENES[f.orden]?.fn || ORDENES.fecha.fn);
   const anios = [...new Set(todas.map((e) => e.anio).filter(Boolean))].sort((a, b) => b - a);
   const generos = [...stats.generos.entries()].sort((a, b) => b[1] - a[1]).map(([g]) => g);
-  const cuentaEst = (k) => todas.filter((e) => k === "todos" || e.estado === k).length;
+  // Con ⧉ Sagas, los chips cuentan como las cartas: una saga es uno (si sus
+  // temporadas están en estados distintos, cuenta en cada uno de ellos)
+  const porSagas = f.agrupa && f.modo === "cartas";
+  const cuentaEst = (k) => { const l = todas.filter((e) => k === "todos" || e.estado === k); return porSagas ? cuentaTitulos(l) : l.length; };
 
   raiz.innerHTML = `
   <section class="hud-cifras">

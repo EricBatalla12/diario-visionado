@@ -123,7 +123,13 @@ export async function directorio(yo) {
       status:media->>status, averageScore:media->averageScore, cover:media->coverImage->>large, sagaId:media->saga->id`).order("editado", { ascending: false })),
     permisosRecibidos(yo),
   ]);
-  return { perfiles, filas, recibidos };
+  // Cartas del Gacha (para los logros y el nivel): si aún no existen las
+  // tablas, sin ellas
+  const [cartas, gachas] = await Promise.all([
+    todas(() => sb.from("cartas").select("usuario, media_id")).catch(() => []),
+    todas(() => sb.from("gacha").select("usuario, premios")).catch(() => []),
+  ]);
+  return { perfiles, filas, recibidos, cartas, gachas };
 }
 
 // Ojo clínico: cuántas entradas de otros, con 9 o más, vienen de una
@@ -269,4 +275,39 @@ export function perfilCorto(id) {
     perfilesCortos.set(id, p);
   }
   return perfilesCortos.get(id);
+}
+
+// ── Gacha de cartas ──────────────────────────────────────────────────────
+// Las cartas y el estado (tickets gastados, fragmentos, piedad, tirada del
+// día) solo se escriben con las funciones de la base de datos, que lo hacen
+// todo de una vez. Se leen como el archivo.
+const COLS_CARTA = "media_id, pozo, rareza, media, numero, veces, brillante, creado";
+const COLS_GACHA = "gastados, fragmentos, canjeados, premios, piedad_anime, piedad_manga, diaria, racha";
+
+export const cartasDe = (usuario) =>
+  todas(() => sb.from("cartas").select(COLS_CARTA).eq("usuario", usuario).order("numero"));
+
+export async function gachaDe(usuario) {
+  const { data, error } = await sb.from("gacha").select(COLS_GACHA).eq("usuario", usuario).maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+async function llama(nombre, args) {
+  const { data, error } = await sb.rpc(nombre, args);
+  if (error) throw traduceGacha(error);
+  return data;
+}
+export const invoca = (pozo, cartas, diaria = null) => llama("kiroku_invoca", { p_pozo: pozo, p_cartas: cartas, p_diaria: diaria });
+export const canjea = (tickets = 1) => llama("kiroku_canjea", { p_tickets: tickets });
+export const premia = (set) => llama("kiroku_premio", { p_set: set });
+
+function traduceGacha(error) {
+  const m = error?.message || String(error);
+  if (/kiroku_gacha_diaria: la tirada de hoy/.test(m)) return new Error("La tirada de hoy ya está hecha.");
+  if (/kiroku_gacha_diaria: fecha/.test(m)) return new Error("La fecha de tu dispositivo no cuadra: revisa el reloj.");
+  if (/kiroku_gacha_canje/.test(m)) return new Error("No tienes fragmentos suficientes.");
+  if (/kiroku_gacha_tope/.test(m)) return new Error("Has llegado al límite de 20000 cartas.");
+  if (/PGRST202|Could not find the function/.test(m)) return new Error("Falta actualizar la base de datos para el Gacha.");
+  return traduce(error);
 }

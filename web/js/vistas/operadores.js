@@ -1,7 +1,7 @@
 // 06 · OPERADORES — todos los que usan KIROKU: nivel, cifras, afinidad de
 // notas contigo y lo último que han registrado.
 import { esc, aviso, fmtNota, ESTADOS, rango } from "../ui.js";
-import { yoMismo, propias } from "../almacen.js";
+import { yoMismo, propias, coleccionPropia } from "../almacen.js";
 import { directorio } from "../nube.js";
 import { calcula } from "../stats.js";
 import { cuentaTitulos } from "./archivo.js";
@@ -72,9 +72,16 @@ async function carga(caja) {
   for (const f of cache.filas) if (f.usuario !== yo.id) suma(f.recomendado_por, f.nota);
   for (const e of propias()) suma(e.recomendadoPor, e.nota);
 
+  // Colección del Gacha de cada uno (la tuya, de memoria)
+  const colec = new Map(cache.perfiles.map((p) => [p.id, { cartas: [], premios: [] }]));
+  for (const c of cache.cartas) colec.get(c.usuario)?.cartas.push({ mediaId: c.media_id });
+  for (const g of cache.gachas) if (colec.has(g.usuario)) colec.get(g.usuario).premios = g.premios || [];
+  const mia = coleccionPropia();
+  colec.set(yo.id, { cartas: mia.cartas, premios: mia.gacha?.premios || [] });
+
   const ops = cache.perfiles.map((p) => {
     const lista = porUsuario.get(p.id) || [];
-    const s = calcula(lista, { aciertos: aciertos.get(p.id) || 0 });
+    const s = calcula(lista, { aciertos: aciertos.get(p.id) || 0, coleccion: colec.get(p.id) });
     const ultima = lista.reduce((a, e) => Math.max(a, e.editado || 0), 0);
     const viendo = lista.filter((e) => e.estado === "viendo").sort((a, b) => b.editado - a.editado).slice(0, 4);
     // Privado y sin permiso: la base de datos no ha mandado sus entradas

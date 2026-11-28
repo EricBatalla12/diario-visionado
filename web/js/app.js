@@ -43,7 +43,7 @@ const OCULTAS = {
 };
 const vistaDe = (k) => VISTAS[k] || OCULTAS[k];
 // Lo que se puede mirar del archivo de otro
-const VISTAS_AJENAS = ["archivo", "perfil", "tier"];
+const VISTAS_AJENAS = ["archivo", "perfil", "tier", "gacha"];
 const REFRESCO_MS = 12 * 3600 * 1000;
 const REFRESCO_EMISION_MS = 3 * 3600 * 1000;
 
@@ -122,11 +122,13 @@ function pintaTeletipo() {
   $("#teletipo").innerHTML = `<div class="tt-pista">${pista}${pista}</div>`;
 }
 
+const col = (c) => ({ cartas: c.cartas, premios: c.gacha?.premios || [] });
+
 // `anima` solo al entrar en una vista: repintar por un cambio guardado no
 // vuelve a lanzar la entrada escalonada de las cartas.
 function pinta(anima = false) {
-  mias = calcula(A.propias(), { aciertos: A.aciertosPropios() });
-  stats = A.esPropio() ? mias : calcula(A.entradas(), { aciertos: A.aciertosSujeto() });
+  mias = calcula(A.propias(), { aciertos: A.aciertosPropios(), coleccion: col(A.coleccionPropia()) });
+  stats = A.esPropio() ? mias : calcula(A.entradas(), { aciertos: A.aciertosSujeto(), coleccion: col(A.coleccionSujeto()) });
   pintaNav();
   pintaCabecera();
   pintaTeletipo();
@@ -419,7 +421,8 @@ async function inicio() {
     else if (oculto && Date.now() - oculto > 60000) A.recarga().catch(() => {});
   });
 
-  recos.escucha(() => { pintaBuzon(); pintaTeletipo(); });
+  // Puede llegar antes del primer pintado (p. ej. al abrir el archivo de otro, que tarda más)
+  recos.escucha(() => { if (mias) { pintaBuzon(); pintaTeletipo(); } });
   recos.arranca();
 
   await desdeHash();

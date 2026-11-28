@@ -6,7 +6,7 @@
 // También lleva el "sujeto": de quién es el archivo que se está mirando. Por
 // defecto el tuyo; al visitar a un amigo, el suyo, en solo lectura.
 
-import { sb, entradasDe, perfilPorAlias, cambiaPerfil, traduce, puedoVer, aciertosDe } from "./nube.js";
+import { sb, entradasDe, perfilPorAlias, cambiaPerfil, traduce, puedoVer, aciertosDe, cartasDe, gachaDe } from "./nube.js";
 
 const oyentes = new Set();
 export const escucha = (fn) => (oyentes.add(fn), () => oyentes.delete(fn));
@@ -20,6 +20,17 @@ let misAciertos = 0;    // recomendaciones tuyas que otros puntuaron con 9+ (log
 
 // No es grave si falla: el logro espera a la siguiente lectura
 const aciertos = (id) => aciertosDe(id).catch(() => 0);
+
+// Colección del Gacha: cartas y estado (tickets gastados, piedad…). Si falla
+// (p. ej. la base de datos aún no tiene las tablas), el resto de la web sigue;
+// `listo: false` hace que el Gacha avise en vez de dejar tirar.
+let miColeccion = { cartas: [], gacha: null, listo: false };
+const deCarta = (r) => ({ mediaId: r.media_id, pozo: r.pozo, rareza: r.rareza, media: r.media, numero: r.numero,
+  veces: r.veces, brillante: Boolean(r.brillante), creado: Date.parse(r.creado) || Date.now() });
+const coleccion = (id) => Promise.all([cartasDe(id), gachaDe(id)])
+  .then(([c, g]) => ({ cartas: c.map(deCarta), gacha: g, listo: true }))
+  .catch(() => ({ cartas: [], gacha: null, listo: false }));
+const firmaCol = (c) => JSON.stringify([c.listo, c.gacha, c.cartas.map((x) => x.mediaId + ":" + x.veces)]);
 
 // ── Filas de la base de datos ↔ entradas de la web ───────────────────────
 const deFila = (r) => ({
@@ -39,9 +50,10 @@ const aFila = (e) => ({
 // ── Carga ────────────────────────────────────────────────────────────────
 export async function carga(perfil) {
   yo = perfil;
-  const [filas, n] = await Promise.all([entradasDe(perfil.id), aciertos(perfil.id)]);
+  const [filas, n, col] = await Promise.all([entradasDe(perfil.id), aciertos(perfil.id), coleccion(perfil.id)]);
   mias = filas.map(deFila);
   misAciertos = n;
+  miColeccion = col;
   historial = [];
   avisa("todo");
 }
@@ -49,11 +61,12 @@ export async function carga(perfil) {
 // Al volver a la pestaña tras un rato, se recarga por si cambiaste algo en otro dispositivo
 export async function recarga() {
   if (!yo || cola.size) return;
-  const [filas, n] = await Promise.all([entradasDe(yo.id), aciertos(yo.id)]);
+  const [filas, n, col] = await Promise.all([entradasDe(yo.id), aciertos(yo.id), coleccion(yo.id)]);
   const nuevas = filas.map(deFila);
   const firma = (l) => l.map((e) => e.uid + ":" + e.editado).sort().join("|");
-  const cambian = n !== misAciertos;
+  const cambian = n !== misAciertos || (col.listo && firmaCol(col) !== firmaCol(miColeccion));
   misAciertos = n;
+  if (col.listo || !miColeccion.listo) miColeccion = col;
   if (firma(nuevas) !== firma(mias)) { mias = nuevas; avisa("fuera"); }
   else if (cambian) avisa("fuera");
 }
@@ -67,6 +80,19 @@ export const propias = () => mias;
 export const aciertosPropios = () => misAciertos;
 export const aciertosSujeto = () => sujeto ? sujeto.aciertos : misAciertos;
 export const operador = () => sujetoActual()?.nombre || "Operador";
+export const coleccionPropia = () => miColeccion;
+export const coleccionSujeto = () => sujeto ? sujeto.coleccion : miColeccion;
+
+// Lo que devuelve la base de datos tras invocar, canjear o cobrar un premio:
+// se aplica a la copia en memoria y se repinta
+export function aplicaGacha({ gacha, cartas = [] }) {
+  if (gacha) miColeccion.gacha = gacha;
+  for (const r of cartas) {
+    const c = deCarta(r), i = miColeccion.cartas.findIndex((x) => x.mediaId === c.mediaId);
+    if (i < 0) miColeccion.cartas.push(c); else miColeccion.cartas[i] = { ...c, creado: miColeccion.cartas[i].creado };
+  }
+  avisa("gacha");
+}
 
 export async function visita(alias) {
   if (!alias || alias === yo.alias) { sujeto = null; return true; }
@@ -76,8 +102,9 @@ export async function visita(alias) {
   // Perfil privado sin permiso: la base de datos devolvería 0 entradas; se marca
   // como bloqueado para enseñar "perfil privado" en vez de un archivo vacío
   const bloqueado = !(await puedoVer(perfil, yo.id));
-  const [filas, n] = bloqueado ? [[], 0] : await Promise.all([entradasDe(perfil.id), aciertos(perfil.id)]);
-  sujeto = { perfil, bloqueado, entradas: filas.map(deFila), aciertos: n };
+  const vacia = { cartas: [], gacha: null, listo: false };
+  const [filas, n, col] = bloqueado ? [[], 0, vacia] : await Promise.all([entradasDe(perfil.id), aciertos(perfil.id), coleccion(perfil.id)]);
+  sujeto = { perfil, bloqueado, entradas: filas.map(deFila), aciertos: n, coleccion: col };
   return true;
 }
 export const sujetoBloqueado = () => Boolean(sujeto?.bloqueado);

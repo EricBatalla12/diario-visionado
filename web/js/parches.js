@@ -7,6 +7,26 @@
 
 export const PARCHES = [
   {
+    id: "2026-11-28e",
+    fecha: "28 de noviembre de 2026",
+    titulo: "Cartas coleccionables",
+    jp: "図鑑",
+    secciones: [
+      { titulo: "Novedades", ico: "✦", items: [
+        "**El Gacha ahora es de cartas**: cada invocación saca anime o manga de AniList (dos pozos, cada uno con su álbum) como una **carta coleccionable**, con su rareza por la nota de AniList, su tipo y su número de colección.",
+        "**Tickets**: se ganan viendo. **2 por cada nivel** (también los que ya tenías) y **1 por cada título terminado**. La **tirada del día** sigue siendo gratis, y cada 7 días seguidos es SR o más.",
+        "**Descubre**: lo que no tienes en el archivo sale como **NUEVA**, con su sinopsis y un botón para **apuntarlo a pendientes**. Lo que ya terminaste sale **despertado 覚醒**, con marco dorado; y si terminas algo de lo que tienes carta, se despierta.",
+        "**Invocar ×10** con una SR o más asegurada, y SSR segura si llevas 30 invocaciones sin ninguna. Las **repetidas dan fragmentos**: con 5, un ticket.",
+        "**Álbum 図鑑** con filtros y **sets** (Leyendas, Studio Ghibli, Los 90, Manhwa…). Cada semana dos sets tienen su propio banner, y **completar un set da 3 tickets**.",
+        "**3 logros nuevos**: Mazo, Set completo y Despertar. Y puedes ver el álbum de otros operadores desde su perfil.",
+      ] },
+      { titulo: "A saber", ico: "ℹ", items: [
+        "El Gacha de pendientes («¿qué veo ahora?») se ha ido: su sitio lo ocupan las cartas.",
+        "Las cartas, los tickets gastados, la piedad y la racha se guardan en tu cuenta: ahora van igual en el móvil y en el ordenador. La racha de la tirada del día empieza de cero.",
+      ] },
+    ],
+  },
+  {
     id: "2026-11-28d",
     fecha: "28 de noviembre de 2026",
     titulo: "El Gacha se pone serio",

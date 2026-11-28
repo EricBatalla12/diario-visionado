@@ -61,7 +61,8 @@ export function nivelDe(xp) {
 // ── Estadísticas ─────────────────────────────────────────────────────────
 // `aciertos`: títulos que este operador recomendó y que quien los recibió
 // puntuó con 9 o más (sale de otros archivos, así que se pasa desde fuera).
-export function calcula(lista, { aciertos = 0 } = {}) {
+// `coleccion`: sus cartas del Gacha (ids de AniList) y los sets premiados.
+export function calcula(lista, { aciertos = 0, coleccion = null } = {}) {
   const s = {
     aciertos,
     total: lista.length, porEstado: {}, porTipo: {}, eps: 0, caps: 0, minutos: 0, notas: [], largos: 0,
@@ -131,6 +132,11 @@ export function calcula(lista, { aciertos = 0 } = {}) {
   s.ghibli = hechos.filter((e) => /ghibli/i.test(e.media?.studio || "")).length;
   s.paciencia = lista.some((e) => e.estado === "pendiente" && e.creado && Date.now() - e.creado > 365 * 864e5) ? 1 : 0;
   s.ensayo = lista.some((e) => (e.comentario || "").trim().length >= 300) ? 1 : 0;
+  // Gacha: cartas, sets completos y cartas despertadas (lo que te salió y has terminado)
+  const ids = new Set((coleccion?.cartas || []).map((c) => c.mediaId));
+  s.cartas = ids.size;
+  s.setsCompletos = (coleccion?.premios || []).length;
+  s.despertadas = lista.filter((e) => e.mediaId && ids.has(e.mediaId) && (e.estado === "visto" || e.estado === "revisto")).length;
 
   s.xp = Math.round(s.eps * 10 + s.terminados * 40 + s.notas.length * 5 + s.comentarios * 5);
   s.logros = LOGROS.map((l) => {
@@ -214,6 +220,10 @@ export const LOGROS = [
   { id: "soltar",  jp: "捨", nombre: "Sin miedo a soltar",   desc: "Abandona 5 títulos",                  mide: (s) => [s.porEstado.abandonado || 0, 5] },
   { id: "dejavu",  jp: "再", nombre: "Déjà vu",              desc: "Vuelve a ver 3 títulos",              mide: (s) => [s.porEstado.revisto || 0, 3] },
   { id: "monte",   jp: "山", nombre: "Montaña de pendientes",desc: "20 pendientes a la vez",              mide: (s) => [s.porEstado.pendiente || 0, 20] },
+  // Gacha de cartas
+  { id: "mazo",    jp: "札", nombre: "Mazo",                 desc: "100 cartas en el álbum del Gacha",    mide: (s) => [s.cartas, 100] },
+  { id: "set",     jp: "揃", nombre: "Set completo",         desc: "Completa un set del Gacha",           mide: (s) => [s.setsCompletos, 1] },
+  { id: "kakusei", jp: "覚", nombre: "Despertar",            desc: "10 cartas del Gacha de títulos que has terminado", mide: (s) => [s.despertadas, 10] },
   // Nivel (sin contar la experiencia de los propios logros)
   { id: "kami",    jp: "神", nombre: "Kami",                 desc: "Llega al nivel 45",                   mide: (s) => [nivelSinLogros(s), 45] },
   { id: "trasc",   jp: "超", nombre: "Trascendencia",        desc: "Llega al nivel 60",                   mide: (s) => [nivelSinLogros(s), 60] },

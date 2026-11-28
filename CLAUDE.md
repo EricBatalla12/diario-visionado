@@ -1,7 +1,8 @@
 # Diario de visionado / KIROKU 記録
 
-Lee esto antes de nada. Estado al 28-11-2026: todo lo hecho está publicado y no hay
-trabajo a medias en la web. Lo siguiente posible: música y personajes
+Lee esto antes de nada. Estado al 28-11-2026: **Gacha de cartas a medias en la rama `pruebas`**
+(sin commit, sin publicar, migración sin ejecutar: ver «Gacha de cartas (en pruebas)»). Lo demás
+está publicado. Lo siguiente posible: el resto de ideas de «Ideas aparcadas», música y personajes
 (`docs/ideas/musica-y-personajes.md`) y el enlace de donaciones.
 
 ## Qué es
@@ -45,8 +46,16 @@ trabajo a medias en la web. Lo siguiente posible: música y personajes
   nueva (`esquema.sql` ×2) y actualización (esquema de HEAD + migración ×2).
 - La CLI de Supabase (`npx supabase`) la bloquea la política de permisos: no usarla.
 - Con el panel del navegador: Eric usa a veces la web real en una pestaña; probar en una
-  **pestaña propia** (`tabs_create`) y no recargar la suya. Si el panel está oculto, las
-  animaciones no avanzan (opacidad 0 eterna): medir con `getAnimations()`, no con capturas.
+  **pestaña propia** (`tabs_create`) y no recargar la suya. Antes de cada script, comprobar que
+  la pestaña está en `/_prueba/` (`location.pathname`): Eric puede llevarla a la web real en
+  local (`localhost:8640/`, Supabase de verdad) y ahí no se prueba nada.
+- Si el panel está **oculto**, no avanzan animaciones, transiciones, `requestAnimationFrame`
+  ni el desplazamiento suave (`behavior: "smooth"`): terminar con
+  `document.getAnimations().forEach(a => a.finish())` antes de medir, y no fiarse de capturas
+  ni de scrolls suaves. Las medidas con `getBoundingClientRect` sí valen.
+- `web/_prueba/index.html` es una **copia** de `web/index.html` (con el import map de
+  imitación y rutas absolutas `/css/…`, `/js/…`; **sin `<base>`**: con `<base href="/">` cada
+  enlace `#/…` llevaba a `/#/…`, la web real, quitado el 28-11): lo que cambie en el HTML (menú ⋮, `#fichero`…) hay que copiarlo también ahí.
 - Cada recarga de pruebas gasta cupo de AniList, salvo lo que está en la caché de `cache.js`
   (para forzar una petición, borrar las claves `kiroku:c:*` y `kiroku:nodos-saga:v2`). En la página de pruebas los filtros (p. ej. `agrupa`) se guardan en
   `localStorage` (`kiroku:filtros`) y pueden haberse quedado cambiados.
@@ -65,6 +74,11 @@ trabajo a medias en la web. Lo siguiente posible: música y personajes
   `detalle()` 3 días (máx. 40), `temporada()` 7 días si ya pasó / 3 h si no (máx. 16 páginas),
   nodos de saga en `kiroku:nodos-saga:v2` 3 días (12 h los que emiten). Todo deja de valer si ya
   salió un episodio que anunciaba (`sinEmitidos`). `refrescar()` y `buscar()` no se cachean.
+- `stats.js` estadísticas del archivo (`calcula`), experiencia, niveles (`RANGOS_OP`) y
+  logros (`LOGROS`, cada uno con `mide(s) → [actual, objetivo]`). Se recalcula siempre desde
+  el archivo: no se guarda nada aparte.
+- `arrastre.js` mantener pulsada una carta del Archivo para cambiarle el estado (ver 28-11).
+- `importar.js` importar una lista de texto buscando cada título en AniList (ver 28-11).
 - `ui.js` catálogos y utilidades: `TIPOS` (anime, manga, peli), `infoTipo` (también la
   vieja `serie`), `tipoDe(m)`, `formato(m)` (Manhwa/Manhua por `countryOfOrigin`),
   `totalDe`/`unidad`/`seLee` (capítulos en manga, episodios en lo demás).
@@ -72,6 +86,8 @@ trabajo a medias en la web. Lo siguiente posible: música y personajes
   lecturas paginadas, directorio, privacidad (`misPermisos`, `concede`, `retira`, `puedoVer`).
 - `almacen.js` archivo en memoria + **cola de guardado** (agrupa, reintenta), deshacer
   por operación, importar/exportar, "sujeto" (tu archivo o el de un amigo en solo lectura).
+  Para tocar varias entradas como **una sola operación** de Deshacer: `anadeLote(altas, cambios)`
+  y `actualizaVarios(cambios)`.
 - `acceso.js` pantallas de login/registro. `ficha.js`, `paleta.js` (buscador).
 - `recos.js` recomendaciones: buzón, sondeo, envío y resolución.
 - `terminados.js` pendientes en emisión recién terminados; `tutorial.js` recorrido guiado;
@@ -89,7 +105,11 @@ trabajo a medias en la web. Lo siguiente posible: música y personajes
 
 - Commits: rama temporal → `git merge --ff-only` a `main` → push → borrar rama.
   Solo cuando Eric lo pida. Buscar secretos antes (`grep -rIl sb_secret`).
-- Tras el push, esperar en segundo plano a que la web publicada sirva el cambio.
+- Tras el push, esperar en segundo plano a que la web publicada sirva el cambio (suele tardar
+  ~50 s, alguna vez 3 min). Ojo: en producción `/index.html` redirige (307) a `/`; para
+  comprobar el HTML, pedir `/` con `curl -sL`.
+- Lo que no es un arreglo trivial se prueba antes en una rama `pruebas` en local y se le enseña
+  a Eric; se publica cuando lo pide.
 - **Novedades** (`web/js/parches.js`, vista `#/novedades`): al publicar algo que se note, añadir
   arriba de `PARCHES` un parche con `id` nuevo (la fecha) o ampliar el del día. Un `id` nuevo
   saca el aviso "KIROKU se ha actualizado" y la marca NUEVO del menú ⋮ a quien ya había entrado.
@@ -98,7 +118,8 @@ trabajo a medias en la web. Lo siguiente posible: música y personajes
 
 ## Publicado el 28-11-2026
 
-Notas para usuarios en `web/js/parches.js` (parche "La consola de registro").
+Ese día salieron cuatro parches (Novedades): "La consola de registro", "Más niveles y logros",
+"Arrastrar, importar y sagas a la vista" y "El Gacha se pone serio".
 
 - **Tu registro** (`registro()` en `ficha.js`, CSS `.reg*`) es una consola:
   - **Barra** de nota (`[data-dial]`, nombre heredado de un dial redondo que se probó y se
@@ -114,10 +135,17 @@ Notas para usuarios en `web/js/parches.js` (parche "La consola de registro").
 - **Archivo en móvil**: 3 cartas por fila (reglas bajo `#coleccion`), los 6 estados en
   rejilla 3×2, y tipo/año/género/orden tras el botón ⚙ (`filtrosAbiertos`, solo en móvil).
 - **Caché de AniList** (`cache.js`, ver Arquitectura).
-- **Niveles y logros** (parche "Más niveles y logros"): 21 `RANGOS_OP` (hasta NV 100) y
-  `LOGROS` en `stats.js`; `calcula` añade `caps` (capítulos de manga), `largos`, `sagasCompletas`,
-  `maxMes`, `maxEstudio`. Cada logro da 100 de XP. En `app.js`, más de 2 logros nuevos de golpe
-  = un solo aviso. Los logros de nivel usan el nivel **sin** la XP de los logros.
+- **Niveles y logros**: 21 `RANGOS_OP` (hasta NV 100) y **61 `LOGROS`** en `stats.js`. `calcula`
+  añade lo que miden (`caps` = capítulos de manga, `largos`, `sagasCompletas`, `maxMes`,
+  `maxEstudio`, `rangosNota`, `altas`/`bajas`, `decadas`, `delAnio`, `manhwa`, `ghibli`,
+  `paciencia`, `ensayo`). Cada logro da 100 de XP, así que añadir logros sube niveles. En
+  `app.js`, más de 2 logros nuevos de golpe = un solo aviso. Los de nivel (Kami, Trascendencia)
+  usan el nivel **sin** la XP de los logros.
+  - **Requisito de Eric: todos los logros se tienen que poder tener a la vez.** Mano blanda y
+    Mano dura eran por nota media (≥ 8,5 / ≤ 6,5) y se excluían; ahora cuentan notas (10 de 9+
+    / 10 por debajo de 6). Al añadir logros, comprobar que no choquen con ninguno.
+  - Los logros no se guardan: se pierden si deja de cumplirse (p. ej. «Al día» y «En la cresta
+    de la ola» piden algo en emisión ahora). Si Eric quiere que no se pierdan, habría que guardarlos.
 - La barra de nota (`.reg-dial`) se usa también en el formulario de saga (`#sgf-num`,
   `[data-sgf-dial]`); su CSS es común. **Trampa**: `grid-area: dial` va solo en
   `.reg-cuerpo > .reg-dial`: en otra rejilla un área desconocida crea columnas fantasma.
@@ -133,8 +161,6 @@ Notas para usuarios en `web/js/parches.js` (parche "La consola de registro").
   AniList (≈30/min) y deja revisar; importa a Atemporal con `anadeLote`. El menú ⋮ manda a
   `importa()` lo que parece JSON y aquí lo demás.
 - **Aviso de saga** arriba de la ficha (`#fi-saga-aviso`, `avisoSaga`) si falta alguna temporada.
-- **Logros**: 61. Mano blanda/dura cuentan notas (antes media: se excluían). Que todos se
-  puedan tener a la vez es un requisito de Eric.
 - **Gacha** (parche "El Gacha se pone serio", `vistas/gacha.js`): `BANNERS` temáticos (2 por
   semana, rotan el lunes por `semana()`; solo los que tienen ≥ 2 pendientes) + `COMPLETO`;
   piedad (`PIEDAD` = 10) y tirada del día con racha (pesos `PESO_DIARIA`) en `localStorage`
@@ -143,7 +169,8 @@ Notas para usuarios en `web/js/parches.js` (parche "La consola de registro").
 - **Trampa**: `#fn-num` es un `<input>`: `background-clip: text` no funciona dentro y recorta el
   `text-shadow` a su caja. El brillo va en `.dial-centro` con `filter: drop-shadow`.
 - **Arreglos**: historial del Gacha y listas de Sincronía no se salen del panel
-  (`min-width: 0` / `minmax(0, 1fr)`). **Trampa**: la clase `.mas` (cifra verde de
+  (`min-width: 0` / `minmax(0, 1fr)`); en la gráfica de Sincronía, «Tú» va en vertical y
+  «AniList» bajo los números, con márgenes propios. **Trampa**: la clase `.mas` (cifra verde de
   Sincronía) chocaba con el contenedor de "Cargar más" de Temporada, que ahora es `.cargar-mas`.
 
 ## Publicado el 23-11-2026
@@ -227,6 +254,39 @@ tras 30 s y cada 3 min a la vista), sin tiempo real.
   `.fa-nota`, `.fo-nota`…: la letra EX salía gris). Los valores por defecto van en
   `:where(.clase) { --rc: … }`.
 
+## Gacha de cartas (en pruebas, 28-11-2026)
+
+Rediseño pedido por Eric: el Gacha deja de sacar pendientes y saca **cartas coleccionables** de
+AniList para descubrir títulos. Decisiones de Eric: tickets por nivel + terminados + diaria; **dos
+pozos** (anime y manga, cada uno con su álbum); lo ya visto puede salir y sale **despertado**; el
+Gacha de pendientes **se quita**.
+
+- **Base de datos** (`supabase/migraciones/2026-11-28-gacha-cartas.sql`, también en `esquema.sql`):
+  tablas `cartas` (PK usuario+media_id, `numero` por pozo, `veces`, `brillante`) y `gacha`
+  (gastados, fragmentos, canjeados, premios, piedad por pozo, diaria, racha). Se leen como el
+  archivo (`kiroku_puede_ver`); **no se escriben a mano**: solo con `kiroku_invoca`,
+  `kiroku_canjea` y `kiroku_premio` (security definer, cerrojo por usuario, la piedad la cuenta la
+  base de datos). Probado en Docker (instalación nueva ×2 y actualización = misma estructura).
+  Los tickets **ganados** los calcula la web (no se pueden comprobar en el servidor).
+- **Lógica** en `web/js/gacha.js`: tasas fijas (SSR 3 / SR 12 / R 35 / N 50; diaria 8/22/40/30),
+  rareza por nota de AniList, `PIEDAD` 30, ×10 con SR o más, brillante 1/50, `PESO_FALTA` 4 en
+  sets, `RACHA_PREMIO` 7. Pozo anime = popularidad > 20 000 (~3200 títulos), manga > 5000 (~2800);
+  tamaño por rareza medido el 28-11 y corregido solo (`kiroku:gacha:tam`). Una tirada pide como
+  mucho una página de 50 por rareza, todas en **una** petición con alias; páginas en caché 7 días
+  (`gch:*`, máx. 40), miembros de sets 7 días (`gst:*`, la temporada 1 día).
+- **Sets** (`SETS`): 12 de anime y 10 de manga; dos de cada pozo son banner cada semana; completar
+  uno da 3 tickets (una vez, `premios`).
+- **Vista** `vistas/gacha.js`: Invocar / Álbum, pozo, tickets (desglose en `<details>`), fragmentos
+  y canje, revelado (carta grande con sinopsis, ＋ A pendientes, Ficha) y rejilla del ×10. Visible
+  en el archivo de otros (`VISTAS_AJENAS`), solo el álbum. Carta = `.kc` (CSS con `cqi`); el
+  tipo es el género por prioridad (`PRIORIDAD`), porque AniList los da por orden alfabético.
+- **Logros** nuevos (64): Mazo, Set completo, Despertar; `calcula(lista, { coleccion })` y el
+  directorio trae `cartas`/`gacha` para el nivel de los demás.
+- **Falta**: que Eric lo vea; ejecutar la migración en el SQL Editor **antes** de publicar; commit y
+  publicar. Parche de Novedades ya escrito (`2026-11-28e`, cambiar id/fecha si sale otro día).
+- **Piedad a 30** (decisión de Eric): con 10 y SSR al 3 % salía una SSR de cada ~8,6 tiradas
+  (11,5 % medido en 100 000), demasiadas. Con 30 queda en torno al 5 %.
+
 ## Ramas e ideas sin publicar
 
 - Rama `diseno-limpio`: la versión "lite" de la interfaz (`limpio.css`), guardada por si
@@ -253,12 +313,15 @@ tras 30 s y cada 3 min a la vista), sin tiempo real.
 
 ## Ideas aparcadas
 
+- **Gacha** (lo que queda tras las cartas): banner de operador (lo que otro puntuó con 9+ y tú
+  no has visto), animación especial de SSR.
+- **Arrastrar cartas** es un gesto escondido: añadir un paso al tutorial (`tutorial.js`).
+- **Logros permanentes**: guardar los conseguidos para que no se pierdan (ver 28-11).
 - **Red social** (seguir perfiles, feed de actividad, publicaciones estilo Twitter):
   propuesta completa en `docs/ideas/red-social.md` (local, sin versionar). Eric la hará si hay usuarios;
   no empezarla sin que lo pida.
 
 ## Pendientes menores
-
 
 - Eric debería **rotar** la secret de Supabase y el secret de Discord (se pegaron en el chat).
 - Borrar en Supabase → Authentication → Users el usuario de Discord de "Estrella" (ya sin datos).

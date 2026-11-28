@@ -17,7 +17,7 @@ const PASOS = [
   { sel: "#coleccion .carta, #coleccion .fila", titulo: "La ficha", jp: "札",
     texto: "Toca una carta para abrir su ficha: cambia el estado, ponle nota, apunta por qué capítulo o episodio vas y cuándo lo viste (o márcalo como atemporal)." },
   { sel: "#nav", titulo: "Secciones", jp: "道",
-    texto: "Perfil con tus estadísticas y logros, la tier list que sale de tus notas, la temporada en emisión, el gacha para decidir qué ver y los demás operadores." },
+    texto: "Perfil con tus estadísticas y logros, la tier list que sale de tus notas, la temporada en emisión, el gacha de cartas, que se ganan viendo y te descubren títulos nuevos, y los demás operadores." },
   { sel: "#btn-buzon", titulo: "Buzón", jp: "受",
     texto: "Las recomendaciones que te mandan otros operadores. Tú también puedes recomendar desde la ficha de cualquier título." },
   { sel: "#op", titulo: "Tu nivel", jp: "級",

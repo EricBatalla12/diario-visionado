@@ -861,49 +861,151 @@ dialog::backdrop { background: rgba(3, 3, 6, .78); backdrop-filter: blur(6px) sa
 :is(#fn-rango, .sgf-rango)[data-vacia] { opacity: .45; }
 .fn-pie { display: flex; justify-content: space-between; align-items: center; font: 10px var(--f-mono); color: var(--texto-3); }
 .fn-paso { font-family: system-ui, sans-serif; font-weight: 600; }
-/* Barra de progreso bajo el contador de episodios o capítulos */
-.fi-barra { display: block; height: 3px; margin-top: 6px; background: var(--linea); overflow: hidden; }
-.fi-barra[hidden] { display: none; }
-.fi-barra i { display: block; width: var(--p, 0%); height: 100%; background: var(--c); box-shadow: 0 0 8px var(--c); transition: width .3s, background .3s; }
 .fi-acc .corto { display: none; }
+.solo-lector { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
-/* «Tu registro» con volumen. El panel coge arriba el color del título, y
-   cada control es una pieza en relieve: brillo arriba, sombra debajo. Va con
-   background-image (y no background) para que el color de cada estado
-   (.on, :hover…) siga viéndose por debajo. Los campos de texto van hundidos. */
-.fi-reg {
+/* ── Tu registro: la consola ──────────────────────────────────────────── */
+/* --nota registrada como número para que el aro y la aguja giren suaves */
+@property --nota { syntax: "<number>"; inherits: true; initial-value: 0; }
+.reg {
+  position: relative; overflow: hidden; isolation: isolate;
   background:
-    radial-gradient(120% 70% at 50% 0%, color-mix(in srgb, var(--tinte) 15%, transparent), transparent 70%),
-    linear-gradient(180deg, var(--panel) 0%, var(--negro) 85%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06), 0 24px 48px -24px rgba(0, 0, 0, .9);
+    radial-gradient(90% 60% at 0% 0%, color-mix(in srgb, var(--ce) 13%, transparent), transparent 60%),
+    radial-gradient(80% 70% at 100% 100%, color-mix(in srgb, var(--tinte) 15%, transparent), transparent 65%),
+    var(--negro);
+  border: 1px solid color-mix(in srgb, var(--ce) 35%, var(--linea-2));
+  box-shadow: 0 30px 60px -30px rgba(0, 0, 0, .9), inset 0 1px 0 rgba(255, 255, 255, .05);
+  transition: border-color .4s;
 }
-.fi-reg :is(.fi-estados button, .paso, .cu-anio, .cu-atemporal, .cu-meses button, .fn-paso, .campo select, .fi-acc .btn) {
-  background-image: linear-gradient(180deg, rgba(255, 255, 255, .07), rgba(255, 255, 255, 0) 45%, rgba(0, 0, 0, .3));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .09), inset 0 -1px 0 rgba(0, 0, 0, .55), 0 4px 10px -3px rgba(0, 0, 0, .75);
+/* Rejilla fina de fondo, que se apaga hacia abajo */
+.reg::after {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background-image: linear-gradient(rgba(255, 255, 255, .03) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, .03) 1px, transparent 1px);
+  background-size: 22px 22px;
+  -webkit-mask-image: linear-gradient(180deg, #000, transparent 80%); mask-image: linear-gradient(180deg, #000, transparent 80%);
 }
-.fi-reg :is(.fi-estados button, .cu-meses button, .fn-paso, .fi-acc .btn, .paso button, .cu-anio button):active { transform: translateY(1px); }
-.fi-reg .fi-estados button.on {
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35), inset 0 -2px 0 rgba(0, 0, 0, .25), 0 0 22px -4px var(--c), 0 8px 18px -8px var(--c);
-  text-shadow: 0 1px 0 rgba(255, 255, 255, .25);
+/* El kanji del estado, enorme y casi invisible, en el borde derecho */
+.reg::before {
+  content: attr(data-jp); position: absolute; right: -14px; top: 64px; z-index: -1; pointer-events: none; writing-mode: vertical-rl;
+  font: 900 130px/1 "Zen Kaku Gothic New", sans-serif; color: var(--ce); opacity: .055; transition: color .4s;
 }
-.fi-reg .cu-meses button.on { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35), inset 0 -2px 0 rgba(0, 0, 0, .25), 0 0 16px -4px var(--naranja); }
-.fi-reg .cu-atemporal.on { box-shadow: inset 0 0 12px rgba(57, 216, 255, .18), inset 0 1px 0 rgba(255, 255, 255, .08), 0 0 14px -6px var(--cian); }
-.fi-reg :is(#fi-titulo, #fi-com) {
-  background-color: rgba(3, 3, 6, .7);
-  box-shadow: inset 0 2px 8px rgba(0, 0, 0, .7), inset 0 -1px 0 rgba(255, 255, 255, .05);
+
+/* Raíl de estados: la luz se desliza al elegido con un pequeño rebote */
+.reg-estados { position: relative; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); margin-bottom: 22px; border: 1px solid var(--linea-2); background: rgba(6, 6, 9, .65); }
+.reg-luz {
+  position: absolute; top: -1px; bottom: -1px; left: calc(var(--i) * 20%); width: 20%;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--c), #fff 22%), var(--c));
+  box-shadow: 0 0 30px -2px var(--c), inset 0 1px 0 rgba(255, 255, 255, .45);
+  transition: left .5s cubic-bezier(.3, 1.35, .4, 1), background .3s, box-shadow .3s;
 }
-.fi-reg :is(.paso, .cu-anio) input { background: transparent; box-shadow: none; }
-.fi-reg .fi-nota {
-  background:
-    radial-gradient(circle at 75% 25%, color-mix(in srgb, var(--rc) 24%, transparent), transparent 65%),
-    linear-gradient(180deg, var(--panel-2), var(--negro));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08), inset 0 0 0 1px color-mix(in srgb, var(--rc) 25%, transparent), 0 10px 24px -12px rgba(0, 0, 0, .9);
+.reg-estados button {
+  position: relative; z-index: 1; display: grid; justify-items: center; gap: 3px; padding: 11px 4px 10px;
+  font: 700 11.5px var(--f-hud); letter-spacing: .12em; text-transform: uppercase; color: var(--texto-3);
+  transition: color .25s;
 }
-.fi-reg #fn-num { text-shadow: 0 0 22px color-mix(in srgb, var(--rc) 55%, transparent), 0 2px 0 rgba(0, 0, 0, .6); }
-.fi-reg #fn-rango::-webkit-slider-runnable-track { box-shadow: inset 0 1px 2px rgba(0, 0, 0, .7), 0 0 10px -2px color-mix(in srgb, var(--rc) 60%, transparent); }
-.fi-reg #fn-rango::-moz-range-track { box-shadow: inset 0 1px 2px rgba(0, 0, 0, .7), 0 0 10px -2px color-mix(in srgb, var(--rc) 60%, transparent); }
-.fi-reg #fn-rango::-webkit-slider-thumb { filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .8)); }
-.fi-reg .fi-barra { height: 4px; box-shadow: inset 0 1px 2px rgba(0, 0, 0, .7); }
+.reg-estados button + button { box-shadow: -1px 0 0 var(--linea); }
+.reg-estados button i { font: 700 15px "Zen Kaku Gothic New", sans-serif; font-style: normal; color: var(--c); transition: color .25s; }
+.reg-estados button:hover { color: var(--texto); }
+.reg-estados button.on { color: var(--negro); box-shadow: none; }
+.reg-estados button.on + button { box-shadow: none; }
+.reg-estados button.on i { color: rgba(6, 6, 9, .6); }
+
+.reg-cuerpo {
+  display: grid; gap: 16px 18px; margin-bottom: 16px; align-items: start;
+  grid-template-columns: 220px minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-areas: "dial prog prog" "dial tipo titulo" "dial cuando cuando";
+}
+.reg-dial { grid-area: dial; } .reg-prog { grid-area: prog; } .reg-tipo { grid-area: tipo; }
+.reg-titulo { grid-area: titulo; } .reg-cuando { grid-area: cuando; }
+.reg-etq { font: 600 9.5px var(--f-mono); letter-spacing: .18em; text-transform: uppercase; color: var(--texto-3); }
+
+/* El dial: aro de 270° que se llena del color del rango, marcas en cada
+   punto, aguja que gira y la nota en el centro */
+:where(.reg-dial) { --rc: var(--texto-3); }
+.reg-dial { --aro: 14px; display: grid; justify-items: center; gap: 12px; transition: --nota .5s cubic-bezier(.2, .9, .3, 1.1); }
+.reg-dial.arrastrando { transition: none; }
+.dial { position: relative; width: 210px; aspect-ratio: 1; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; }
+.dial:active { cursor: grabbing; }
+.dial-aro, .dial-aro::before { position: absolute; border-radius: 50%; }
+.dial-aro {
+  inset: 0;
+  background: conic-gradient(from 225deg, color-mix(in srgb, var(--rc) 25%, transparent), var(--rc) calc(var(--nota) * 27deg), rgba(255, 255, 255, .07) 0 270deg, transparent 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - var(--aro)), #000 calc(100% - var(--aro) + 1px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - var(--aro)), #000 calc(100% - var(--aro) + 1px));
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--rc) 70%, transparent));
+}
+/* Marcas: una por punto (cada 27°) en un anillo fino por dentro del aro */
+.dial-aro::before {
+  content: ""; inset: calc(var(--aro) + 4px);
+  background: repeating-conic-gradient(from 224.5deg, rgba(255, 255, 255, .35) 0 1deg, transparent 1deg 27deg);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 6px), #000 calc(100% - 5px)), conic-gradient(from 224deg, #000 0 272deg, transparent 0);
+  -webkit-mask-composite: source-in;
+  mask: radial-gradient(farthest-side, transparent calc(100% - 6px), #000 calc(100% - 5px)) intersect, conic-gradient(from 224deg, #000 0 272deg, transparent 0);
+}
+.dial-aguja { position: absolute; inset: 0; pointer-events: none; transform: rotate(calc(-135deg + var(--nota) * 27deg)); }
+.dial-aguja i {
+  position: absolute; left: 50%; top: calc(var(--aro) / 2 - 10px); width: 20px; height: 20px; margin-left: -10px; border-radius: 50%;
+  background: var(--texto); border: 3px solid var(--negro); box-shadow: 0 0 0 2px var(--rc), 0 0 18px var(--rc);
+}
+.sin-nota .dial-aguja { opacity: .3; }
+.dial-centro {
+  position: absolute; inset: calc(var(--aro) + 16px); border-radius: 50%;
+  display: grid; place-content: center; justify-items: center; gap: 2px;
+  background: radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--rc) 20%, var(--panel-2)), var(--negro) 72%);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .06), inset 0 -12px 30px rgba(0, 0, 0, .65), 0 14px 30px -12px rgba(0, 0, 0, .9);
+}
+.reg #fn-num {
+  width: 3.2ch; padding: 0; border: 0; border-bottom: 2px solid transparent; background: none; outline: none; text-align: center;
+  font: 800 50px/1 var(--f-mono); letter-spacing: -.05em; color: var(--texto); font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 24px color-mix(in srgb, var(--rc) 65%, transparent);
+}
+.reg #fn-num:focus { border-bottom-color: var(--rc); }
+.reg #fn-num::placeholder { color: var(--texto-3); }
+.reg-dial.r-ex #fn-num { background: linear-gradient(135deg, #fff3c2, var(--oro), #c7860f); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.reg #fn-r { min-height: 22px; font: 800 22px/1 var(--f-display); font-style: normal; color: var(--rc); text-shadow: 0 0 16px var(--rc); }
+.dial-mandos { display: flex; align-items: center; gap: 10px; }
+.dial-mandos .enlace { min-width: 10em; font: 10.5px var(--f-mono); text-align: center; }
+
+/* Episodios: un segmento por episodio, inclinados, que se encienden */
+.reg-prog { display: grid; gap: 12px; padding: 12px 14px 14px; border: 1px solid var(--linea-2); background: rgba(6, 6, 9, .55); }
+.reg-prog-cab { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.reg-paso { display: flex; align-items: center; gap: 8px; }
+.reg-paso button {
+  width: 30px; height: 30px; display: grid; place-items: center; font: 600 18px/1 system-ui, sans-serif; color: var(--naranja);
+  border: 1px solid var(--linea-2); background: var(--panel); touch-action: manipulation;
+}
+.reg-paso button:hover { border-color: var(--naranja); }
+.reg-paso input {
+  width: calc(var(--d, 1) * 1ch + 4px); padding: 0; border: 0; background: none; outline: none; text-align: right;
+  font: 800 26px/1 var(--f-mono); color: var(--texto); -moz-appearance: textfield;
+}
+.reg-paso input::-webkit-inner-spin-button { appearance: none; }
+.reg-paso em { font: 15px var(--f-mono); font-style: normal; color: var(--texto-3); white-space: nowrap; }
+.reg-segs {
+  display: grid; grid-template-columns: repeat(var(--total), minmax(0, 1fr)); gap: clamp(1px, calc(60px / var(--total)), 4px);
+  height: 22px; padding: 0 4px; cursor: pointer;
+}
+.reg-segs span { background: rgba(255, 255, 255, .07); transform: skewX(-20deg); transition: background .2s, box-shadow .2s; }
+.reg-segs span.on { background: var(--ce); box-shadow: 0 0 10px -2px var(--ce); }
+.reg-segs span:hover { background: color-mix(in srgb, var(--ce) 60%, #fff 10%); }
+.reg-segs.continua { display: block; position: relative; height: 12px; padding: 0; background: rgba(255, 255, 255, .07); transform: skewX(-20deg); }
+.reg-lleno { position: absolute; inset: 0 auto 0 0; background: var(--ce); box-shadow: 0 0 12px var(--ce); transition: width .3s; }
+
+.reg .cu-meses button.on { box-shadow: 0 0 14px -3px var(--naranja); }
+
+/* Comentario como una terminal: prompt, cursor que parpadea y líneas */
+.reg-log { display: grid; gap: 6px; }
+.reg-log .reg-etq { color: var(--naranja); }
+.reg-log .reg-etq i { font-style: normal; animation: cursor 1.1s steps(1) infinite; }
+@keyframes cursor { 50% { opacity: 0; } }
+.reg-log textarea {
+  width: 100%; min-height: 84px; resize: vertical; padding: 10px 12px; outline: none;
+  font: 13px/1.6 var(--f-mono); color: var(--texto); caret-color: var(--naranja);
+  background: repeating-linear-gradient(180deg, rgba(255, 255, 255, .02) 0 1px, transparent 1px 3px), rgba(3, 3, 6, .85);
+  border: 1px solid var(--linea-2); border-left: 2px solid var(--naranja);
+}
+.reg-log textarea:focus { border-color: var(--naranja); box-shadow: 0 0 0 3px rgba(255, 107, 26, .12); }
+
 .fi-campos { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-content: start; }
 .campo { display: grid; gap: 5px; }
 .campo > span { font: 600 9.5px var(--f-mono); letter-spacing: .18em; text-transform: uppercase; color: var(--texto-3); }
@@ -1676,6 +1778,30 @@ body.visitando .vista { --naranja: var(--cian); }
   .fi-nota { padding: 8px 10px; }
   .fn-lectura { grid-template-columns: 32px 1fr 32px; margin: 0 0 2px; }
   .fi-campos .campo-ancho:last-child { grid-column: 1 / -1; }
+  /* Consola en móvil: el dial a la izquierda, episodios y tipo a su lado */
+  .reg { padding: 12px 10px; }
+  .reg::before { font-size: 84px; top: 52px; }
+  .reg-estados { margin-bottom: 12px; }
+  .reg-estados button { padding: 7px 0 6px; gap: 1px; font-size: 7.5px; letter-spacing: .02em; }
+  .reg-estados button i { font-size: 12px; }
+  .reg-cuerpo { gap: 10px; margin-bottom: 12px; grid-template-columns: 136px minmax(0, 1fr); grid-template-areas: "dial prog" "dial tipo" "cuando cuando" "titulo titulo"; }
+  .reg-dial { --aro: 10px; gap: 6px; }
+  .dial { width: 136px; }
+  .dial-centro { inset: calc(var(--aro) + 10px); }
+  .dial-aguja i { width: 14px; height: 14px; margin-left: -7px; top: calc(var(--aro) / 2 - 7px); border-width: 2px; }
+  .reg #fn-num { font-size: 32px; }
+  .reg #fn-r { min-height: 15px; font-size: 15px; }
+  .dial-mandos { flex-wrap: wrap; justify-content: center; gap: 4px 8px; }
+  .dial-mandos .enlace { order: 3; flex-basis: 100%; min-width: 0; font-size: 9.5px; }
+  .reg .fn-paso { width: 32px; height: 28px; font-size: 16px; }
+  .reg-prog { padding: 8px; gap: 8px; }
+  .reg-prog-cab { flex-wrap: wrap; gap: 4px; }
+  .reg-paso { gap: 5px; }
+  .reg-paso button { width: 26px; height: 26px; font-size: 15px; }
+  .reg-paso input { font-size: 20px; }
+  .reg-paso em { font-size: 12px; }
+  .reg-segs { height: 16px; padding: 0 2px; }
+  .reg-log textarea { min-height: 64px; font-size: 12px; }
   .fi-acc { flex-wrap: nowrap; }
   .fi-acc .btn { flex: 1 1 0; min-width: 0; padding: 8px 6px; font-size: 11px; letter-spacing: .04em; }
   .fi-acc .hueco { display: none; }

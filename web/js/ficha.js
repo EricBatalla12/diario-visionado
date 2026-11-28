@@ -99,43 +99,61 @@ function plantilla(e, m) {
   <div id="fi-det">${m?.id ? `<div class="cargando"><span></span>Descargando expediente…</div>` : ""}</div>`;
 }
 
+// Tu registro: una consola. Arriba un raíl con los cinco estados y una luz
+// que se desliza al elegido; a la izquierda un dial de nota que se gira
+// arrastrando (de 0 a 10 en tres cuartos de vuelta); a la derecha los
+// episodios como segmentos que se encienden y se pulsan para saltar a uno.
+const MAX_SEGMENTOS = 60;   // con más, una barra continua (también se pulsa)
 function registro(e) {
   const r = rango(e.nota);
   const m = e.media;
   const total = totalDe(e);
   const conProg = e.tipo !== "peli";
   const cosa = seLee(e) ? "capítulo" : "episodio";
-  return `<section class="fi-reg panel esquinas">
+  const claves = Object.keys(ESTADOS), es = ESTADOS[e.estado];
+  const hechos = e.progreso || 0;
+  return `<section class="fi-reg reg" style="--ce:${es.color}" data-jp="${esc(es.jp)}">
     <h3 class="p-tit"><span>Tu registro</span><i>記録</i><small class="fi-guardado" aria-live="polite"></small></h3>
     ${e.recomendadoPor ? `<p class="fi-recomendado" hidden></p>` : ""}
-    <div class="fi-estados" role="radiogroup" aria-label="Estado">
-      ${Object.entries(ESTADOS).map(([k, v]) => `<button role="radio" aria-checked="${e.estado === k}" class="${e.estado === k ? "on" : ""}" data-estado="${k}" style="--c:${v.color}">
-        <i>${v.jp}</i>${ESTADO_AL[k]}</button>`).join("")}
+    <div class="reg-estados" role="radiogroup" aria-label="Estado" style="--i:${claves.indexOf(e.estado)};--c:${es.color}">
+      <span class="reg-luz" aria-hidden="true"></span>
+      ${claves.map((k) => `<button role="radio" aria-checked="${e.estado === k}" class="${e.estado === k ? "on" : ""}" data-estado="${k}" style="--c:${ESTADOS[k].color}">
+        <i>${ESTADOS[k].jp}</i><b>${ESTADO_AL[k]}</b></button>`).join("")}
     </div>
-    <div class="fi-rejilla">
-      <div class="fi-nota ${r ? r.clase : "sin-nota"}">
-        <span class="etq">Nota</span>
-        <div class="fn-lectura">
+    <div class="reg-cuerpo">
+      <div class="reg-dial ${r ? r.clase : "sin-nota"}" style="--nota:${e.nota ?? 0}">
+        <div class="dial" data-dial title="Gira el aro para puntuar">
+          <span class="dial-aro" aria-hidden="true"></span>
+          <span class="dial-aguja" aria-hidden="true"><i></i></span>
+          <span class="dial-centro">
+            <input id="fn-num" inputmode="decimal" autocomplete="off" maxlength="4" aria-label="Nota, escríbela, gira el aro o usa − y ＋"
+              value="${e.nota == null ? "" : fmtNota(e.nota)}" placeholder="—">
+            <i id="fn-r">${r ? r.r : ""}</i>
+          </span>
+        </div>
+        <div class="dial-mandos">
           <button class="fn-paso" data-paso="-1" aria-label="Bajar una décima" title="Bajar 0,1 (mantén pulsado para seguir)">−</button>
-          <span class="fn-centro"><input id="fn-num" inputmode="decimal" autocomplete="off" maxlength="4" aria-label="Nota, escríbela o usa − y ＋"
-            value="${e.nota == null ? "" : fmtNota(e.nota)}" placeholder="—"><i id="fn-r">${r ? r.r : ""}</i></span>
+          <button class="enlace" data-sin-nota>${e.nota == null ? "Gira para puntuar" : "Quitar nota"}</button>
           <button class="fn-paso" data-paso="1" aria-label="Subir una décima" title="Subir 0,1 (mantén pulsado para seguir)">＋</button>
         </div>
-        <input type="range" id="fn-rango" min="0" max="10" step="0.1" value="${e.nota ?? 7}" aria-label="Nota de 0 a 10" ${e.nota == null ? 'data-vacia="1"' : ""}>
-        <div class="fn-pie"><span>0</span><button class="enlace" data-sin-nota>${e.nota == null ? "Arrastra para puntuar" : "Quitar nota"}</button><span>10</span></div>
+        <input type="range" id="fn-rango" class="solo-lector" min="0" max="10" step="0.1" value="${e.nota ?? 7}" aria-label="Nota de 0 a 10" ${e.nota == null ? 'data-vacia="1"' : ""}>
       </div>
-      <div class="fi-campos">
-        ${conProg ? `<label class="campo"><span>Progreso · ${seLee(e) ? "capítulos" : "episodios"}</span>
-          <div class="paso"><button data-ep="-1" aria-label="Un ${cosa} menos">−</button>
-          <input id="fi-prog" type="number" min="0" ${total ? `max="${total}"` : ""} value="${e.progreso || 0}" style="--d:${String(e.progreso || 0).length}">
-          <em>/ ${total || "?"}</em><button data-ep="1" aria-label="Un ${cosa} más">＋</button></div>
-          <span class="fi-barra" ${total ? "" : "hidden"} style="--p:${total ? Math.min(100, (e.progreso || 0) / total * 100) : 0}%; --c:${ESTADOS[e.estado].color}"><i></i></span></label>` : ""}
-        <label class="campo"><span>Tipo</span><select id="fi-tipo">${Object.entries(TIPOS[e.tipo] ? TIPOS : { ...TIPOS, [e.tipo]: infoTipo(e.tipo) }).map(([k, v]) => `<option value="${k}" ${e.tipo === k ? "selected" : ""}>${v.nombre}</option>`).join("")}</select></label>
-        ${cuando(e)}
-        <label class="campo campo-ancho"><span>Tu título</span><input id="fi-titulo" value="${esc(e.titulo)}" maxlength="120"></label>
-      </div>
+      ${conProg ? `<div class="reg-prog">
+        <div class="reg-prog-cab">
+          <span class="reg-etq">${seLee(e) ? "Capítulos" : "Episodios"}</span>
+          <div class="reg-paso"><button data-ep="-1" aria-label="Un ${cosa} menos">−</button>
+            <input id="fi-prog" type="number" min="0" ${total ? `max="${total}"` : ""} value="${hechos}" style="--d:${String(hechos).length}" aria-label="${seLee(e) ? "Capítulos" : "Episodios"} hechos">
+            <em>/ ${total || "?"}</em><button data-ep="1" aria-label="Un ${cosa} más">＋</button></div>
+        </div>
+        ${total ? (total <= MAX_SEGMENTOS
+          ? `<div class="reg-segs" data-segs style="--total:${total}" title="Pulsa un ${cosa} para marcar hasta ahí">${Array.from({ length: total }, (_, i) => `<span data-seg="${i + 1}" class="${i < hechos ? "on" : ""}"></span>`).join("")}</div>`
+          : `<div class="reg-segs continua" data-segs title="Pulsa para marcar hasta ahí"><span class="reg-lleno" style="width:${Math.min(100, hechos / total * 100)}%"></span></div>`) : ""}
+      </div>` : ""}
+      <label class="campo reg-tipo"><span>Tipo</span><select id="fi-tipo">${Object.entries(TIPOS[e.tipo] ? TIPOS : { ...TIPOS, [e.tipo]: infoTipo(e.tipo) }).map(([k, v]) => `<option value="${k}" ${e.tipo === k ? "selected" : ""}>${v.nombre}</option>`).join("")}</select></label>
+      <label class="campo reg-titulo"><span>Tu título</span><input id="fi-titulo" value="${esc(e.titulo)}" maxlength="120"></label>
+      <div class="reg-cuando">${cuando(e)}</div>
     </div>
-    <label class="campo"><span>Comentario</span><textarea id="fi-com" rows="3" maxlength="600" placeholder="Lo que te pareció, sin spoilers… o con.">${esc(e.comentario || "")}</textarea></label>
+    <label class="reg-log"><span class="reg-etq">› Comentario<i>_</i></span><textarea id="fi-com" rows="3" maxlength="600" placeholder="Lo que te pareció, sin spoilers… o con.">${esc(e.comentario || "")}</textarea></label>
     <div class="fi-acc">
       <button class="btn" data-vincula>${m ? `↺ <span class="largo">Cambiar vínculo de AniList</span><span class="corto">Vínculo</span>` : `⌁ <span class="largo">Vincular con AniList</span><span class="corto">Vincular</span>`}</button>
       ${m?.siteUrl ? `<a class="btn" href="${esc(m.siteUrl)}" target="_blank" rel="noopener"><span class="largo">Abrir en AniList</span><span class="corto">AniList</span> ↗</a>` : ""}
@@ -218,7 +236,16 @@ function conectaRegistro(d, e0) {
   const marca = () => { guardado.textContent = "● guardado"; clearTimeout(t); t = setTimeout(() => (guardado.textContent = ""), 1400); };
   const pon = (cambios, opc) => { actualiza(uid, cambios, opc); marca(); };
 
-  // Estado
+  // Estado: el botón elegido, la luz del raíl, el color de la consola y el
+  // kanji grande de fondo
+  const reg = d.querySelector(".reg"), rail = d.querySelector(".reg-estados");
+  function pintaEstado(k) {
+    d.querySelectorAll("[data-estado]").forEach((o) => { o.classList.toggle("on", o.dataset.estado === k); o.setAttribute("aria-checked", o.dataset.estado === k); });
+    rail.style.setProperty("--i", Object.keys(ESTADOS).indexOf(k));
+    rail.style.setProperty("--c", ESTADOS[k].color);
+    reg.style.setProperty("--ce", ESTADOS[k].color);
+    reg.dataset.jp = ESTADOS[k].jp;
+  }
   d.querySelectorAll("[data-estado]").forEach((b) => b.addEventListener("click", () => {
     const estado = b.dataset.estado, x = e();
     const cambios = { estado };
@@ -226,7 +253,7 @@ function conectaRegistro(d, e0) {
     if ((estado === "visto" || estado === "revisto") && total && (x.progreso || 0) < total) cambios.progreso = total;
     if (estado === "visto" && x.estado !== "visto") { const h = new Date(); cambios.mes = h.getMonth() + 1; cambios.anio = h.getFullYear(); }
     pon(cambios);
-    d.querySelectorAll("[data-estado]").forEach((o) => { o.classList.toggle("on", o === b); o.setAttribute("aria-checked", o === b); });
+    pintaEstado(estado);
     if (cambios.progreso != null) { const p = d.querySelector("#fi-prog"); if (p) { p.value = cambios.progreso; p.style.setProperty("--d", String(cambios.progreso).length); } }
     pintaBarra();
     if (cambios.mes) pintaCuando();
@@ -235,15 +262,16 @@ function conectaRegistro(d, e0) {
   // Nota: la barra para ir rápido; − y ＋ (o escribirla) para afinar la décima,
   // que con la barra cuesta acertar. Mantener − o ＋ pulsado sigue contando y
   // se guarda una sola vez al soltar.
-  const rg = d.querySelector("#fn-rango"), num = d.querySelector("#fn-num"), letra = d.querySelector("#fn-r"), caja = d.querySelector(".fi-nota");
+  const rg = d.querySelector("#fn-rango"), num = d.querySelector("#fn-num"), letra = d.querySelector("#fn-r"), caja = d.querySelector(".reg-dial");
   const redondea = (n) => Math.min(10, Math.max(0, Math.round(n * 10) / 10));
   const pintaNota = (n, { tecleando = false } = {}) => {
     const r = rango(n);
     if (!tecleando) num.value = n == null ? "" : fmtNota(n);
     letra.textContent = r ? r.r : "";
-    caja.className = "fi-nota " + (r ? r.clase : "sin-nota");
+    caja.className = "reg-dial " + (r ? r.clase : "sin-nota") + (arrastrando ? " arrastrando" : "");
+    caja.style.setProperty("--nota", n ?? 0);
     if (n != null) { rg.value = n; rg.removeAttribute("data-vacia"); } else rg.setAttribute("data-vacia", "1");
-    d.querySelector("[data-sin-nota]").textContent = n == null ? "Arrastra para puntuar" : "Quitar nota";
+    d.querySelector("[data-sin-nota]").textContent = n == null ? "Gira para puntuar" : "Quitar nota";
   };
   const guardaNota = (n) => {
     const antes = e().nota;
@@ -252,6 +280,34 @@ function conectaRegistro(d, e0) {
     if (n >= 10 && (antes == null || antes < 10)) tarjetaTitulo({ jp: "傑作", linea1: "OBRA MAESTRA", linea2: e().titulo, clase: "oro" });
   };
   rg.addEventListener("input", () => pintaNota(+rg.value));
+  // El dial: el ángulo del puntero respecto al centro da la nota. El aro va
+  // de -135° (0) a +135° (10), con el hueco abajo; fuera de él, al extremo
+  // más cercano. Se pinta mientras arrastras y se guarda al soltar.
+  let arrastrando = false;
+  const dial = d.querySelector("[data-dial]");
+  const notaDe = (ev) => {
+    const c = dial.getBoundingClientRect();
+    let a = Math.atan2(ev.clientX - (c.left + c.width / 2), (c.top + c.height / 2) - ev.clientY) * 180 / Math.PI;
+    a = Math.max(-135, Math.min(135, a));
+    return redondea((a + 135) / 27);
+  };
+  dial.addEventListener("pointerdown", (ev) => {
+    if (ev.button !== 0 || ev.target === num) return;
+    ev.preventDefault();
+    try { dial.setPointerCapture(ev.pointerId); } catch {}
+    arrastrando = true;
+    pintaNota(notaDe(ev));
+  });
+  dial.addEventListener("pointermove", (ev) => { if (arrastrando) pintaNota(notaDe(ev)); });
+  const sueltaDial = (ev) => {
+    if (!arrastrando) return;
+    arrastrando = false;
+    const n = notaDe(ev);
+    pintaNota(n);
+    guardaNota(n);
+  };
+  dial.addEventListener("pointerup", sueltaDial);
+  dial.addEventListener("pointercancel", () => { arrastrando = false; pintaNota(e().nota); });
   rg.addEventListener("change", () => guardaNota(redondea(+rg.value)));
   d.querySelector("[data-sin-nota]").addEventListener("click", () => { if (e().nota != null) { pon({ nota: null }); pintaNota(null); } });
 
@@ -298,14 +354,23 @@ function conectaRegistro(d, e0) {
     guardaNota(n);
   });
 
-  // Progreso, con una barra que se llena del color del estado
-  const prog = d.querySelector("#fi-prog");
+  // Progreso: los segmentos (o la barra continua) se encienden hasta el
+  // episodio en el que vas; pulsar uno marca hasta ahí (pulsar el último
+  // encendido lo apaga, para corregir un episodio de más)
+  const prog = d.querySelector("#fi-prog"), segs = d.querySelector("[data-segs]");
   function pintaBarra() {
-    const b = d.querySelector(".fi-barra"), x = e(), total = totalDe(x);
-    if (!b || !total) return;
-    b.style.setProperty("--p", Math.min(100, (x.progreso || 0) / total * 100) + "%");
-    b.style.setProperty("--c", ESTADOS[x.estado].color);
+    if (!segs) return;
+    const x = e(), total = totalDe(x), v = x.progreso || 0;
+    if (segs.classList.contains("continua")) segs.querySelector(".reg-lleno").style.width = Math.min(100, v / total * 100) + "%";
+    else segs.querySelectorAll("[data-seg]").forEach((s) => s.classList.toggle("on", +s.dataset.seg <= v));
   }
+  segs?.addEventListener("click", (ev) => {
+    const total = totalDe(e());
+    const s = ev.target.closest("[data-seg]");
+    if (s) { const k = +s.dataset.seg; return ponProg(k === (e().progreso || 0) ? k - 1 : k); }
+    const c = segs.getBoundingClientRect();
+    ponProg(Math.round((ev.clientX - c.left) / c.width * total));
+  });
   const ponProg = (v) => {
     const x = e(), total = totalDe(x);
     v = Math.max(0, total ? Math.min(total, v) : v);
@@ -320,7 +385,7 @@ function conectaRegistro(d, e0) {
     pon(cambios, { agrupa: true });
     pintaBarra();
     if (cambios.mes) pintaCuando();
-    if (cambios.estado) d.querySelectorAll("[data-estado]").forEach((o) => { o.classList.toggle("on", o.dataset.estado === cambios.estado); o.setAttribute("aria-checked", o.dataset.estado === cambios.estado); });
+    if (cambios.estado) pintaEstado(cambios.estado);
   };
   d.querySelectorAll("[data-ep]").forEach((b) => b.addEventListener("click", () => ponProg((+prog.value || 0) + +b.dataset.ep)));
   prog?.addEventListener("change", () => ponProg(+prog.value || 0));

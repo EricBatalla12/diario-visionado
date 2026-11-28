@@ -7,6 +7,31 @@
 
 export const PARCHES = [
   {
+    id: "2026-11-28",
+    fecha: "28 de noviembre de 2026",
+    titulo: "La consola de registro",
+    jp: "操作盤",
+    secciones: [
+      { titulo: "Novedades", ico: "✦", items: [
+        "**Tu registro** es ahora una consola. La nota se pone **girando el dial**: el aro se llena del color de tu rango (siguen − y ＋ para afinar, y se puede escribir).",
+        "Los **estados** son un raíl: una luz se desliza hasta el que eliges y la consola se tiñe de su color.",
+        "Cada **episodio es un segmento**: pulsa uno para marcar hasta ahí (pulsar el último lo desmarca).",
+        "El **comentario** parece una terminal.",
+      ] },
+      { titulo: "Móvil", ico: "▯", items: [
+        "Archivo más compacto: **tres cartas por fila**, los seis estados a la vista sin deslizar y tipo, año, género y orden recogidos tras el botón **⚙**.",
+        "En la ficha, el dial va al lado de los episodios: todo a mano sin bajar.",
+      ] },
+      { titulo: "Cambios", ico: "⚙", items: [
+        "KIROKU **recuerda lo que pide a AniList** (fichas, temporadas y sagas): la segunda vez se abren al momento y AniList se satura menos.",
+      ] },
+      { titulo: "Arreglos", ico: "✚", items: [
+        "Los títulos largos en **Últimas** del Gacha ya no se salen del panel.",
+        "En **Sincronía** del Perfil, las listas caben y la diferencia va en la misma línea que el título.",
+      ] },
+    ],
+  },
+  {
     id: "2026-11-23b",
     fecha: "23 de noviembre de 2026",
     titulo: "Sagas de un golpe",

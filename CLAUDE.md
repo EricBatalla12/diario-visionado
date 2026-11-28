@@ -1,8 +1,8 @@
 # Diario de visionado / KIROKU 記録
 
-Lee esto antes de nada. Estado al 23-11-2026: todo lo hecho está publicado y no hay
-trabajo a medias en la web. Lo siguiente posible: música y personajes (propuesta en
-`docs/ideas/musica-y-personajes.md`) y el enlace de donaciones.
+Lee esto antes de nada. Estado al 28-11-2026: todo lo hecho está publicado y no hay
+trabajo a medias en la web. Lo siguiente posible: más títulos de nivel y logros (ver
+Pendientes), música y personajes (`docs/ideas/musica-y-personajes.md`) y el enlace de donaciones.
 
 ## Qué es
 
@@ -47,8 +47,8 @@ trabajo a medias en la web. Lo siguiente posible: música y personajes (propuest
 - Con el panel del navegador: Eric usa a veces la web real en una pestaña; probar en una
   **pestaña propia** (`tabs_create`) y no recargar la suya. Si el panel está oculto, las
   animaciones no avanzan (opacidad 0 eterna): medir con `getAnimations()`, no con capturas.
-- Cada recarga de pruebas gasta cupo de AniList; los nodos de sagas sobreviven en
-  `sessionStorage`. En la página de pruebas los filtros (p. ej. `agrupa`) se guardan en
+- Cada recarga de pruebas gasta cupo de AniList, salvo lo que está en la caché de `cache.js`
+  (para forzar una petición, borrar las claves `kiroku:c:*` y `kiroku:nodos-saga:v2`). En la página de pruebas los filtros (p. ej. `agrupa`) se guardan en
   `localStorage` (`kiroku:filtros`) y pueden haberse quedado cambiados.
 - Validar una consulta de PostgREST sin sesión: `42501` = se ha entendido, `PGRST100` = sintaxis mal.
 
@@ -60,6 +60,11 @@ trabajo a medias en la web. Lo siguiente posible: música y personajes (propuest
 - `anilist.js` cliente GraphQL con **cola de dos niveles** (lo de pantalla antes que lo de
   `{ fondo: true }`), freno con `X-RateLimit-Remaining` ≤ 2, reintento en fallo de red;
   `sagas(ids)` y `marcaSaga`.
+- `cache.js` caché de AniList en `localStorage` con caducidad (publicada el 28-11): una clave
+  por respuesta (`kiroku:c:det:ID`, `kiroku:c:tmp:FALL-2026:1`) y un índice con las fechas.
+  `detalle()` 3 días (máx. 40), `temporada()` 7 días si ya pasó / 3 h si no (máx. 16 páginas),
+  nodos de saga en `kiroku:nodos-saga:v2` 3 días (12 h los que emiten). Todo deja de valer si ya
+  salió un episodio que anunciaba (`sinEmitidos`). `refrescar()` y `buscar()` no se cachean.
 - `ui.js` catálogos y utilidades: `TIPOS` (anime, manga, peli), `infoTipo` (también la
   vieja `serie`), `tipoDe(m)`, `formato(m)` (Manhwa/Manhua por `countryOfOrigin`),
   `totalDe`/`unidad`/`seLee` (capítulos en manga, episodios en lo demás).
@@ -91,6 +96,27 @@ trabajo a medias en la web. Lo siguiente posible: música y personajes (propuest
 - Sueltos sin versionar a propósito: `kiroku-icono.png` (copia del usuario; el bueno
   está en `docs/marca/`), `datos/archivo-estrella.json` (gitignored, copia de seguridad).
 
+## Publicado el 28-11-2026
+
+Notas para usuarios en `web/js/parches.js` (parche "La consola de registro").
+
+- **Tu registro** (`registro()` en `ficha.js`, CSS `.reg*`) es una consola:
+  - **Dial** de nota (`[data-dial]`): aro de 270° (-135° = 0, +135° = 10), con `@property --nota`
+    para que gire suave; el ángulo del puntero da la nota y se guarda al soltar. El
+    `#fn-rango` sigue existiendo pero oculto (`.solo-lector`) para teclado y lectores.
+  - **Raíl** de estados (`.reg-estados`, `--i` = índice): `pintaEstado()` mueve la luz y
+    tiñe la consola (`--ce`, kanji de fondo en `data-jp`).
+  - **Segmentos** de episodios (`[data-segs]`, hasta `MAX_SEGMENTOS` = 60; más, barra continua):
+    pulsar marca hasta ahí, pulsar el último encendido lo apaga.
+  - Se descartaron antes una "carta de rango" (letra de fondo + escala F…EX) y un "relieve"
+    de botones: a Eric no le gustaron.
+- **Archivo en móvil**: 3 cartas por fila (reglas bajo `#coleccion`), los 6 estados en
+  rejilla 3×2, y tipo/año/género/orden tras el botón ⚙ (`filtrosAbiertos`, solo en móvil).
+- **Caché de AniList** (`cache.js`, ver Arquitectura).
+- **Arreglos**: historial del Gacha y listas de Sincronía no se salen del panel
+  (`min-width: 0` / `minmax(0, 1fr)`). **Trampa**: la clase `.mas` (cifra verde de
+  Sincronía) chocaba con el contenedor de "Cargar más" de Temporada, que ahora es `.cargar-mas`.
+
 ## Publicado el 23-11-2026
 
 Notas para usuarios en `web/js/parches.js` (parche "Sagas, avisos y móvil").
@@ -107,7 +133,7 @@ Notas para usuarios en `web/js/parches.js` (parche "Sagas, avisos y móvil").
 - **Recomendar**: desactiva a quien ya lo vio/ve/abandonó (solo archivos legibles, vía
   `otrosDe`, que trae `usuario`); con pendiente se deja.
 - **Sagas** (idea en `docs/ideas/temporadas.md`): `sagas()` recorre PREQUEL/SEQUEL en lotes de
-  50 (tope 8 rondas/60 nodos, caché en `sessionStorage` `kiroku:nodos-saga:v1`) y ordena por
+  50 (tope 8 rondas/60 nodos, caché en `localStorage` `kiroku:nodos-saga:v2`, ver `cache.js`) y ordena por
   estreno; `marcaSaga` → `entradas.media.saga = {id raíz, n, de, t}` (`null` = suelto). Sin cambios
   en la base de datos. `actualizaSagas` al arrancar (lo que no la tiene), tras añadir y en el
   refresco de 12 h; `aplicaFichas` la conserva.
@@ -203,6 +229,9 @@ tras 30 s y cada 3 min a la vista), sin tiempo real.
   no empezarla sin que lo pida.
 
 ## Pendientes menores
+
+- **Más títulos de nivel** (`RANGOS_OP` en `stats.js`, ahora 9 hasta el nivel 60) y **más logros**
+  (pedido por Eric el 28-11).
 
 - Eric debería **rotar** la secret de Supabase y el secret de Discord (se pegaron en el chat).
 - Borrar en Supabase → Authentication → Users el usuario de Discord de "Estrella" (ya sin datos).

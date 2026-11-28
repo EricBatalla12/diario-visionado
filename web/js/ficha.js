@@ -136,7 +136,6 @@ function registro(e) {
             <span class="dial-aro" aria-hidden="true"></span>
             <span class="dial-aguja" aria-hidden="true"><i></i></span>
           </div>
-          <div class="dial-escala" aria-hidden="true">${Array.from({ length: 11 }, (_, i) => `<span>${i}</span>`).join("")}</div>
           <button class="enlace" data-sin-nota>${e.nota == null ? "Arrastra para puntuar" : "Quitar nota"}</button>
         </div>
         <input type="range" id="fn-rango" class="solo-lector" min="0" max="10" step="0.1" value="${e.nota ?? 7}" aria-label="Nota de 0 a 10" ${e.nota == null ? 'data-vacia="1"' : ""}>

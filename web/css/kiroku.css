@@ -943,8 +943,9 @@ dialog::backdrop { background: rgba(3, 3, 6, .78); backdrop-filter: blur(6px) sa
 .reg #fn-num::placeholder { color: var(--texto-3); }
 .reg-dial.r-ex #fn-num { background: linear-gradient(135deg, #fff3c2, var(--oro), #c7860f); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .reg #fn-r { min-width: 1.4em; font: 800 22px/1 var(--f-display); font-style: normal; color: var(--rc); text-shadow: 0 0 16px var(--rc); }
-.dial-pista { display: grid; gap: 6px; }
-.dial-pista .enlace { justify-self: center; font: 10.5px var(--f-mono); }
+/* La barra centrada en la fila y «Quitar nota» a su derecha, en la misma línea */
+.dial-pista { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 16px; }
+.dial-pista .enlace { font: 10.5px var(--f-mono); white-space: nowrap; }
 .dial { position: relative; height: 34px; cursor: pointer; touch-action: none; user-select: none; -webkit-user-select: none; }
 .dial:active { cursor: grabbing; }
 /* Pista con marcas cada punto y relleno hasta la nota */
@@ -964,7 +965,6 @@ dialog::backdrop { background: rgba(3, 3, 6, .78); backdrop-filter: blur(6px) sa
   clip-path: polygon(50% 0, 100% 18%, 100% 82%, 50% 100%, 0 82%, 0 18%);
 }
 .sin-nota .dial-aguja { opacity: .3; }
-.dial-escala { display: flex; justify-content: space-between; margin: 0 -3px; font: 600 9.5px var(--f-mono); color: var(--texto-3); }
 
 /* Episodios: un segmento por episodio, inclinados, que se encienden */
 .reg-prog { display: grid; gap: 12px; padding: 12px 14px 14px; border: 1px solid var(--linea-2); background: rgba(6, 6, 9, .55); }
@@ -1792,7 +1792,6 @@ body.visitando .vista { --naranja: var(--cian); }
   .reg #fn-r { font-size: 18px; }
   .reg .fn-paso { width: 40px; height: 34px; font-size: 18px; }
   .dial { height: 30px; }
-  .dial-escala { font-size: 8.5px; }
   .dial-pista .enlace { font-size: 9.5px; }
   .reg-prog { padding: 8px; gap: 8px; }
   .reg-prog-cab { flex-wrap: wrap; gap: 4px; }

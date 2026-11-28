@@ -7,6 +7,23 @@
 
 export const PARCHES = [
   {
+    id: "2026-11-28c",
+    fecha: "28 de noviembre de 2026",
+    titulo: "Arrastrar, importar y sagas a la vista",
+    jp: "移動",
+    secciones: [
+      { titulo: "Novedades", ico: "✦", items: [
+        "**Mantén pulsada una carta** del Archivo: se levanta y abajo salen cajas con los estados y ∞ Atemporal. **Suéltala en una** para cambiarle el estado sin abrir la ficha. Una saga apilada cambia todas sus temporadas, y todo se deshace con un toque.",
+        "**Importar una lista de texto**: en ⋮, sube un **.txt** o pega tu lista (un título por línea, con nota o estado si quieres). KIROKU busca cada título en AniList y te deja revisar lo que ha encontrado antes de importar.",
+        "Si un título es parte de una **saga**, la ficha lo avisa arriba, con un botón para **añadir la saga entera** de una vez.",
+      ] },
+      { titulo: "Cambios", ico: "⚙", items: [
+        "**7 logros nuevos** (61 en total): Paleta completa, Ensayista, Viajero en el tiempo, Recién salido, Paciencia infinita, Hallyu y Espíritu del bosque.",
+        "**Mano blanda** y **Mano dura** ahora cuentan notas (10 de 9 o más / 10 por debajo de 6), así que se pueden tener las dos.",
+      ] },
+    ],
+  },
+  {
     id: "2026-11-28b",
     fecha: "28 de noviembre de 2026",
     titulo: "Más niveles y logros",

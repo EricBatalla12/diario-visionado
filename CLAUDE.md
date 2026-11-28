@@ -114,13 +114,27 @@ Notas para usuarios en `web/js/parches.js` (parche "La consola de registro").
 - **Archivo en móvil**: 3 cartas por fila (reglas bajo `#coleccion`), los 6 estados en
   rejilla 3×2, y tipo/año/género/orden tras el botón ⚙ (`filtrosAbiertos`, solo en móvil).
 - **Caché de AniList** (`cache.js`, ver Arquitectura).
-- **Niveles y logros** (parche "Más niveles y logros"): 21 `RANGOS_OP` (hasta NV 100) y 54
+- **Niveles y logros** (parche "Más niveles y logros"): 21 `RANGOS_OP` (hasta NV 100) y
   `LOGROS` en `stats.js`; `calcula` añade `caps` (capítulos de manga), `largos`, `sagasCompletas`,
   `maxMes`, `maxEstudio`. Cada logro da 100 de XP. En `app.js`, más de 2 logros nuevos de golpe
   = un solo aviso. Los logros de nivel usan el nivel **sin** la XP de los logros.
 - La barra de nota (`.reg-dial`) se usa también en el formulario de saga (`#sgf-num`,
   `[data-sgf-dial]`); su CSS es común. **Trampa**: `grid-area: dial` va solo en
   `.reg-cuerpo > .reg-dial`: en otra rejilla un área desconocida crea columnas fantasma.
+- **Arrastrar cartas** (`arrastre.js`, parche "Arrastrar, importar y sagas a la vista"):
+  pulsación larga (380 ms, tolerancia 9 px) en `.carta` del `#coleccion` → copia `.carta-flotante`
+  (sin `en-saga`, que traía transform y animación que la clavaban) y panel `.soltar` con 6 cajas;
+  vale la caja más cercana desde cerca del panel (`cajaCerca`). Mismas reglas que la ficha;
+  saga apilada = sus miembros visibles; una operación (`actualizaVarios`). `body.arrastrando`
+  sube `.avisos` (`--alto-soltar`). Con el panel del navegador oculto, terminar las
+  transiciones con `getAnimations()` antes de medir.
+- **Importar .txt** (`importar.js`): `leeLinea` (separadores ` - `, `|`, `;`, tab; nota, estado
+  y tipo en español o inglés; «Steins;Gate» y «Kaiju No. 8» se respetan), busca cada título en
+  AniList (≈30/min) y deja revisar; importa a Atemporal con `anadeLote`. El menú ⋮ manda a
+  `importa()` lo que parece JSON y aquí lo demás.
+- **Aviso de saga** arriba de la ficha (`#fi-saga-aviso`, `avisoSaga`) si falta alguna temporada.
+- **Logros**: 61. Mano blanda/dura cuentan notas (antes media: se excluían). Que todos se
+  puedan tener a la vez es un requisito de Eric.
 - **Trampa**: `#fn-num` es un `<input>`: `background-clip: text` no funciona dentro y recorta el
   `text-shadow` a su caja. El brillo va en `.dial-centro` con `filter: drop-shadow`.
 - **Arreglos**: historial del Gacha y listas de Sincronía no se salen del panel

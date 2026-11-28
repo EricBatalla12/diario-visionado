@@ -1,8 +1,7 @@
 # Diario de visionado / KIROKU 記録
 
-Lee esto antes de nada. Estado al 28-11-2026: **Gacha de cartas a medias en la rama `pruebas`**
-(sin commit, sin publicar, migración sin ejecutar: ver «Gacha de cartas (en pruebas)»). Lo demás
-está publicado. Lo siguiente posible: el resto de ideas de «Ideas aparcadas», música y personajes
+Lee esto antes de nada. Estado al 28-11-2026: todo lo hecho está publicado (lo último, el Gacha
+de cartas) y no hay trabajo a medias en la web ni ramas abiertas (salvo `diseno-limpio`, aparcada). Lo siguiente posible: el resto de ideas de «Ideas aparcadas», música y personajes
 (`docs/ideas/musica-y-personajes.md`) y el enlace de donaciones.
 
 ## Qué es
@@ -254,7 +253,7 @@ tras 30 s y cada 3 min a la vista), sin tiempo real.
   `.fa-nota`, `.fo-nota`…: la letra EX salía gris). Los valores por defecto van en
   `:where(.clase) { --rc: … }`.
 
-## Gacha de cartas (en pruebas, 28-11-2026)
+## Gacha de cartas (publicado el 28-11-2026)
 
 Rediseño pedido por Eric: el Gacha deja de sacar pendientes y saca **cartas coleccionables** de
 AniList para descubrir títulos. Decisiones de Eric: tickets por nivel + terminados + diaria; **dos
@@ -282,8 +281,11 @@ Gacha de pendientes **se quita**.
   tipo es el género por prioridad (`PRIORIDAD`), porque AniList los da por orden alfabético.
 - **Logros** nuevos (64): Mazo, Set completo, Despertar; `calcula(lista, { coleccion })` y el
   directorio trae `cartas`/`gacha` para el nivel de los demás.
-- **Falta**: que Eric lo vea; ejecutar la migración en el SQL Editor **antes** de publicar; commit y
-  publicar. Parche de Novedades ya escrito (`2026-11-28e`, cambiar id/fecha si sale otro día).
+- **Estado**: migración ejecutada por Eric y comprobada (tablas y funciones dan 42501 sin sesión);
+  publicado con el parche "Cartas coleccionables" (`2026-11-28e`). Barra: Invocar/Álbum como
+  pestañas subrayadas con los tickets al lado; el pozo, un interruptor aparte debajo.
+- **Fragmentos**: 1 por cada carta repetida (sin importar la rareza); 5 = 1 ticket con
+  `kiroku_canjea` (canjea todos los posibles de golpe).
 - **Piedad a 30** (decisión de Eric): con 10 y SSR al 3 % salía una SSR de cada ~8,6 tiradas
   (11,5 % medido en 100 000), demasiadas. Con 30 queda en torno al 5 %.
 

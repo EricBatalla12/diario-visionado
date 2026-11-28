@@ -101,15 +101,16 @@ Pendientes), música y personajes (`docs/ideas/musica-y-personajes.md`) y el enl
 Notas para usuarios en `web/js/parches.js` (parche "La consola de registro").
 
 - **Tu registro** (`registro()` en `ficha.js`, CSS `.reg*`) es una consola:
-  - **Dial** de nota (`[data-dial]`): aro de 270° (-135° = 0, +135° = 10), con `@property --nota`
-    para que gire suave; el ángulo del puntero da la nota y se guarda al soltar. El
+  - **Barra** de nota (`[data-dial]`, nombre heredado de un dial redondo que se probó y se
+    quitó el mismo día): la posición del puntero a lo ancho da la nota y se guarda al soltar;
+    `@property --nota` para que se mueva suave; sin números y centrada en su fila. El
     `#fn-rango` sigue existiendo pero oculto (`.solo-lector`) para teclado y lectores.
   - **Raíl** de estados (`.reg-estados`, `--i` = índice): `pintaEstado()` mueve la luz y
     tiñe la consola (`--ce`, kanji de fondo en `data-jp`).
   - **Segmentos** de episodios (`[data-segs]`, hasta `MAX_SEGMENTOS` = 60; más, barra continua):
     pulsar marca hasta ahí, pulsar el último encendido lo apaga.
-  - Se descartaron antes una "carta de rango" (letra de fondo + escala F…EX) y un "relieve"
-    de botones: a Eric no le gustaron.
+  - Se descartaron antes una "carta de rango" (letra de fondo + escala F…EX), un "relieve"
+    de botones y el dial redondo: a Eric no le gustaron.
 - **Archivo en móvil**: 3 cartas por fila (reglas bajo `#coleccion`), los 6 estados en
   rejilla 3×2, y tipo/año/género/orden tras el botón ⚙ (`filtrosAbiertos`, solo en móvil).
 - **Caché de AniList** (`cache.js`, ver Arquitectura).

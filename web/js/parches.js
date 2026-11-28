@@ -13,14 +13,13 @@ export const PARCHES = [
     jp: "操作盤",
     secciones: [
       { titulo: "Novedades", ico: "✦", items: [
-        "**Tu registro** es ahora una consola. La nota se pone **girando el dial**: el aro se llena del color de tu rango (siguen − y ＋ para afinar, y se puede escribir).",
+        "**Tu registro** es ahora una consola. La nota se pone **arrastrando la barra**, que se llena del color de tu rango (siguen − y ＋ para afinar, y se puede escribir).",
         "Los **estados** son un raíl: una luz se desliza hasta el que eliges y la consola se tiñe de su color.",
         "Cada **episodio es un segmento**: pulsa uno para marcar hasta ahí (pulsar el último lo desmarca).",
         "El **comentario** parece una terminal.",
       ] },
       { titulo: "Móvil", ico: "▯", items: [
         "Archivo más compacto: **tres cartas por fila**, los seis estados a la vista sin deslizar y tipo, año, género y orden recogidos tras el botón **⚙**.",
-        "En la ficha, el dial va al lado de los episodios: todo a mano sin bajar.",
       ] },
       { titulo: "Cambios", ico: "⚙", items: [
         "KIROKU **recuerda lo que pide a AniList** (fichas, temporadas y sagas): la segunda vez se abren al momento y AniList se satura menos.",

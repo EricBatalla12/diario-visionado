@@ -932,18 +932,23 @@ dialog::backdrop { background: rgba(3, 3, 6, .78); backdrop-filter: blur(6px) sa
 }
 .reg-dial.arrastrando { transition: none; }
 .dial-lectura { display: flex; align-items: center; gap: 10px; }
-.dial-centro { display: flex; align-items: baseline; justify-content: center; gap: 4px; min-width: 132px; }
+/* El brillo va en el contenedor (drop-shadow) y no como text-shadow del
+   número: un <input> recorta la sombra a su rectángulo y se veía una caja */
+.dial-centro {
+  display: flex; align-items: baseline; justify-content: center; gap: 4px; min-width: 132px;
+  filter: drop-shadow(0 0 12px color-mix(in srgb, var(--rc) 60%, transparent));
+}
+.reg-dial.r-ex .dial-centro { filter: drop-shadow(0 0 10px rgba(255, 210, 63, .7)) drop-shadow(0 0 2px rgba(255, 243, 194, .6)); }
 .reg #fn-num {
   width: 2.8ch; padding: 0; border: 0; border-bottom: 2px solid transparent; background: none; outline: none; text-align: right;
   font: 800 50px/1 var(--f-mono); letter-spacing: -.05em; color: var(--texto); font-variant-numeric: tabular-nums;
-  text-shadow: 0 0 24px color-mix(in srgb, var(--rc) 65%, transparent);
 }
 .reg #fn-num:focus { border-bottom-color: var(--rc); }
 .reg #fn-num::placeholder { color: var(--texto-3); }
 /* El 10 en dorado. Sin degradado recortado al texto: dentro de un <input>
    background-clip: text no funciona y el número se quedaba transparente */
-.reg-dial.r-ex #fn-num { color: #ffe08a; text-shadow: 0 0 18px rgba(255, 210, 63, .75), 0 0 2px #fff3c2; }
-.reg #fn-r { min-width: 1.4em; font: 800 22px/1 var(--f-display); font-style: normal; color: var(--rc); text-shadow: 0 0 16px var(--rc); }
+.reg-dial.r-ex #fn-num { color: #ffe08a; }
+.reg #fn-r { min-width: 1.4em; font: 800 22px/1 var(--f-display); font-style: normal; color: var(--rc); }
 /* La barra centrada en la fila y «Quitar nota» a su derecha, en la misma línea */
 .dial-pista { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 16px; }
 .dial-pista .enlace { font: 10.5px var(--f-mono); white-space: nowrap; }

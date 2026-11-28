@@ -852,12 +852,12 @@ dialog::backdrop { background: rgba(3, 3, 6, .78); backdrop-filter: blur(6px) sa
 }
 .fn-paso:hover { border-color: var(--naranja); background: var(--panel-2); }
 .fn-paso:active { background: rgba(255, 107, 26, .18); }
-:is(#fn-rango, .sgf-rango) { width: 100%; appearance: none; height: 22px; background: transparent; cursor: pointer; }
-:is(#fn-rango, .sgf-rango)::-webkit-slider-runnable-track { height: 6px; background: linear-gradient(90deg, var(--rk-f), var(--rk-d) 50%, var(--rk-c) 60%, var(--rk-b) 70%, var(--rk-a) 80%, var(--rk-s) 90%, var(--rk-sp) 95%, var(--rk-ex)); }
-:is(#fn-rango, .sgf-rango)::-moz-range-track { height: 6px; background: linear-gradient(90deg, var(--rk-f), var(--rk-d) 50%, var(--rk-c) 60%, var(--rk-b) 70%, var(--rk-a) 80%, var(--rk-s) 90%, var(--rk-sp) 95%, var(--rk-ex)); }
-:is(#fn-rango, .sgf-rango)::-webkit-slider-thumb { appearance: none; width: 16px; height: 24px; margin-top: -9px; background: var(--texto); border: 2px solid var(--negro); clip-path: polygon(50% 0, 100% 30%, 100% 100%, 0 100%, 0 30%); }
-:is(#fn-rango, .sgf-rango)::-moz-range-thumb { width: 14px; height: 22px; background: var(--texto); border: 2px solid var(--negro); border-radius: 0; }
-:is(#fn-rango, .sgf-rango)[data-vacia] { opacity: .45; }
+#fn-rango { width: 100%; appearance: none; height: 22px; background: transparent; cursor: pointer; }
+#fn-rango::-webkit-slider-runnable-track { height: 6px; background: linear-gradient(90deg, var(--rk-f), var(--rk-d) 50%, var(--rk-c) 60%, var(--rk-b) 70%, var(--rk-a) 80%, var(--rk-s) 90%, var(--rk-sp) 95%, var(--rk-ex)); }
+#fn-rango::-moz-range-track { height: 6px; background: linear-gradient(90deg, var(--rk-f), var(--rk-d) 50%, var(--rk-c) 60%, var(--rk-b) 70%, var(--rk-a) 80%, var(--rk-s) 90%, var(--rk-sp) 95%, var(--rk-ex)); }
+#fn-rango::-webkit-slider-thumb { appearance: none; width: 16px; height: 24px; margin-top: -9px; background: var(--texto); border: 2px solid var(--negro); clip-path: polygon(50% 0, 100% 30%, 100% 100%, 0 100%, 0 30%); }
+#fn-rango::-moz-range-thumb { width: 14px; height: 22px; background: var(--texto); border: 2px solid var(--negro); border-radius: 0; }
+#fn-rango[data-vacia] { opacity: .45; }
 .fn-pie { display: flex; justify-content: space-between; align-items: center; font: 10px var(--f-mono); color: var(--texto-3); }
 .fn-paso { font-family: system-ui, sans-serif; font-weight: 600; }
 .fi-acc .corto { display: none; }
@@ -914,7 +914,9 @@ dialog::backdrop { background: rgba(3, 3, 6, .78); backdrop-filter: blur(6px) sa
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   grid-template-areas: "dial dial" "prog prog" "tipo titulo" "cuando cuando";
 }
-.reg-dial { grid-area: dial; } .reg-prog { grid-area: prog; } .reg-tipo { grid-area: tipo; }
+/* Solo dentro de la consola: la barra de nota también va en el formulario de
+   saga, y un nombre de área que su rejilla no tiene le crea columnas fantasma */
+.reg-cuerpo > .reg-dial { grid-area: dial; } .reg-prog { grid-area: prog; } .reg-tipo { grid-area: tipo; }
 .reg-titulo { grid-area: titulo; } .reg-cuando { grid-area: cuando; }
 /* Los campos no encogen solos por debajo de su ancho por defecto */
 .reg-cuerpo > * { min-width: 0; }
@@ -939,19 +941,20 @@ dialog::backdrop { background: rgba(3, 3, 6, .78); backdrop-filter: blur(6px) sa
   filter: drop-shadow(0 0 12px color-mix(in srgb, var(--rc) 60%, transparent));
 }
 .reg-dial.r-ex .dial-centro { filter: drop-shadow(0 0 10px rgba(255, 210, 63, .7)) drop-shadow(0 0 2px rgba(255, 243, 194, .6)); }
-.reg #fn-num {
+.reg-dial :is(#fn-num, #sgf-num) {
   width: 2.8ch; padding: 0; border: 0; border-bottom: 2px solid transparent; background: none; outline: none; text-align: right;
   font: 800 50px/1 var(--f-mono); letter-spacing: -.05em; color: var(--texto); font-variant-numeric: tabular-nums;
 }
-.reg #fn-num:focus { border-bottom-color: var(--rc); }
-.reg #fn-num::placeholder { color: var(--texto-3); }
+.reg-dial :is(#fn-num, #sgf-num):focus { border-bottom-color: var(--rc); }
+.reg-dial :is(#fn-num, #sgf-num)::placeholder { color: var(--texto-3); }
 /* El 10 en dorado. Sin degradado recortado al texto: dentro de un <input>
    background-clip: text no funciona y el número se quedaba transparente */
-.reg-dial.r-ex #fn-num { color: #ffe08a; }
-.reg #fn-r { min-width: 1.4em; font: 800 22px/1 var(--f-display); font-style: normal; color: var(--rc); }
+.reg-dial.r-ex :is(#fn-num, #sgf-num) { color: #ffe08a; }
+.reg-dial .dial-centro i { min-width: 1.4em; font: 800 22px/1 var(--f-display); font-style: normal; color: var(--rc); }
 /* La barra centrada en la fila y «Quitar nota» a su derecha, en la misma línea */
 .dial-pista { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 16px; }
-.dial-pista .enlace { font: 10.5px var(--f-mono); white-space: nowrap; }
+/* Ancho fijo: si cambia el texto («Sin nota» ↔ «Quitar nota») no se mueve la barra a mitad de arrastre */
+.dial-pista .enlace { min-width: 11ch; font: 10.5px var(--f-mono); white-space: nowrap; text-align: right; }
 .dial { position: relative; height: 34px; cursor: pointer; touch-action: none; user-select: none; -webkit-user-select: none; }
 .dial:active { cursor: grabbing; }
 /* Pista con marcas cada punto y relleno hasta la nota */
@@ -1114,17 +1117,6 @@ dialog::backdrop { background: rgba(3, 3, 6, .78); backdrop-filter: blur(6px) sa
 .sgf-nom { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 600 13px var(--f-texto); }
 .sgf-t small { grid-column: 2 / 4; font: 10px var(--f-mono); color: var(--cian); }
 .sgf-t small:empty { display: none; }
-:where(.sgf-nota) { --rc: var(--linea-2); }
-.sgf-nota { display: grid; grid-template-columns: 36px 96px 36px minmax(120px, 1fr) auto; align-items: center; gap: 8px; max-width: 560px; }
-.sgf-num { display: flex; align-items: baseline; justify-content: center; gap: 4px; }
-#sgf-num {
-  width: 2.6ch; padding: 0; border: 0; border-bottom: 2px solid transparent; background: none; outline: none;
-  font: 800 30px/1 var(--f-mono); letter-spacing: -.04em; color: var(--texto); text-align: right; font-variant-numeric: tabular-nums;
-}
-#sgf-num:focus { border-bottom-color: var(--naranja); }
-#sgf-num::placeholder { color: var(--texto-3); }
-.sgf-num i { min-width: 1.2em; font: 800 16px/1 var(--f-display); font-style: normal; color: var(--rc); text-shadow: 0 0 14px var(--rc); }
-.sgf-rango[data-vacia] { opacity: .45; }
 .sgf-tambien { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font: 13px var(--f-texto); color: var(--texto-2); cursor: pointer; }
 .sgf-tambien input { accent-color: var(--naranja); width: 16px; height: 16px; }
 .sgf-tambien small { font: 10.5px var(--f-mono); color: var(--texto-3); }
@@ -1794,9 +1786,9 @@ body.visitando .vista { --naranja: var(--cian); }
   .reg-dial { grid-template-columns: 1fr; gap: 6px; padding: 10px 12px 8px; }
   .dial-lectura { justify-content: space-between; }
   .dial-centro { min-width: 0; }
-  .reg #fn-num { font-size: 40px; }
-  .reg #fn-r { font-size: 18px; }
-  .reg .fn-paso { width: 40px; height: 34px; font-size: 18px; }
+  .reg-dial :is(#fn-num, #sgf-num) { font-size: 40px; }
+  .reg-dial .dial-centro i { font-size: 18px; }
+  .reg-dial .fn-paso { width: 40px; height: 34px; font-size: 18px; }
   .dial { height: 30px; }
   .dial-pista .enlace { font-size: 9.5px; }
   .reg-prog { padding: 8px; gap: 8px; }
@@ -1826,9 +1818,6 @@ body.visitando .vista { --naranja: var(--cian); }
   .fi-sec { margin: 16px 10px 0; }
   .sg-form { padding: 12px; gap: 14px; }
   .sgf-lista { grid-template-columns: 1fr; }
-  .sgf-nota { grid-template-columns: 36px 1fr 36px; }
-  .sgf-rango { grid-column: 1 / -1; }
-  .sgf-nota [data-sgf-sin-nota] { grid-column: 1 / -1; justify-self: start; }
 
   /* Perfil: ficha de operador en horizontal y cifras en una fila */
   .id-op { grid-template-columns: 84px minmax(0, 1fr); justify-items: start; text-align: left; gap: 14px; padding: 14px 12px; margin: 12px 0 12px; }

@@ -136,7 +136,7 @@ function registro(e) {
             <span class="dial-aro" aria-hidden="true"></span>
             <span class="dial-aguja" aria-hidden="true"><i></i></span>
           </div>
-          <button class="enlace" data-sin-nota>${e.nota == null ? "Arrastra para puntuar" : "Quitar nota"}</button>
+          <button class="enlace" data-sin-nota>${e.nota == null ? "Sin nota" : "Quitar nota"}</button>
         </div>
         <input type="range" id="fn-rango" class="solo-lector" min="0" max="10" step="0.1" value="${e.nota ?? 7}" aria-label="Nota de 0 a 10" ${e.nota == null ? 'data-vacia="1"' : ""}>
       </div>
@@ -273,7 +273,7 @@ function conectaRegistro(d, e0) {
     caja.className = "reg-dial " + (r ? r.clase : "sin-nota") + (arrastrando ? " arrastrando" : "");
     caja.style.setProperty("--nota", n ?? 0);
     if (n != null) { rg.value = n; rg.removeAttribute("data-vacia"); } else rg.setAttribute("data-vacia", "1");
-    d.querySelector("[data-sin-nota]").textContent = n == null ? "Arrastra para puntuar" : "Quitar nota";
+    d.querySelector("[data-sin-nota]").textContent = n == null ? "Sin nota" : "Quitar nota";
   };
   const guardaNota = (n) => {
     const antes = e().nota;
@@ -567,12 +567,16 @@ function formSaga(d, id, s, f) {
     </div>` : ""}
     <div class="sgf-fila" data-sgf-solo-visto>
       <span class="sgf-etq">Nota para toda la saga</span>
-      <div class="sgf-nota sin-nota">
-        <button class="fn-paso" data-sgf-paso="-1" aria-label="Bajar una décima">−</button>
-        <span class="sgf-num"><input id="sgf-num" inputmode="decimal" autocomplete="off" maxlength="4" placeholder="—" aria-label="Nota de la saga"><i></i></span>
-        <button class="fn-paso" data-sgf-paso="1" aria-label="Subir una décima">＋</button>
-        <input type="range" class="sgf-rango" min="0" max="10" step="0.1" value="7" data-vacia="1" aria-label="Nota de 0 a 10">
-        <button class="enlace" data-sgf-sin-nota>Sin nota</button>
+      <div class="reg-dial sin-nota" style="--nota:0">
+        <div class="dial-lectura">
+          <button class="fn-paso" data-sgf-paso="-1" aria-label="Bajar una décima">−</button>
+          <span class="dial-centro"><input id="sgf-num" inputmode="decimal" autocomplete="off" maxlength="4" placeholder="—" aria-label="Nota de la saga, escríbela, arrastra la barra o usa − y ＋"><i></i></span>
+          <button class="fn-paso" data-sgf-paso="1" aria-label="Subir una décima">＋</button>
+        </div>
+        <div class="dial-pista">
+          <div class="dial" data-sgf-dial title="Arrastra para puntuar"><span class="dial-aro" aria-hidden="true"></span><span class="dial-aguja" aria-hidden="true"><i></i></span></div>
+          <button class="enlace" data-sgf-sin-nota>Sin nota</button>
+        </div>
       </div>
       ${tuyas.length ? `<label class="sgf-tambien"><input type="checkbox" data-sgf-tambien ${faltan.length ? "" : "checked"}>
         ${faltan.length ? "También a" : "A"} ${tuyas.length === 1 ? "la que ya tienes vista" : `las ${tuyas.length} que ya tienes vistas`}
@@ -603,12 +607,12 @@ function formSaga(d, id, s, f) {
     // Nota y fecha solo tienen sentido si entran como vistas (o para las que ya tienes)
     const conVisto = estado === "visto" || !faltan.length;
     $$f("[data-sgf-solo-visto]").forEach((x) => (x.hidden = !conVisto));
-    const r = rango(nota), caja = $f(".sgf-nota");
-    caja.className = "sgf-nota " + (r ? r.clase : "sin-nota");
-    $f(".sgf-num i").textContent = r ? r.r : "";
-    const rg = $f(".sgf-rango");
-    if (nota != null) { rg.value = nota; rg.removeAttribute("data-vacia"); } else rg.setAttribute("data-vacia", "1");
-    $f("[data-sgf-sin-nota]").hidden = nota == null;
+    // La misma barra de nota que en Tu registro
+    const r = rango(nota), caja = $f(".reg-dial");
+    caja.className = "reg-dial " + (r ? r.clase : "sin-nota") + (arrastrando ? " arrastrando" : "");
+    caja.style.setProperty("--nota", nota ?? 0);
+    $f(".dial-centro i").textContent = r ? r.r : "";
+    $f("[data-sgf-sin-nota]").textContent = nota == null ? "Sin nota" : "Quitar nota";
     const cu = $f(".cuando");
     if (cu) {
       cu.classList.toggle("atemporal", !anio);
@@ -621,6 +625,7 @@ function formSaga(d, id, s, f) {
     ok.textContent = nSel ? `Añadir ${nSel === 1 ? "1 temporada" : nSel + " temporadas"}${nTambien ? ` · nota a ${nTambien} más` : ""}` : nTambien ? `Poner ${fmtNota(nota)} a ${nTambien === 1 ? "1 temporada" : nTambien + " temporadas"}` : faltan.length ? "Marca alguna temporada" : "Elige una nota";
   };
   const num = $f("#sgf-num");
+  let arrastrando = false;
   const redondea = (n) => Math.min(10, Math.max(0, Math.round(n * 10) / 10));
   const ponNota = (n) => { nota = n == null ? null : redondea(n); num.value = nota == null ? "" : fmtNota(nota); pinta(); };
 
@@ -637,8 +642,21 @@ function formSaga(d, id, s, f) {
     pinta();
   }));
   $$f("[data-sgf-paso]").forEach((b) => b.addEventListener("click", () => ponNota((nota ?? 7) + +b.dataset.sgfPaso / 10)));
-  $f(".sgf-rango").addEventListener("input", (ev) => ponNota(+ev.target.value));
-  $f("[data-sgf-sin-nota]").addEventListener("click", () => ponNota(null));
+  // Arrastrar la barra: la posición a lo ancho da la nota
+  const dial = $f("[data-sgf-dial]");
+  const notaDe = (ev) => { const c = dial.getBoundingClientRect(); return Math.max(0, Math.min(1, (ev.clientX - c.left) / c.width)) * 10; };
+  dial.addEventListener("pointerdown", (ev) => {
+    if (ev.button !== 0) return;
+    ev.preventDefault();
+    try { dial.setPointerCapture(ev.pointerId); } catch {}
+    arrastrando = true;
+    ponNota(notaDe(ev));
+  });
+  dial.addEventListener("pointermove", (ev) => { if (arrastrando) ponNota(notaDe(ev)); });
+  const suelta = (ev) => { if (!arrastrando) return; arrastrando = false; ponNota(notaDe(ev)); };
+  dial.addEventListener("pointerup", suelta);
+  dial.addEventListener("pointercancel", () => { arrastrando = false; pinta(); });
+  $f("[data-sgf-sin-nota]").addEventListener("click", () => { if (nota != null) ponNota(null); });
   num.addEventListener("focus", () => num.select());
   num.addEventListener("keydown", (ev) => { if (ev.key === "Enter") { ev.preventDefault(); num.blur(); } });
   num.addEventListener("change", () => {

@@ -19,6 +19,7 @@ export const PARCHES = [
         "**Invocar ×10** con una SR o más asegurada, y SSR segura si llevas 30 invocaciones sin ninguna. Las **repetidas dan fragmentos**: con 5, un ticket.",
         "**Álbum 図鑑** con filtros y **sets** (Leyendas, Studio Ghibli, Los 90, Manhwa…). Cada semana dos sets tienen su propio banner, y **completar un set da 3 tickets**.",
         "**3 logros nuevos**: Mazo, Set completo y Despertar. Y puedes ver el álbum de otros operadores desde su perfil.",
+        "**Invocar luce más**: el portal se tiñe del color de lo mejor que viene, cada carta sale con un estallido de su rareza y, si te toca una **brillante ✦** (1 de cada 200 cartas), el altar entero lo celebra.",
       ] },
       { titulo: "A saber", ico: "ℹ", items: [
         "El Gacha de pendientes («¿qué veo ahora?») se ha ido: su sitio lo ocupan las cartas.",

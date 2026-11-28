@@ -869,7 +869,7 @@ kbd {
 /* Despertada: marco dorado */
 .kc.despierta .kc-marco { border-color: var(--oro); background: linear-gradient(160deg, color-mix(in srgb, var(--oro) 30%, #1a1508), #0b0b11 55%, color-mix(in srgb, var(--tp) 20%, #0b0b11)); }
 /* Brillante: foil de arcoíris que se mueve */
-.kc.brilla .kc-marco::after { content: ""; position: absolute; inset: 0; pointer-events: none; mix-blend-mode: color-dodge; opacity: .55;
+.kc.brilla .kc-marco::after { content: ""; position: absolute; inset: 0; pointer-events: none; mix-blend-mode: color-dodge; opacity: .35;
   background: conic-gradient(from var(--ang, 0deg) at var(--mx, 50%) var(--my, 40%), #ff4f9a, #ffd23f, #37f29a, #39d8ff, #a77bff, #ff4f9a); animation: foil 6s linear infinite; }
 .kc.mini { width: 100%; }
 .kc.mini .kc-marco { grid-template-rows: auto 1fr auto auto; }
@@ -877,7 +877,7 @@ kbd {
 /* Revelado: una carta grande, o la rejilla del ×10 */
 .gc-revela { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 26px; align-items: center; max-width: 680px; animation: revela .7s cubic-bezier(.2, .9, .2, 1.2) both; }
 .gc-volver { grid-column: 1 / -1; justify-self: start; }
-@keyframes revela { from { opacity: 0; transform: rotateY(-90deg) scale(.8); } }
+@keyframes revela { from { opacity: 0; transform: scale(.9) translateY(10px); } }
 .gc-carta .kc { filter: drop-shadow(0 0 28px color-mix(in srgb, var(--rr) 60%, transparent)); }
 .gc-info h3 { margin: 6px 0 8px; font: 800 clamp(26px, 2.8vw, 40px)/1.02 var(--f-display); text-wrap: balance; }
 .gc-meta { margin: 0 0 10px; font: 12px var(--f-mono); color: var(--texto-2); }
@@ -895,6 +895,75 @@ kbd {
 .gc-hueco:hover { transform: translateY(-4px); }
 .gc-hueco .gc-etq { position: absolute; left: 50%; bottom: -8px; transform: translateX(-50%); z-index: 2; font-size: 8.5px; padding: 2px 6px; }
 .gc-rejilla-pie { grid-column: 1 / -1; margin: 10px 0 0; text-align: center; font: 11px var(--f-mono); color: var(--texto-3); text-transform: uppercase; letter-spacing: .1em; }
+
+/* ── Animación de la invocación ──────────────────────────────────────────
+   Presagio en el portal → destello → cartas boca abajo que se voltean con un
+   estallido del color de su rareza. Los tiempos (--giro, --fin) los pone
+   vistas/gacha.js según lo que ha salido. */
+.altar.presagio .pt-nucleo { width: 120px; height: 120px; }
+.altar.presagio.r-ssr .portal { animation: carga 1.5s cubic-bezier(.5, 0, .9, .4) forwards, tiembla-portal .09s linear infinite; }
+@keyframes tiembla-portal { 50% { translate: 2px -2px; } }
+.altar.presagio-brillo .pt-nucleo { background: radial-gradient(circle, #fff 0, #ff4f9a 30%, transparent 70%); animation: late .25s ease-in-out infinite, tono 1.2s linear infinite; }
+@keyframes tono { from { filter: blur(2px) hue-rotate(0deg); } to { filter: blur(2px) hue-rotate(360deg); } }
+.altar.presagio-brillo .rayos { opacity: 1; background: repeating-conic-gradient(from 0deg, rgba(255, 79, 154, .45) 0 4deg, transparent 4deg 9deg, rgba(255, 210, 63, .45) 9deg 13deg, transparent 13deg 18deg, rgba(57, 216, 255, .45) 18deg 22deg, transparent 22deg 27deg); animation: gira 1.6s linear infinite; }
+.altar.presagio-brillo.destello::after { background: conic-gradient(#ff4f9a, #ffd23f, #37f29a, #39d8ff, #a77bff, #ff4f9a); }
+/* Tras una SSR, los rayos dorados siguen girando despacio detrás */
+.altar.con-carta.r-ssr .rayos { opacity: .4; animation: gira 14s linear infinite; }
+
+/* Cada carta sale de golpe, sin girar, y suelta su estallido */
+.aparece { --rr: var(--verde); position: relative; }
+.aparece.r-ssr { --rr: var(--oro); } .aparece.r-sr { --rr: var(--violeta); } .aparece.r-r { --rr: var(--cian); }
+.gc-carta .aparece, .gc-carta .kc { width: 250px; max-width: 100%; }
+.aparece.estreno { animation: carta-sale .5s cubic-bezier(.2, .9, .2, 1.3) both; animation-delay: var(--giro, 0ms); }
+.aparece.estreno.r-ssr, .aparece.estreno.brilla { animation-duration: .7s; }
+@keyframes carta-sale { from { opacity: 0; transform: scale(.55) translateY(24px); filter: brightness(3); } 60% { filter: brightness(1.4); } }
+/* Estallido al salir: ondas y chispas del color de la rareza */
+.estallido { position: absolute; inset: 0; z-index: 3; display: grid; place-items: center; pointer-events: none; }
+.onda { grid-area: 1 / 1; width: 46%; aspect-ratio: 1; border-radius: 50%; border: 3px solid var(--rr); opacity: 0; animation: onda .8s ease-out both; animation-delay: calc(var(--giro, 0ms) + 120ms); }
+.onda.o2 { animation-delay: calc(var(--giro, 0ms) + 250ms); }
+.aparece.r-n .onda, .aparece.r-r .onda { border-width: 2px; }
+@keyframes onda { 0% { opacity: .95; transform: scale(.25); } 100% { opacity: 0; transform: scale(3); border-width: 0; } }
+.chispa { grid-area: 1 / 1; width: 7px; height: 7px; border-radius: 50%; background: var(--rr); box-shadow: 0 0 10px var(--rr), 0 0 2px #fff; opacity: 0;
+  animation: chispa 1s cubic-bezier(.1, .75, .3, 1) both; animation-delay: calc(var(--giro, 0ms) + 140ms + var(--t, 0ms)); }
+@keyframes chispa { 0% { opacity: 1; transform: rotate(var(--a)) translateX(0) scale(1.2); } 100% { opacity: 0; transform: rotate(var(--a)) translateX(var(--d)) scale(.2); } }
+/* El resto del revelado aparece cuando la carta ya ha salido */
+.gc-revela.estreno { animation: none; }
+.gc-revela.estreno .gc-info, .gc-revela.estreno .gc-volver { animation: info-entra .5s ease-out both; animation-delay: var(--info, 0ms); }
+@keyframes info-entra { from { opacity: 0; transform: translateX(14px); } }
+.gc-rejilla.estreno .gc-hueco { animation: none; }
+.gc-rejilla.estreno .gc-hueco .gc-etq { animation: info-entra .35s ease-out both; animation-delay: calc(var(--giro, 0ms) + 350ms); }
+.gc-rejilla.estreno .gc-rejilla-pie { animation: info-entra .4s ease-out both; animation-delay: var(--fin, 0ms); }
+/* Una brillante, ya fuera, late en todos los colores */
+.gc-carta .kc.brilla, .gc-hueco .kc.brilla { animation: arcoiris 3s linear infinite; }
+@keyframes arcoiris {
+  0%, 100% { filter: drop-shadow(0 0 16px #ff4f9a); } 20% { filter: drop-shadow(0 0 16px #ffd23f); } 40% { filter: drop-shadow(0 0 16px #37f29a); }
+  60% { filter: drop-shadow(0 0 16px #39d8ff); } 80% { filter: drop-shadow(0 0 16px #a77bff); }
+}
+
+/* La fiesta de la brillante: el altar se apaga, entra un prisma girando,
+   ondas de colores, estrellas y el rótulo 輝 */
+.evento-brillo { position: absolute; inset: 0; z-index: 5; pointer-events: none; overflow: hidden; display: grid; place-items: center; }
+.evento-brillo > * { grid-area: 1 / 1; }
+.eb-velo { position: absolute; inset: 0; background: radial-gradient(circle, rgba(6, 6, 9, .62), rgba(6, 6, 9, .9)); opacity: 0; animation: eb-velo 2.6s ease both; animation-delay: var(--en); }
+@keyframes eb-velo { 0% { opacity: 0; } 12%, 70% { opacity: 1; } 100% { opacity: 0; } }
+.eb-prisma { position: absolute; left: 50%; top: 50%; translate: -50% -50%; width: 170%; aspect-ratio: 1; border-radius: 50%; opacity: 0; mix-blend-mode: screen;
+  background: repeating-conic-gradient(from 0deg, rgba(255, 79, 154, .5) 0 6deg, transparent 6deg 15deg, rgba(255, 210, 63, .5) 15deg 21deg, transparent 21deg 30deg, rgba(55, 242, 154, .45) 30deg 36deg, transparent 36deg 45deg, rgba(57, 216, 255, .5) 45deg 51deg, transparent 51deg 60deg);
+  mask: radial-gradient(circle, #000 0, transparent 62%); animation: eb-prisma 2.6s ease-out both; animation-delay: var(--en); }
+@keyframes eb-prisma { 0% { opacity: 0; transform: rotate(0deg) scale(.3); } 15% { opacity: 1; } 70% { opacity: .8; } 100% { opacity: 0; transform: rotate(160deg) scale(1.1); } }
+.eb-ondas { position: absolute; inset: 0; display: grid; place-items: center; }
+.eb-ondas i { grid-area: 1 / 1; width: 120px; aspect-ratio: 1; border-radius: 50%; opacity: 0; border: 4px solid transparent; background: conic-gradient(#ff4f9a, #ffd23f, #37f29a, #39d8ff, #a77bff, #ff4f9a) border-box;
+  mask: linear-gradient(#000 0 0) padding-box exclude, linear-gradient(#000 0 0); animation: eb-onda 1.4s ease-out both; animation-delay: var(--en); }
+.eb-ondas i:nth-child(2) { animation-delay: calc(var(--en) + 220ms); } .eb-ondas i:nth-child(3) { animation-delay: calc(var(--en) + 440ms); }
+@keyframes eb-onda { 0% { opacity: 1; transform: scale(.2); } 100% { opacity: 0; transform: scale(6); } }
+.eb-estrella { position: absolute; font-size: calc(var(--s) * 18px); font-style: normal; line-height: 1; text-shadow: 0 0 10px currentColor; opacity: 0;
+  animation: eb-estrella 1.1s ease-in-out 2 both; animation-delay: calc(var(--en) + var(--t)); }
+@keyframes eb-estrella { 0%, 100% { opacity: 0; transform: scale(.2) rotate(0deg); } 50% { opacity: 1; transform: scale(1) rotate(90deg); } }
+.eb-texto { display: grid; justify-items: center; gap: 2px; opacity: 0; animation: eb-texto 2.4s cubic-bezier(.2, .9, .2, 1) both; animation-delay: calc(var(--en) + 150ms); }
+.eb-texto b { font: 120px/1 var(--f-jp); color: #fff; text-shadow: 0 0 22px #ff4f9a, 0 0 44px #39d8ff, 0 0 70px #ffd23f; }
+.eb-texto span { font: 800 28px var(--f-display); letter-spacing: .3em; text-transform: uppercase; padding-left: .3em;
+  background: linear-gradient(90deg, #ff4f9a, #ffd23f, #37f29a, #39d8ff, #a77bff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.eb-texto small { font: 600 11px var(--f-mono); letter-spacing: .2em; text-transform: uppercase; color: var(--texto-2); }
+@keyframes eb-texto { 0% { opacity: 0; transform: scale(2.6); letter-spacing: .8em; } 14% { opacity: 1; transform: scale(1); } 78% { opacity: 1; transform: scale(1.04); } 100% { opacity: 0; transform: scale(1.1); } }
 
 /* Álbum */
 .album { display: grid; gap: 18px; }
@@ -2188,6 +2257,9 @@ body.visitando .vista { --naranja: var(--cian); }
   .album-orden { margin-left: 0; }
   .album-rejilla { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
   .kc.mini .kc-datos, .kc.mini .kc-tipo em { display: none; }
+  .eb-texto b { font-size: 84px; }
+  .eb-texto span { font-size: 20px; }
+  .gc-revela .aparece { width: 200px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

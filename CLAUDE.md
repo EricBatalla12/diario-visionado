@@ -284,6 +284,14 @@ Gacha de pendientes **se quita**.
 - **Estado**: migración ejecutada por Eric y comprobada (tablas y funciones dan 42501 sin sesión);
   publicado con el parche "Cartas coleccionables" (`2026-11-28e`). Barra: Invocar/Álbum como
   pestañas subrayadas con los tickets al lado; el pozo, un interruptor aparte debajo.
+- **Animaciones** (en `pruebas`, 28-11, sin publicar): presagio en el portal del color de la
+  mejor carta (arcoíris si hay brillante, tiembla con SSR), destello, cada carta sale de golpe
+  (`.aparece`, 90 ms entre una y otra en la ×10) con estallido de ondas y chispas (`tiempos()` da
+  `--giro`), y la «fiesta» de la brillante (`.evento-brillo`, 輝). Las cartas boca abajo que se
+  volteaban se probaron y **Eric las quitó**: alargaban mucho e iban mal. Solo en el
+  `estreno` (la primera pintada tras invocar; `revelado.estreno`); con movimiento reducido, nada.
+  Probadas congelando fotogramas (`getAnimations()` + `currentTime`) y forzando una brillante
+  con `Math.random = () => 0.001` durante la tirada en la página de pruebas.
 - **Fragmentos**: 1 por cada carta repetida (sin importar la rareza); 5 = 1 ticket con
   `kiroku_canjea` (canjea todos los posibles de golpe).
 - **Piedad a 30** (decisión de Eric): con 10 y SSR al 3 % salía una SSR de cada ~8,6 tiradas
@@ -317,6 +325,9 @@ Gacha de pendientes **se quita**.
 
 - **Gacha** (lo que queda tras las cartas): banner de operador (lo que otro puntuó con 9+ y tú
   no has visto), animación especial de SSR.
+- **Cosméticos por brillantes** (idea de Eric, 28-11): que las cartas brillantes (1/200,
+  `cartas.brillante`) desbloqueen cosméticos para el perfil. Sin concretar qué cosméticos ni
+  cuántas brillantes cuesta cada uno.
 - **Arrastrar cartas** es un gesto escondido: añadir un paso al tutorial (`tutorial.js`).
 - **Logros permanentes**: guardar los conseguidos para que no se pierdan (ver 28-11).
 - **Red social** (seguir perfiles, feed de actividad, publicaciones estilo Twitter):

@@ -102,6 +102,12 @@ export function pinta(raiz, { stats, abreFicha, propio }) {
     </div>
   </div>
   ${modo === "invocar" ? invocar(pozo, col, t, stats) : album(pozo, dePozo, col, propio)}`;
+  // La animación de una invocación recién hecha sale una vez: si algo repinta
+  // la vista después (apuntar a pendientes, un premio…), las cartas ya están
+  // boca arriba
+  const estreno = revelado?.estreno && modo === "invocar";
+  if (revelado) revelado.estreno = false;
+  if (estreno) lanzaEstreno(raiz);
   conecta(raiz, propio);
   if (modo === "album") cargaSets(pozo, propio);
   if (revelado && modo === "invocar") rellenaSinopsis(raiz);
@@ -213,9 +219,12 @@ function revela(c, rev) {
     rev.diaria ? `<span class="gc-etq dia">日 Carta del día</span>` : "",
   ].join("");
   const generos = (m.genres || []).map(genero).join(" · ");
-  return `<div class="gc-revela">
+  const estreno = estrenoActivo(rev), giro = estreno ? tiempos(rev.cartas).giros[0] : 0;
+  // La información, cuando la carta ya ha salido (y tras la fiesta, si es brillante)
+  const info = giro + 300 + (c.brillante ? EVENTO_BRILLO - 300 : 0);
+  return `<div class="gc-revela ${estreno ? "estreno" : ""}" style="--giro:${giro}ms;--info:${info}ms">
     ${rev.cartas.length > 1 ? `<button class="btn gc-volver" data-rejilla>◀ Las ${rev.cartas.length} cartas</button>` : ""}
-    <div class="gc-carta">${carta({ ...c, mediaId: c.media_id })}</div>
+    <div class="gc-carta">${entrada(c, carta({ ...c, mediaId: c.media_id }), { estreno })}</div>
     <div class="gc-info">
       <div class="gc-etqs">${etiquetas}</div>
       <h3>${esc(tituloApi(m))}</h3>
@@ -231,11 +240,77 @@ function revela(c, rev) {
 
 // Las diez del ×10, que aparecen de una en una
 function rejilla(rev) {
-  return `<div class="gc-rejilla">
-    ${rev.cartas.map((c, k) => `<button class="gc-hueco ${c.nueva ? "nueva" : ""}" style="--k:${k}" data-enfoca="${k}" title="${esc(tituloApi(c.media))}">
-      ${carta({ ...c, mediaId: c.media_id }, { mini: true, k })}${c.nueva ? `<span class="gc-etq nueva">NUEVA</span>` : ""}</button>`).join("")}
+  const estreno = estrenoActivo(rev), tt = tiempos(rev.cartas);
+  return `<div class="gc-rejilla ${estreno ? "estreno" : ""}" style="--fin:${tt.fin}ms">
+    ${rev.cartas.map((c, k) => `<button class="gc-hueco ${c.nueva ? "nueva" : ""} ${c.brillante ? "brilla" : ""}" style="--k:${k};--giro:${estreno ? tt.giros[k] : 0}ms" data-enfoca="${k}" title="${esc(tituloApi(c.media))}">
+      ${entrada(c, carta({ ...c, mediaId: c.media_id }, { mini: true, k }), { estreno, mini: true })}${c.nueva ? `<span class="gc-etq nueva">NUEVA</span>` : ""}</button>`).join("")}
     <p class="gc-rejilla-pie">${plural(rev.cartas.filter((c) => c.nueva).length, "nueva", "nuevas")} · pulsa una carta para verla</p>
   </div>`;
+}
+
+// ── Animación de la invocación ───────────────────────────────────────────
+// Tras el presagio y el destello del portal, cada carta aparece de golpe con
+// un estallido de su color (ondas siempre; chispas en SR, SSR y brillante).
+// Una brillante, además, apaga el altar y lo llena de luz de colores.
+// (Se probó que cayeran boca abajo y se voltearan: alargaba mucho y se quitó.)
+const estrenoActivo = (rev) => Boolean(rev.estreno) && !reducido();
+const EVENTO_BRILLO = 2600;   // lo que dura la fiesta de la brillante
+// `giros`: cuándo aparece cada carta (ms); `fin`: cuándo ha acabado todo
+function tiempos(cartas) {
+  const giros = cartas.map((c, k) => (cartas.length === 1 ? 0 : k * 90));
+  const fin = giros.at(-1) + 600 + (cartas.some((c) => c.brillante) ? EVENTO_BRILLO : 0);
+  return { giros, fin };
+}
+
+// Chispas que salen del centro: ángulo, distancia y retraso al azar
+function chispas(n, [min, max], colores = null) {
+  return Array.from({ length: n }, (_, i) => {
+    const a = Math.round(i * 360 / n + Math.random() * 18), d = Math.round(min + Math.random() * (max - min));
+    const c = colores ? `;--rr:${colores[i % colores.length]}` : "";
+    return `<i class="chispa" style="--a:${a}deg;--d:${d}px;--t:${Math.round(Math.random() * 140)}ms${c}"></i>`;
+  }).join("");
+}
+const ARCOIRIS = ["#ff4f9a", "#ffd23f", "#37f29a", "#39d8ff", "#a77bff", "#ff8a1f"];
+
+// La carta con su entrada y su estallido (solo en el estreno)
+function entrada(c, frente, { estreno = false, mini = false } = {}) {
+  const f = mini ? 0.55 : 1;
+  const chis = !estreno ? "" : c.brillante ? chispas(mini ? 18 : 30, [110 * f, 250 * f], ARCOIRIS)
+    : c.rareza === "ssr" ? chispas(mini ? 16 : 26, [100 * f, 230 * f]) : c.rareza === "sr" ? chispas(mini ? 8 : 14, [80 * f, 160 * f]) : "";
+  return `<div class="aparece r-${c.rareza} ${c.brillante ? "brilla" : ""} ${estreno ? "estreno" : ""}">
+    ${frente}
+    ${estreno ? `<div class="estallido" aria-hidden="true"><i class="onda"></i><i class="onda o2"></i>${chis}</div>` : ""}
+  </div>`;
+}
+
+// Tras pintar el estreno: la fiesta de cada brillante y los avisos, cuando
+// toca (cuando sale la carta, no antes)
+function lanzaEstreno(raiz) {
+  const cartas = revelado.cartas, tt = tiempos(cartas), altar = raiz.querySelector("#altar");
+  if (reducido()) {
+    if (cartas.some((c) => c.brillante)) aviso("✦ ¡Carta brillante!", { tipo: "logro" });
+    return;
+  }
+  cartas.forEach((c, k) => {
+    if (!c.brillante) return;
+    const en = tt.giros[k] + 200;
+    const ev = document.createElement("div");
+    ev.className = "evento-brillo";
+    ev.setAttribute("aria-hidden", "true");
+    ev.style.setProperty("--en", en + "ms");
+    ev.innerHTML = `<div class="eb-velo"></div><div class="eb-prisma"></div>
+      <div class="eb-ondas"><i></i><i></i><i></i></div>
+      ${Array.from({ length: 28 }, () => `<i class="eb-estrella" style="left:${(Math.random() * 100).toFixed(1)}%;top:${(Math.random() * 100).toFixed(1)}%;--t:${Math.round(Math.random() * 900)}ms;--s:${(0.6 + Math.random() * 1.2).toFixed(2)};color:${ARCOIRIS[Math.floor(Math.random() * ARCOIRIS.length)]}">✦</i>`).join("")}
+      <div class="eb-texto"><b>輝</b><span>Brillante</span><small>1 de cada 200 cartas</small></div>`;
+    altar?.appendChild(ev);
+    setTimeout(() => ev.remove(), en + EVENTO_BRILLO + 400);
+    setTimeout(() => aviso(`✦ ¡Carta brillante! «${tituloApi(c.media)}»`, { tipo: "logro" }), en + 600);
+  });
+  const ssr = cartas.filter((c) => c.rareza === "ssr" && c.nueva).length;
+  if (ssr) {
+    const primera = tt.giros[cartas.findIndex((c) => c.rareza === "ssr" && c.nueva)];
+    setTimeout(() => aviso(`¡${ssr > 1 ? ssr + " SSR nuevas" : "SSR nueva"}!`, { tipo: "logro" }), primera + 400);
+  }
 }
 
 // La sinopsis llega aparte (la ficha completa, que se guarda 3 días)
@@ -268,20 +343,23 @@ async function invoca(n, { diaria = false } = {}) {
       rachaPremio: diaria && rachaSig % G.RACHA_PREMIO === 0, tengo: new Set(col.cartas.map((c) => c.mediaId)) });
     const res = await invocaNube(pozo, cartas, diaria ? hoyClave() : null);
     if (anima) {
-      altar.classList.add("r-" + mejorDe(res.cartas).rareza);
-      await espera(Math.max(0, 1500 - (Date.now() - t0)));
+      // Presagio: el portal se tiñe del color de la mejor carta (de arcoíris si
+      // hay una brillante) y espera un poco más cuanto mejor es
+      const mejor = mejorDe(res.cartas).rareza, brillo = res.cartas.some((c) => c.brillante);
+      altar.classList.add("r-" + mejor, "presagio");
+      if (brillo) altar.classList.add("presagio-brillo");
+      await espera(Math.max(0, 1500 - (Date.now() - t0)) + (brillo ? 900 : mejor === "ssr" ? 600 : mejor === "sr" ? 250 : 0));
       altar.classList.add("destello");
-      await espera(400);
+      await espera(350);
     }
-    revelado = { pozo, cartas: res.cartas, i: res.cartas.length === 1 ? 0 : null, diaria };
+    revelado = { pozo, cartas: res.cartas, i: res.cartas.length === 1 ? 0 : null, diaria, estreno: true };
     historial.unshift(...res.cartas);
     historial = historial.slice(0, 30);
     girando = false;
     aplicaGacha(res);   // repinta la vista
     if (diaria && res.gacha.racha > 1) aviso(`Tirada del día: llevas ${res.gacha.racha} días seguidos 🔥`);
-    const ssr = res.cartas.filter((c) => c.rareza === "ssr" && c.nueva).length;
-    if (ssr) aviso(`¡${ssr > 1 ? ssr + " SSR nuevas" : "SSR nueva"}!`, { tipo: "logro" });
-    compruebaSets(pozo);
+    // Los sets, cuando ya se han visto las cartas
+    setTimeout(() => compruebaSets(pozo), reducido() ? 0 : tiempos(res.cartas).fin);
   } catch (err) {
     girando = false;
     aviso("No se pudo invocar: " + err.message);

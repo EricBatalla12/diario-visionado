@@ -268,7 +268,7 @@ Gacha de pendientes **se quita**.
   base de datos). Probado en Docker (instalación nueva ×2 y actualización = misma estructura).
   Los tickets **ganados** los calcula la web (no se pueden comprobar en el servidor).
 - **Lógica** en `web/js/gacha.js`: tasas fijas (SSR 3 / SR 12 / R 35 / N 50; diaria 8/22/40/30),
-  rareza por nota de AniList, `PIEDAD` 30, ×10 con SR o más, brillante 1/50, `PESO_FALTA` 4 en
+  rareza por nota de AniList, `PIEDAD` 30, ×10 con SR o más, brillante 1/200 (antes 1/50), `PESO_FALTA` 4 en
   sets, `RACHA_PREMIO` 7. Pozo anime = popularidad > 20 000 (~3200 títulos), manga > 5000 (~2800);
   tamaño por rareza medido el 28-11 y corregido solo (`kiroku:gacha:tam`). Una tirada pide como
   mucho una página de 50 por rareza, todas en **una** petición con alias; páginas en caché 7 días

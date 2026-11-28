@@ -34,7 +34,9 @@ export const FRAG_TICKET = 5;      // fragmentos (repetidas) por ticket
 export const TICKETS_NIVEL = 2;    // por cada nivel
 export const TICKETS_SET = 3;      // por completar un set
 export const RACHA_PREMIO = 7;     // cada 7 días seguidos, la del día es SR o más
-const BRILLO = 1 / 50;             // variante brillante
+// Variante brillante: 1 de cada 200 cartas (0,5 %). Con 1/50 salían demasiadas
+// (una ×10 traía alguna casi una vez de cada cinco).
+const BRILLO = 1 / 200;
 
 // ── Pozos ────────────────────────────────────────────────────────────────
 // `pop`: usuarios de AniList que lo tienen en su lista, como mínimo: deja

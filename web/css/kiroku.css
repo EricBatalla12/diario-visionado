@@ -763,6 +763,36 @@ kbd {
 .bi-jp { font: 30px/1 var(--f-jp); }
 .bi-t { font: 700 15px var(--f-hud); letter-spacing: .24em; text-transform: uppercase; }
 .btn-invocar small { font: 600 10.5px var(--f-mono); opacity: .7; }
+/* Banners del gacha: el completo y los dos temáticos de la semana */
+.banners { display: grid; gap: 6px; margin-bottom: 6px; }
+.banner {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 8px 10px; text-align: left;
+  border: 1px solid var(--linea-2); background: var(--negro); color: var(--texto-2); transition: border-color .15s, background .15s, color .15s;
+}
+.banner i { font: 700 15px "Zen Kaku Gothic New", sans-serif; font-style: normal; color: var(--naranja); }
+.banner b { font: 700 12px var(--f-hud); letter-spacing: .1em; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.banner small { font: 700 11px var(--f-mono); color: var(--texto-3); }
+.banner:hover { border-color: var(--naranja); color: var(--texto); }
+.banner.on { color: var(--texto); border-color: var(--naranja); background: linear-gradient(90deg, rgba(255, 107, 26, .22), rgba(255, 107, 26, .04)); box-shadow: inset 3px 0 0 var(--naranja); }
+.banner-pie { margin: 0 0 14px; font: 10.5px var(--f-mono); color: var(--texto-3); }
+/* Piedad: cuánto falta para el SSR seguro */
+.piedad { display: grid; gap: 6px; margin: 12px 0 14px; font: 11px var(--f-mono); color: var(--texto-2); }
+.piedad b { color: var(--oro); font-size: 13px; }
+.piedad-barra { height: 5px; background: var(--linea); }
+.piedad-barra i { display: block; height: 100%; background: linear-gradient(90deg, var(--violeta), var(--oro)); box-shadow: 0 0 10px var(--oro); transition: width .4s; }
+.piedad.sin-ssr { color: var(--texto-3); }
+/* Tirada del día, con la racha */
+.btn.diaria { width: 100%; justify-content: flex-start; gap: 12px; padding: 10px 12px; margin-bottom: 22px; text-transform: none; letter-spacing: 0; border-color: rgba(255, 210, 63, .45); background: linear-gradient(90deg, rgba(255, 210, 63, .12), transparent); }
+.btn.diaria:hover:not(:disabled) { border-color: var(--oro); box-shadow: 0 0 18px -6px var(--oro); }
+.btn.diaria i { font: 700 20px "Zen Kaku Gothic New", sans-serif; font-style: normal; color: var(--oro); }
+.btn.diaria span { display: grid; text-align: left; }
+.btn.diaria b { font: 700 12.5px var(--f-hud); letter-spacing: .1em; text-transform: uppercase; }
+.btn.diaria small { font: 10.5px var(--f-mono); color: var(--texto-3); }
+.btn.diaria em { margin-left: auto; font: 800 14px var(--f-mono); font-style: normal; color: var(--oro); }
+.btn.diaria:disabled { opacity: .55; cursor: default; }
+.btn.diaria.hecha i { color: var(--texto-3); }
+.cg-dia { position: absolute; top: -12px; left: 0; z-index: 3; padding: 3px 10px; font: 700 11px var(--f-hud); letter-spacing: .12em; text-transform: uppercase; color: var(--negro); background: var(--oro); box-shadow: 0 0 18px -4px var(--oro); }
+.carta-gacha { position: relative; }
 .tasas, .historial { list-style: none; margin: 0 0 22px; padding: 0; display: grid; gap: 6px; }
 .tasas li { display: grid; grid-template-columns: 40px 1fr auto; grid-template-rows: auto auto; column-gap: 10px; align-items: center; padding: 8px 10px; background: var(--negro); border-left: 3px solid var(--rr); }
 .tasas li b { grid-row: span 2; font: 800 16px var(--f-display); color: var(--rr); }
@@ -1996,6 +2026,16 @@ body.visitando .vista { --naranja: var(--cian); }
   .em-reloj { font-size: 13px; }
   .st-actual { min-width: 90px; }
 
+  /* Gacha: los banners en una fila de tres, para que Invocar no baje */
+  .banners { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
+  .banner { grid-template-columns: 1fr; justify-items: center; gap: 1px; padding: 6px 4px; text-align: center; }
+  .banner i { font-size: 13px; }
+  .banner b { font-size: 9px; letter-spacing: .04em; max-width: 100%; }
+  .banner small { display: none; }
+  .banner.on { box-shadow: inset 0 -2px 0 var(--naranja); }
+  .banner-pie { margin-bottom: 8px; font-size: 9.5px; }
+  .piedad { margin: 8px 0 10px; }
+  .btn.diaria { margin-bottom: 14px; }
   /* Gacha: el altar más bajo para que Invocar se vea sin bajar */
   .altar { min-height: 290px; }
   .portal { width: 230px; height: 230px; }

@@ -100,9 +100,9 @@ function plantilla(e, m) {
 }
 
 // Tu registro: una consola. Arriba un raíl con los cinco estados y una luz
-// que se desliza al elegido; a la izquierda un dial de nota que se gira
-// arrastrando (de 0 a 10 en tres cuartos de vuelta); a la derecha los
-// episodios como segmentos que se encienden y se pulsan para saltar a uno.
+// que se desliza al elegido; debajo la nota, con una barra recta que se
+// arrastra; luego los episodios como segmentos que se encienden y se pulsan
+// para saltar a uno.
 const MAX_SEGMENTOS = 60;   // con más, una barra continua (también se pulsa)
 function registro(e) {
   const r = rango(e.nota);
@@ -122,19 +122,22 @@ function registro(e) {
     </div>
     <div class="reg-cuerpo">
       <div class="reg-dial ${r ? r.clase : "sin-nota"}" style="--nota:${e.nota ?? 0}">
-        <div class="dial" data-dial title="Gira el aro para puntuar">
-          <span class="dial-aro" aria-hidden="true"></span>
-          <span class="dial-aguja" aria-hidden="true"><i></i></span>
+        <div class="dial-lectura">
+          <button class="fn-paso" data-paso="-1" aria-label="Bajar una décima" title="Bajar 0,1 (mantén pulsado para seguir)">−</button>
           <span class="dial-centro">
-            <input id="fn-num" inputmode="decimal" autocomplete="off" maxlength="4" aria-label="Nota, escríbela, gira el aro o usa − y ＋"
+            <input id="fn-num" inputmode="decimal" autocomplete="off" maxlength="4" aria-label="Nota, escríbela, arrastra la barra o usa − y ＋"
               value="${e.nota == null ? "" : fmtNota(e.nota)}" placeholder="—">
             <i id="fn-r">${r ? r.r : ""}</i>
           </span>
-        </div>
-        <div class="dial-mandos">
-          <button class="fn-paso" data-paso="-1" aria-label="Bajar una décima" title="Bajar 0,1 (mantén pulsado para seguir)">−</button>
-          <button class="enlace" data-sin-nota>${e.nota == null ? "Gira para puntuar" : "Quitar nota"}</button>
           <button class="fn-paso" data-paso="1" aria-label="Subir una décima" title="Subir 0,1 (mantén pulsado para seguir)">＋</button>
+        </div>
+        <div class="dial-pista">
+          <div class="dial" data-dial title="Arrastra para puntuar">
+            <span class="dial-aro" aria-hidden="true"></span>
+            <span class="dial-aguja" aria-hidden="true"><i></i></span>
+          </div>
+          <div class="dial-escala" aria-hidden="true">${Array.from({ length: 11 }, (_, i) => `<span>${i}</span>`).join("")}</div>
+          <button class="enlace" data-sin-nota>${e.nota == null ? "Arrastra para puntuar" : "Quitar nota"}</button>
         </div>
         <input type="range" id="fn-rango" class="solo-lector" min="0" max="10" step="0.1" value="${e.nota ?? 7}" aria-label="Nota de 0 a 10" ${e.nota == null ? 'data-vacia="1"' : ""}>
       </div>
@@ -271,7 +274,7 @@ function conectaRegistro(d, e0) {
     caja.className = "reg-dial " + (r ? r.clase : "sin-nota") + (arrastrando ? " arrastrando" : "");
     caja.style.setProperty("--nota", n ?? 0);
     if (n != null) { rg.value = n; rg.removeAttribute("data-vacia"); } else rg.setAttribute("data-vacia", "1");
-    d.querySelector("[data-sin-nota]").textContent = n == null ? "Gira para puntuar" : "Quitar nota";
+    d.querySelector("[data-sin-nota]").textContent = n == null ? "Arrastra para puntuar" : "Quitar nota";
   };
   const guardaNota = (n) => {
     const antes = e().nota;
@@ -280,19 +283,17 @@ function conectaRegistro(d, e0) {
     if (n >= 10 && (antes == null || antes < 10)) tarjetaTitulo({ jp: "傑作", linea1: "OBRA MAESTRA", linea2: e().titulo, clase: "oro" });
   };
   rg.addEventListener("input", () => pintaNota(+rg.value));
-  // El dial: el ángulo del puntero respecto al centro da la nota. El aro va
-  // de -135° (0) a +135° (10), con el hueco abajo; fuera de él, al extremo
-  // más cercano. Se pinta mientras arrastras y se guarda al soltar.
+  // La barra de nota: la posición del puntero a lo largo de la barra da la
+  // nota (fuera de ella, el extremo más cercano). Se pinta mientras
+  // arrastras y se guarda al soltar.
   let arrastrando = false;
   const dial = d.querySelector("[data-dial]");
   const notaDe = (ev) => {
     const c = dial.getBoundingClientRect();
-    let a = Math.atan2(ev.clientX - (c.left + c.width / 2), (c.top + c.height / 2) - ev.clientY) * 180 / Math.PI;
-    a = Math.max(-135, Math.min(135, a));
-    return redondea((a + 135) / 27);
+    return redondea(Math.max(0, Math.min(1, (ev.clientX - c.left) / c.width)) * 10);
   };
   dial.addEventListener("pointerdown", (ev) => {
-    if (ev.button !== 0 || ev.target === num) return;
+    if (ev.button !== 0) return;
     ev.preventDefault();
     try { dial.setPointerCapture(ev.pointerId); } catch {}
     arrastrando = true;

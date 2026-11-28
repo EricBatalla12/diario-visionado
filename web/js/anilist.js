@@ -9,6 +9,8 @@
 // fondo (refrescos, sagas, "Continúa"). Sin esto, abrir una ficha al arrancar
 // esperaba detrás de una docena de peticiones de fondo.
 
+import * as cache from "./cache.js";
+
 const URL_API = "https://graphql.anilist.co";
 const HUECO_MS = 700;
 
@@ -95,9 +97,16 @@ export async function buscar(texto, tipo = "ANIME", { signal } = {}) {
   return d.Page.media.map(ficha);
 }
 
+// La ficha completa (sinopsis, etiquetas, relacionados, personajes) cambia
+// poco: se guarda en el navegador 3 días, salvo que ya haya salido un
+// episodio que anunciaba ella o alguno de sus relacionados
+const DURA_DETALLE = 3 * 864e5;
 const detalles = new Map();
 export async function detalle(id) {
   if (detalles.has(id)) return detalles.get(id);
+  const guardada = cache.lee(`det:${id}`, { dura: DURA_DETALLE,
+    vale: (m) => cache.sinEmitidos(m, (m.relations?.edges || []).map((r) => r.node)) });
+  if (guardada) { const p = Promise.resolve(guardada); detalles.set(id, p); return p; }
   const p = gql(`query($id: Int) { Media(id: $id) { ${CAMPOS}
       description(asHtml: true)
       synonyms
@@ -107,7 +116,7 @@ export async function detalle(id) {
       characters(sort: [ROLE, RELEVANCE], perPage: 10) {
         edges { role node { name { full } image { medium } } } }
       trailer { id site }
-    } }`, { id }).then((d) => d.Media);
+    } }`, { id }).then((d) => { if (d.Media) cache.guarda(`det:${id}`, d.Media, { max: 40 }); return d.Media; });
   detalles.set(id, p);
   p.catch(() => detalles.delete(id));
   return p;
@@ -124,12 +133,22 @@ export async function refrescar(ids, { fondo = false } = {}) {
   return out;
 }
 
+// El catálogo de una temporada: 7 días si ya pasó, 3 horas si es la actual o
+// una futura (entran títulos y cambia la popularidad). En los dos casos deja
+// de valer en cuanto sale un episodio de los que se anunciaban.
 export async function temporada(season, year, page = 1) {
+  const clave = `tmp:${season}-${year}:${page}`;
+  const act = temporadaActual(), i = TEMPORADAS.findIndex((t) => t.id === season);
+  const pasada = year * 4 + i < act.anio * 4 + act.i;
+  const guardada = cache.lee(clave, { dura: pasada ? 7 * 864e5 : 3 * 36e5, vale: (r) => cache.sinEmitidos(r.media) });
+  if (guardada) return guardada;
   const d = await gql(`query($s: MediaSeason, $y: Int, $p: Int) {
     Page(page: $p, perPage: 30) { pageInfo { hasNextPage }
       media(season: $s, seasonYear: $y, type: ANIME, isAdult: false, sort: POPULARITY_DESC, format_not_in: [MUSIC]) { ${CAMPOS} } } }`,
     { s: season, y: year, p: page });
-  return { media: d.Page.media.map(ficha), hayMas: d.Page.pageInfo.hasNextPage };
+  const r = { media: d.Page.media.map(ficha), hayMas: d.Page.pageInfo.hasNextPage };
+  cache.guarda(clave, r, { max: 16 });
+  return r;
 }
 
 export const TEMPORADAS = [
@@ -151,12 +170,33 @@ export function temporadaActual(fecha = new Date()) {
 const CAMPOS_SAGA = `id type format status season seasonYear episodes chapters nextAiringEpisode { airingAt episode }
   startDate { year month day } title { romaji english native } coverImage { large color }
   relations { edges { relationType node { id type format } } }`;
-// id → nodo reducido. Se guarda en sessionStorage para que recargar la página
-// no vuelva a pedir las sagas enteras (AniList limita las peticiones por minuto)
-const CLAVE_NODOS = "kiroku:nodos-saga:v1";
+// id → { t: cuándo se pidió, n: nodo reducido (null si AniList no lo da) }.
+// Se guarda en localStorage para que abrir KIROKU otro día no vuelva a pedir
+// las sagas enteras. Un nodo vale 3 días; si está en emisión o por estrenar,
+// 12 horas o hasta que salga el episodio que anunciaba. Así una temporada
+// nueva anunciada aparece como mucho a los 3 días.
+const CLAVE_NODOS = "kiroku:nodos-saga:v2";
+const DURA_NODO = 3 * 864e5, DURA_NODO_VIVO = 12 * 36e5, MAX_GUARDADOS = 2000;
+const VIVO = new Set(["RELEASING", "NOT_YET_RELEASED", "HIATUS"]);
 const nodos = new Map();
-try { for (const [k, v] of JSON.parse(sessionStorage.getItem(CLAVE_NODOS) || "[]")) nodos.set(k, v); } catch {}
-const guardaNodos = () => { try { sessionStorage.setItem(CLAVE_NODOS, JSON.stringify([...nodos])); } catch {} };
+try {
+  for (const [k, v] of JSON.parse(localStorage.getItem(CLAVE_NODOS) || "[]")) if (v && Date.now() - v.t < DURA_NODO) nodos.set(k, v);
+  sessionStorage.removeItem("kiroku:nodos-saga:v1");   // la caché de antes, solo de la pestaña
+} catch {}
+const nodo = (id) => nodos.get(id)?.n || null;
+const fresco = (id) => {
+  const v = nodos.get(id);
+  if (!v) return false;
+  const edad = Date.now() - v.t;
+  if (!v.n) return edad < DURA_NODO;
+  if (VIVO.has(v.n.status) && edad > DURA_NODO_VIVO) return false;
+  return edad < DURA_NODO && cache.sinEmitidos(v.n);
+};
+function guardaNodos() {
+  // Si hay demasiados, fuera los más viejos
+  const lista = [...nodos].sort((a, b) => b[1].t - a[1].t).slice(0, MAX_GUARDADOS);
+  try { localStorage.setItem(CLAVE_NODOS, JSON.stringify(lista)); } catch {}
+}
 const MAX_RONDAS = 8, MAX_NODOS = 60;
 
 // Las novelas ligeras van por su lado: una secuela en novela no es otra
@@ -181,13 +221,15 @@ function reduce(m) {
 }
 
 async function pideNodos(ids, fondo) {
-  const faltan = [...new Set(ids)].filter((id) => !nodos.has(id));
+  const faltan = [...new Set(ids)].filter((id) => !fresco(id));
   for (let i = 0; i < faltan.length; i += 50) {
+    const lote = faltan.slice(i, i + 50), t = Date.now();
     const d = await gql(`query($ids: [Int]) { Page(perPage: 50) { media(id_in: $ids) { ${CAMPOS_SAGA} } } }`,
-      { ids: faltan.slice(i, i + 50) }, { fondo });
-    for (const m of d.Page.media) nodos.set(m.id, reduce(m));
-    // Los que AniList no devuelve (borrados, adultos) no se vuelven a pedir
-    for (const id of faltan.slice(i, i + 50)) if (!nodos.has(id)) nodos.set(id, null);
+      { ids: lote }, { fondo });
+    const llegan = new Set();
+    for (const m of d.Page.media) { nodos.set(m.id, { t, n: reduce(m) }); llegan.add(m.id); }
+    // Los que AniList no devuelve (borrados, adultos) no se vuelven a pedir en 3 días
+    for (const id of lote) if (!llegan.has(id)) nodos.set(id, { t, n: null });
   }
   if (faltan.length) guardaNodos();
 }
@@ -200,7 +242,7 @@ export async function sagas(ids, { fondo = false } = {}) {
     await pideNodos(frontera, fondo);
     const sig = [];
     for (const id of frontera) {
-      const n = nodos.get(id);
+      const n = nodo(id);
       if (!n) continue;
       for (const x of [...n.pre, ...n.suc]) if (!vistos.has(x) && vistos.size < ids.length + MAX_NODOS * 4) { vistos.add(x); sig.push(x); }
     }
@@ -209,13 +251,13 @@ export async function sagas(ids, { fondo = false } = {}) {
   // Componentes conexas por las relaciones, entre los nodos conocidos
   const out = new Map();
   for (const id of new Set(ids)) {
-    if (out.has(id) || !nodos.get(id)) continue;
+    if (out.has(id) || !nodo(id)) continue;
     const comp = [], pila = [id], dentro = new Set([id]);
     while (pila.length && comp.length < MAX_NODOS) {
-      const n = nodos.get(pila.pop());
+      const n = nodo(pila.pop());
       if (!n) continue;
       comp.push(n);
-      for (const x of [...n.pre, ...n.suc]) if (!dentro.has(x) && nodos.get(x)) { dentro.add(x); pila.push(x); }
+      for (const x of [...n.pre, ...n.suc]) if (!dentro.has(x) && nodo(x)) { dentro.add(x); pila.push(x); }
     }
     comp.sort((a, b) => a.inicio - b.inicio || a.id - b.id);
     const raiz = comp[0];

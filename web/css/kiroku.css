@@ -859,33 +859,51 @@ dialog::backdrop { background: rgba(3, 3, 6, .78); backdrop-filter: blur(6px) sa
 :is(#fn-rango, .sgf-rango)::-webkit-slider-thumb { appearance: none; width: 16px; height: 24px; margin-top: -9px; background: var(--texto); border: 2px solid var(--negro); clip-path: polygon(50% 0, 100% 30%, 100% 100%, 0 100%, 0 30%); }
 :is(#fn-rango, .sgf-rango)::-moz-range-thumb { width: 14px; height: 22px; background: var(--texto); border: 2px solid var(--negro); border-radius: 0; }
 :is(#fn-rango, .sgf-rango)[data-vacia] { opacity: .45; }
-.fn-pie { display: flex; justify-content: center; align-items: center; margin-top: 4px; font: 10px var(--f-mono); color: var(--texto-3); }
-/* La nota como carta de rango: la letra en grande de fondo, el rango arriba y
-   la escala F…EX bajo la barra con el rango actual encendido */
-.fi-nota { position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: center; gap: 4px; border-top: 2px solid var(--rc); }
-.fi-nota::after {
-  content: attr(data-r); position: absolute; right: -4px; bottom: -34px; pointer-events: none;
-  font: 800 150px/1 var(--f-display); letter-spacing: -.06em; color: var(--rc); opacity: .09;
-}
-.fi-nota > * { position: relative; z-index: 1; }
-.fn-cab { display: flex; justify-content: space-between; align-items: baseline; }
-.fn-cab small { font: 700 10px var(--f-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--rc); }
-.sin-nota .fn-cab small { color: var(--texto-3); }
-.fn-escala { position: relative; height: 14px; margin: 0 7px; }
-.fn-escala span {
-  position: absolute; top: 0; transform: translateX(-50%);
-  font: 700 9px var(--f-mono); color: color-mix(in srgb, var(--rc) 40%, var(--texto-3)); transition: color .15s, text-shadow .15s;
-}
-.fn-escala span:first-child { transform: none; }
-.fn-escala span:last-child { transform: translateX(-100%); }
-.fn-escala [data-esc="S+"] { display: none; }
-.fn-escala span.on { color: var(--rc); text-shadow: 0 0 10px var(--rc); }
+.fn-pie { display: flex; justify-content: space-between; align-items: center; font: 10px var(--f-mono); color: var(--texto-3); }
 .fn-paso { font-family: system-ui, sans-serif; font-weight: 600; }
 /* Barra de progreso bajo el contador de episodios o capítulos */
 .fi-barra { display: block; height: 3px; margin-top: 6px; background: var(--linea); overflow: hidden; }
 .fi-barra[hidden] { display: none; }
 .fi-barra i { display: block; width: var(--p, 0%); height: 100%; background: var(--c); box-shadow: 0 0 8px var(--c); transition: width .3s, background .3s; }
 .fi-acc .corto { display: none; }
+
+/* «Tu registro» con volumen. El panel coge arriba el color del título, y
+   cada control es una pieza en relieve: brillo arriba, sombra debajo. Va con
+   background-image (y no background) para que el color de cada estado
+   (.on, :hover…) siga viéndose por debajo. Los campos de texto van hundidos. */
+.fi-reg {
+  background:
+    radial-gradient(120% 70% at 50% 0%, color-mix(in srgb, var(--tinte) 15%, transparent), transparent 70%),
+    linear-gradient(180deg, var(--panel) 0%, var(--negro) 85%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06), 0 24px 48px -24px rgba(0, 0, 0, .9);
+}
+.fi-reg :is(.fi-estados button, .paso, .cu-anio, .cu-atemporal, .cu-meses button, .fn-paso, .campo select, .fi-acc .btn) {
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, .07), rgba(255, 255, 255, 0) 45%, rgba(0, 0, 0, .3));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .09), inset 0 -1px 0 rgba(0, 0, 0, .55), 0 4px 10px -3px rgba(0, 0, 0, .75);
+}
+.fi-reg :is(.fi-estados button, .cu-meses button, .fn-paso, .fi-acc .btn, .paso button, .cu-anio button):active { transform: translateY(1px); }
+.fi-reg .fi-estados button.on {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35), inset 0 -2px 0 rgba(0, 0, 0, .25), 0 0 22px -4px var(--c), 0 8px 18px -8px var(--c);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, .25);
+}
+.fi-reg .cu-meses button.on { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35), inset 0 -2px 0 rgba(0, 0, 0, .25), 0 0 16px -4px var(--naranja); }
+.fi-reg .cu-atemporal.on { box-shadow: inset 0 0 12px rgba(57, 216, 255, .18), inset 0 1px 0 rgba(255, 255, 255, .08), 0 0 14px -6px var(--cian); }
+.fi-reg :is(#fi-titulo, #fi-com) {
+  background-color: rgba(3, 3, 6, .7);
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, .7), inset 0 -1px 0 rgba(255, 255, 255, .05);
+}
+.fi-reg :is(.paso, .cu-anio) input { background: transparent; box-shadow: none; }
+.fi-reg .fi-nota {
+  background:
+    radial-gradient(circle at 75% 25%, color-mix(in srgb, var(--rc) 24%, transparent), transparent 65%),
+    linear-gradient(180deg, var(--panel-2), var(--negro));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08), inset 0 0 0 1px color-mix(in srgb, var(--rc) 25%, transparent), 0 10px 24px -12px rgba(0, 0, 0, .9);
+}
+.fi-reg #fn-num { text-shadow: 0 0 22px color-mix(in srgb, var(--rc) 55%, transparent), 0 2px 0 rgba(0, 0, 0, .6); }
+.fi-reg #fn-rango::-webkit-slider-runnable-track { box-shadow: inset 0 1px 2px rgba(0, 0, 0, .7), 0 0 10px -2px color-mix(in srgb, var(--rc) 60%, transparent); }
+.fi-reg #fn-rango::-moz-range-track { box-shadow: inset 0 1px 2px rgba(0, 0, 0, .7), 0 0 10px -2px color-mix(in srgb, var(--rc) 60%, transparent); }
+.fi-reg #fn-rango::-webkit-slider-thumb { filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .8)); }
+.fi-reg .fi-barra { height: 4px; box-shadow: inset 0 1px 2px rgba(0, 0, 0, .7); }
 .fi-campos { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-content: start; }
 .campo { display: grid; gap: 5px; }
 .campo > span { font: 600 9.5px var(--f-mono); letter-spacing: .18em; text-transform: uppercase; color: var(--texto-3); }
@@ -1590,7 +1608,10 @@ body.visitando .vista { --naranja: var(--cian); }
   .btn-filtros.on { color: var(--naranja); border-color: var(--naranja); background: rgba(255, 107, 26, .1); }
   .filtros:not(.abiertos) .filtros-fila > .sel { display: none; }
   .filtros { padding: 8px; gap: 8px; }
-  .filtros > .chips { margin: 0 -8px; padding: 0 8px; }
+  /* Los seis estados a la vista, en dos filas de tres, sin desplazar de lado */
+  .filtros > .chips { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; margin: 0; padding: 0; overflow: visible; }
+  .filtros > .chips .chip { min-width: 0; justify-content: center; padding: 6px 4px; gap: 4px; font-size: 10px; letter-spacing: .04em; }
+  .filtros > .chips .chip small { font-size: 9.5px; }
   .filtros-fila .campo-busca { flex: 1 1 0; }
   .filtros-fila .campo-busca input { height: 36px; }
   .resultado-cuenta { margin: 10px 0 8px; font-size: 10px; }
@@ -1652,10 +1673,8 @@ body.visitando .vista { --naranja: var(--cian); }
   .fi-estados button i { display: none; }
   .fi-rejilla { gap: 12px; margin-bottom: 10px; }
   .fi-campos { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
-  .fi-nota { padding: 8px 10px 6px; gap: 2px; }
-  .fi-nota::after { font-size: 96px; bottom: -22px; }
+  .fi-nota { padding: 8px 10px; }
   .fn-lectura { grid-template-columns: 32px 1fr 32px; margin: 0 0 2px; }
-  .fn-pie { margin-top: 0; }
   .fi-campos .campo-ancho:last-child { grid-column: 1 / -1; }
   .fi-acc { flex-wrap: nowrap; }
   .fi-acc .btn { flex: 1 1 0; min-width: 0; padding: 8px 6px; font-size: 11px; letter-spacing: .04em; }

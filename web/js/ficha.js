@@ -2,7 +2,7 @@
 // progreso, fecha, comentario) debajo, que se guarda solo al tocarlo. También
 // sirve de vista previa para algo que aún no está en el archivo, y de ficha
 // en solo lectura cuando el registro es de otro operador.
-import { $, esc, cartel, rango, RANGOS, fmtNota, ESTADOS, TIPOS, MESES, FORMATOS, tituloApi, genero, aviso,
+import { $, esc, cartel, rango, fmtNota, ESTADOS, TIPOS, MESES, FORMATOS, tituloApi, genero, aviso,
   tarjetaTitulo, htmlSeguro, cuentaAtras, tinte, formato, nombreTipo, totalDe, unidad, seLee, infoTipo, tipoDe } from "./ui.js";
 import { entrada, actualiza, borra, anade, anadeLote, porMedia, deshaz, esMia, sujetoActual, yoMismo } from "./almacen.js";
 import { detalle, sagas, refrescar, marcaSaga } from "./anilist.js";
@@ -15,8 +15,6 @@ let alAbrirPaleta = null;   // lo inyecta app.js para "vincular con AniList"
 
 export const conectaPaleta = (fn) => (alAbrirPaleta = fn);
 
-// La escala de rangos bajo la barra de la nota, de menos a más (F empieza en 0)
-const ESCALA = [...RANGOS].reverse().map((x) => ({ ...x, min: Math.max(0, x.min) }));
 const ESTADO_AL = { visto: "Visto", viendo: "Viendo", pendiente: "Pendiente", revisto: "Revisto", abandonado: "Abandonado" };
 const STATUS = { FINISHED: "Finalizado", RELEASING: "En emisión", NOT_YET_RELEASED: "Próximamente", CANCELLED: "Cancelado", HIATUS: "En pausa" };
 const SEASON = { WINTER: "Invierno", SPRING: "Primavera", SUMMER: "Verano", FALL: "Otoño" };
@@ -115,8 +113,8 @@ function registro(e) {
         <i>${v.jp}</i>${ESTADO_AL[k]}</button>`).join("")}
     </div>
     <div class="fi-rejilla">
-      <div class="fi-nota ${r ? r.clase : "sin-nota"}" data-r="${r ? r.r : ""}">
-        <div class="fn-cab"><span class="etq">Nota</span><small id="fn-rango-t">${r ? "Rango " + r.r : "Sin puntuar"}</small></div>
+      <div class="fi-nota ${r ? r.clase : "sin-nota"}">
+        <span class="etq">Nota</span>
         <div class="fn-lectura">
           <button class="fn-paso" data-paso="-1" aria-label="Bajar una décima" title="Bajar 0,1 (mantén pulsado para seguir)">−</button>
           <span class="fn-centro"><input id="fn-num" inputmode="decimal" autocomplete="off" maxlength="4" aria-label="Nota, escríbela o usa − y ＋"
@@ -124,8 +122,7 @@ function registro(e) {
           <button class="fn-paso" data-paso="1" aria-label="Subir una décima" title="Subir 0,1 (mantén pulsado para seguir)">＋</button>
         </div>
         <input type="range" id="fn-rango" min="0" max="10" step="0.1" value="${e.nota ?? 7}" aria-label="Nota de 0 a 10" ${e.nota == null ? 'data-vacia="1"' : ""}>
-        <div class="fn-escala" aria-hidden="true">${ESCALA.map((x) => `<span class="${x.clase} ${r?.r === x.r ? "on" : ""}" data-esc="${x.r}" style="left:${x.min * 10}%">${x.r}</span>`).join("")}</div>
-        <div class="fn-pie"><button class="enlace" data-sin-nota>${e.nota == null ? "Arrastra o escribe la nota" : "Quitar nota"}</button></div>
+        <div class="fn-pie"><span>0</span><button class="enlace" data-sin-nota>${e.nota == null ? "Arrastra para puntuar" : "Quitar nota"}</button><span>10</span></div>
       </div>
       <div class="fi-campos">
         ${conProg ? `<label class="campo"><span>Progreso · ${seLee(e) ? "capítulos" : "episodios"}</span>
@@ -245,11 +242,8 @@ function conectaRegistro(d, e0) {
     if (!tecleando) num.value = n == null ? "" : fmtNota(n);
     letra.textContent = r ? r.r : "";
     caja.className = "fi-nota " + (r ? r.clase : "sin-nota");
-    caja.dataset.r = r ? r.r : "";
-    d.querySelector("#fn-rango-t").textContent = r ? "Rango " + r.r : "Sin puntuar";
-    d.querySelectorAll("[data-esc]").forEach((x) => x.classList.toggle("on", x.dataset.esc === r?.r));
     if (n != null) { rg.value = n; rg.removeAttribute("data-vacia"); } else rg.setAttribute("data-vacia", "1");
-    d.querySelector("[data-sin-nota]").textContent = n == null ? "Arrastra o escribe la nota" : "Quitar nota";
+    d.querySelector("[data-sin-nota]").textContent = n == null ? "Arrastra para puntuar" : "Quitar nota";
   };
   const guardaNota = (n) => {
     const antes = e().nota;

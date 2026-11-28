@@ -118,6 +118,9 @@ Notas para usuarios en `web/js/parches.js` (parche "La consola de registro").
   `LOGROS` en `stats.js`; `calcula` añade `caps` (capítulos de manga), `largos`, `sagasCompletas`,
   `maxMes`, `maxEstudio`. Cada logro da 100 de XP. En `app.js`, más de 2 logros nuevos de golpe
   = un solo aviso. Los logros de nivel usan el nivel **sin** la XP de los logros.
+- La barra de nota (`.reg-dial`) se usa también en el formulario de saga (`#sgf-num`,
+  `[data-sgf-dial]`); su CSS es común. **Trampa**: `grid-area: dial` va solo en
+  `.reg-cuerpo > .reg-dial`: en otra rejilla un área desconocida crea columnas fantasma.
 - **Trampa**: `#fn-num` es un `<input>`: `background-clip: text` no funciona dentro y recorta el
   `text-shadow` a su caja. El brillo va en `.dial-centro` con `filter: drop-shadow`.
 - **Arreglos**: historial del Gacha y listas de Sincronía no se salen del panel

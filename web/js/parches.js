@@ -17,8 +17,13 @@ export const PARCHES = [
         "**29 logros nuevos** (54 en total): capítulos de manga leídos, pelis, **sagas completas**, rachas del mes, más géneros, estudios, notas y el nivel 60.",
         "Si desbloqueas varios logros a la vez, un solo aviso los junta todos. Cada logro da experiencia, así que es posible que subas algún nivel nada más entrar.",
       ] },
+      { titulo: "Cambios", ico: "⚙", items: [
+        "**Nota a la saga** y **Añadir la saga** usan la misma barra de nota que Tu registro.",
+      ] },
       { titulo: "Arreglos", ico: "✚", items: [
         "El **10** de la nota volvía a verse transparente, y el brillo del número dibujaba una caja. Ahora brilla limpio, y el 10 en dorado.",
+        "La barra de nota ya no cambia de ancho al empezar a arrastrar.",
+        "En la gráfica de **Sincronía**, «Tú» y «AniList» ya no se montan sobre los números.",
       ] },
     ],
   },

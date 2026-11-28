@@ -12,6 +12,13 @@ export function episodios(e) {
   if (e.estado === "viendo" || e.estado === "abandonado") return e.progreso || 0;
   return 0;
 }
+// Capítulos leídos de un manga (manhwa, manhua), con las mismas reglas que los episodios
+export function capitulos(e) {
+  if (e.tipo !== "manga") return 0;
+  if (e.estado === "visto" || e.estado === "revisto") return e.progreso || e.media?.chapters || 0;
+  if (e.estado === "viendo" || e.estado === "abandonado") return e.progreso || 0;
+  return 0;
+}
 export const minutos = (e) => episodios(e) * (e.media?.duration || DURACION[e.tipo] || 24);
 export const generosDe = (e) => [...new Set([...(e.media?.genres || []), ...(e.generos || [])])];
 
@@ -19,15 +26,27 @@ export const generosDe = (e) => [...new Set([...(e.media?.genres || []), ...(e.g
 // El nivel n pide 25·n² de experiencia: los primeros suben rápido y a partir
 // del 30 cuesta de verdad.
 export const RANGOS_OP = [
-  { min: 0,  nombre: "Civil",            jp: "一般人" },
-  { min: 3,  nombre: "Novato",           jp: "新人" },
-  { min: 8,  nombre: "Aprendiz de weeb", jp: "見習い" },
-  { min: 14, nombre: "Weeb certificado", jp: "ウィーブ" },
-  { min: 20, nombre: "Otaku",            jp: "オタク" },
-  { min: 28, nombre: "Otaku de élite",   jp: "精鋭" },
-  { min: 36, nombre: "Sensei",           jp: "先生" },
-  { min: 45, nombre: "Kami del sofá",    jp: "神" },
-  { min: 60, nombre: "Ser trascendido",  jp: "超越" },
+  { min: 0,   nombre: "Civil",                 jp: "一般人" },
+  { min: 1,   nombre: "Curioso",               jp: "好奇心" },
+  { min: 3,   nombre: "Novato",                jp: "新人" },
+  { min: 5,   nombre: "Espectador habitual",   jp: "常連" },
+  { min: 8,   nombre: "Aprendiz de weeb",      jp: "見習い" },
+  { min: 11,  nombre: "Cazador de temporadas", jp: "狩人" },
+  { min: 14,  nombre: "Weeb certificado",      jp: "ウィーブ" },
+  { min: 17,  nombre: "Coleccionista",         jp: "収集家" },
+  { min: 20,  nombre: "Otaku",                 jp: "オタク" },
+  { min: 24,  nombre: "Senpai",                jp: "先輩" },
+  { min: 28,  nombre: "Otaku de élite",        jp: "精鋭" },
+  { min: 32,  nombre: "Ermitaño del anime",    jp: "隠者" },
+  { min: 36,  nombre: "Sensei",                jp: "先生" },
+  { min: 40,  nombre: "Maestro del maratón",   jp: "達人" },
+  { min: 45,  nombre: "Kami del sofá",         jp: "神" },
+  { min: 50,  nombre: "Leyenda viva",          jp: "伝説" },
+  { min: 55,  nombre: "Emperador otaku",       jp: "皇帝" },
+  { min: 60,  nombre: "Ser trascendido",       jp: "超越" },
+  { min: 70,  nombre: "Entidad multiversal",   jp: "多元" },
+  { min: 80,  nombre: "Guardián del archivo",  jp: "守護者" },
+  { min: 100, nombre: "Dios del registro",     jp: "記録神" },
 ];
 const xpNivel = (n) => 25 * n * n;
 
@@ -45,7 +64,7 @@ export function nivelDe(xp) {
 export function calcula(lista, { aciertos = 0 } = {}) {
   const s = {
     aciertos,
-    total: lista.length, porEstado: {}, porTipo: {}, eps: 0, minutos: 0, notas: [],
+    total: lista.length, porEstado: {}, porTipo: {}, eps: 0, caps: 0, minutos: 0, notas: [], largos: 0,
     generos: new Map(), estudios: new Map(), pares: [], porMes: new Map(), porAnio: new Map(),
     retro: null, enEmision: [], comentarios: 0, terminados: 0,
   };
@@ -56,7 +75,11 @@ export function calcula(lista, { aciertos = 0 } = {}) {
     const ep = episodios(e);
     s.eps += ep;
     s.minutos += minutos(e);
-    if (e.estado === "visto" || e.estado === "revisto") s.terminados++;
+    s.caps += capitulos(e);
+    if (e.estado === "visto" || e.estado === "revisto") {
+      s.terminados++;
+      if ((e.media?.episodes || 0) >= 100) s.largos++;
+    }
     if (e.nota != null) {
       s.notas.push(e.nota);
       if (e.media?.averageScore) s.pares.push({ e, tuya: e.nota, ellos: e.media.averageScore / 10 });
@@ -84,6 +107,19 @@ export function calcula(lista, { aciertos = 0 } = {}) {
   s.minNota = s.notas.length ? Math.min(...s.notas) : null;
   s.contra = s.pares.filter((p) => Math.abs(p.tuya - p.ellos) >= 1.5).length;
 
+  // Sagas completas: todas sus temporadas vistas (o revistas)
+  const porSaga = new Map();
+  for (const e of lista) {
+    const sg = e.media?.saga;
+    if (!sg || sg.de < 2) continue;
+    const x = porSaga.get(sg.id) || { de: sg.de, vistas: 0 };
+    if (e.estado === "visto" || e.estado === "revisto") x.vistas++;
+    porSaga.set(sg.id, x);
+  }
+  s.sagasCompletas = [...porSaga.values()].filter((x) => x.vistas >= x.de).length;
+  s.maxMes = Math.max(0, ...s.porMes.values());
+  s.maxEstudio = Math.max(0, ...[...s.estudios.values()].map((x) => x.n));
+
   s.xp = Math.round(s.eps * 10 + s.terminados * 40 + s.notas.length * 5 + s.comentarios * 5);
   s.logros = LOGROS.map((l) => {
     const [a, b] = l.mide(s);
@@ -97,30 +133,69 @@ export function calcula(lista, { aciertos = 0 } = {}) {
 const g = (s, ...nombres) => nombres.reduce((a, n) => a + (s.generos.get(n) || 0), 0);
 
 // mide(s) → [actual, objetivo]
+const conNotas = (s, n) => s.notas.length >= n;
+const nivelSinLogros = (s) => Math.floor(Math.sqrt(s.xp / 25));
 export const LOGROS = [
+  // Primeros pasos y cantidad
   { id: "primer",  jp: "初", nombre: "Primer contacto",      desc: "Termina tu primer título",            mide: (s) => [s.terminados, 1] },
+  { id: "colec",   jp: "蔵", nombre: "Coleccionista",        desc: "100 títulos en el archivo",           mide: (s) => [s.total, 100] },
+  { id: "archiv",  jp: "庫", nombre: "Archivista",           desc: "250 títulos en el archivo",           mide: (s) => [s.total, 250] },
+  { id: "alejan",  jp: "館", nombre: "Alejandría",           desc: "500 títulos en el archivo",           mide: (s) => [s.total, 500] },
+  // Episodios y horas
   { id: "marat",   jp: "走", nombre: "Maratón",              desc: "100 episodios vistos",                mide: (s) => [s.eps, 100] },
   { id: "sinvida", jp: "籠", nombre: "Sin vida social",      desc: "1.000 episodios vistos",              mide: (s) => [s.eps, 1000] },
   { id: "hikiko",  jp: "引", nombre: "Hikikomori",           desc: "2.500 episodios vistos",              mide: (s) => [s.eps, 2500] },
+  { id: "limite",  jp: "極", nombre: "Al límite",            desc: "5.000 episodios vistos",              mide: (s) => [s.eps, 5000] },
+  { id: "largo",   jp: "長", nombre: "Ultramaratón",         desc: "Termina un título de 100 episodios o más", mide: (s) => [s.largos, 1] },
   { id: "dia",     jp: "日", nombre: "Un día entero",        desc: "24 horas delante de la pantalla",     mide: (s) => [Math.floor(s.horas), 24] },
+  { id: "semana",  jp: "週", nombre: "Una semana sin salir", desc: "168 horas vistas",                    mide: (s) => [Math.floor(s.horas), 168] },
   { id: "mes",     jp: "月", nombre: "Un mes de tu vida",    desc: "720 horas vistas",                    mide: (s) => [Math.floor(s.horas), 720] },
+  // Manga y pelis
+  { id: "lector",  jp: "読", nombre: "Lector",               desc: "Ten un manga en el archivo",          mide: (s) => [s.porTipo.manga || 0, 1] },
+  { id: "tomos",   jp: "頁", nombre: "Devorador de tomos",   desc: "500 capítulos leídos",                mide: (s) => [s.caps, 500] },
+  { id: "biblio",  jp: "書", nombre: "Biblioteca andante",   desc: "2.000 capítulos leídos",              mide: (s) => [s.caps, 2000] },
+  { id: "cine",    jp: "映", nombre: "Cinéfilo",             desc: "10 películas en el archivo",          mide: (s) => [s.porTipo.peli || 0, 10] },
+  // Sagas y temporadas
+  { id: "saga",    jp: "完", nombre: "Saga completa",        desc: "Ve todas las temporadas de una saga", mide: (s) => [s.sagasCompletas, 1] },
+  { id: "sagas",   jp: "連", nombre: "Devorasagas",          desc: "Completa 5 sagas",                    mide: (s) => [s.sagasCompletas, 5] },
+  { id: "aldia",   jp: "今", nombre: "Al día",               desc: "Sigue un anime mientras se emite",    mide: (s) => [s.enEmision.length, 1] },
+  { id: "ola",     jp: "波", nombre: "En la cresta de la ola", desc: "Sigue 3 animes en emisión a la vez", mide: (s) => [s.enEmision.length, 3] },
+  { id: "racha",   jp: "熱", nombre: "Racha",                desc: "10 títulos en un mismo mes",          mide: (s) => [s.maxMes, 10] },
+  { id: "vetera",  jp: "歴", nombre: "Veterano",             desc: "Registros en 3 años distintos",       mide: (s) => [s.porAnio.size, 3] },
+  { id: "retro",   jp: "古", nombre: "Arqueólogo",           desc: "Ve algo estrenado antes del 2000",    mide: (s) => [s.retro && s.retro < 2000 ? 1 : 0, 1] },
+  // Notas y crítica
   { id: "diez",    jp: "傑", nombre: "Obra maestra",         desc: "Pon un 10",                           mide: (s) => [s.diez, 1] },
+  { id: "dieces",  jp: "宝", nombre: "Galería de obras maestras", desc: "Pon cinco dieces",              mide: (s) => [s.diez, 5] },
   { id: "verdugo", jp: "斬", nombre: "Verdugo",              desc: "Pon una nota por debajo de 5",        mide: (s) => [s.minNota != null && s.minNota < 5 ? 1 : 0, 1] },
-  { id: "colec",   jp: "蔵", nombre: "Coleccionista",        desc: "100 títulos en el archivo",           mide: (s) => [s.total, 100] },
+  { id: "puntua",  jp: "点", nombre: "Puntuador",            desc: "Pon 100 notas",                       mide: (s) => [s.notas.length, 100] },
+  { id: "blanda",  jp: "甘", nombre: "Mano blanda",          desc: "Nota media de 8,5 o más con 20 notas", mide: (s) => [conNotas(s, 20) && s.media >= 8.5 ? 1 : 0, 1] },
+  { id: "dura",    jp: "厳", nombre: "Mano dura",            desc: "Nota media de 6,5 o menos con 20 notas", mide: (s) => [conNotas(s, 20) && s.media <= 6.5 ? 1 : 0, 1] },
+  { id: "contra",  jp: "逆", nombre: "A contracorriente",    desc: "Discrepa 1,5 puntos de AniList en 5", mide: (s) => [s.contra, 5] },
+  { id: "escrit",  jp: "筆", nombre: "Escritor",             desc: "Escribe 10 comentarios",              mide: (s) => [s.comentarios, 10] },
+  { id: "critico", jp: "評", nombre: "Crítico",              desc: "Escribe 50 comentarios",              mide: (s) => [s.comentarios, 50] },
+  { id: "ojo",     jp: "眼", nombre: "Ojo clínico",          desc: "3 recomendaciones tuyas acaban con 9+", mide: (s) => [s.aciertos, 3] },
+  // Géneros y estudios
   { id: "shonen",  jp: "拳", nombre: "Sangre shōnen",        desc: "25 títulos de acción",                mide: (s) => [g(s, "Action"), 25] },
   { id: "shojo",   jp: "恋", nombre: "Corazón de shōjo",     desc: "15 títulos de romance",               mide: (s) => [g(s, "Romance"), 15] },
+  { id: "isekai",  jp: "異", nombre: "Otro mundo",           desc: "15 títulos de fantasía",              mide: (s) => [g(s, "Fantasy"), 15] },
+  { id: "risa",    jp: "笑", nombre: "Risa fácil",           desc: "15 títulos de comedia",               mide: (s) => [g(s, "Comedy"), 15] },
+  { id: "lagrima", jp: "涙", nombre: "Lágrima fácil",        desc: "15 títulos de drama",                 mide: (s) => [g(s, "Drama"), 15] },
+  { id: "calma",   jp: "和", nombre: "Vida tranquila",       desc: "10 títulos de recuentos de la vida",  mide: (s) => [g(s, "Slice of Life"), 10] },
+  { id: "estelar", jp: "星", nombre: "Viajero estelar",      desc: "10 títulos de ciencia ficción",       mide: (s) => [g(s, "Sci-Fi"), 10] },
+  { id: "medium",  jp: "霊", nombre: "Médium",               desc: "10 títulos sobrenaturales",           mide: (s) => [g(s, "Supernatural"), 10] },
+  { id: "detect",  jp: "謎", nombre: "Detective",            desc: "5 títulos de misterio",               mide: (s) => [g(s, "Mystery"), 5] },
   { id: "mente",   jp: "狂", nombre: "Mente retorcida",      desc: "5 de terror o psicológico",           mide: (s) => [g(s, "Horror", "Psychological"), 5] },
   { id: "melo",    jp: "音", nombre: "Melómano",             desc: "2 títulos de música",                 mide: (s) => [g(s, "Music"), 2] },
   { id: "sofa",    jp: "球", nombre: "Deportista de sofá",   desc: "3 títulos de deportes",               mide: (s) => [g(s, "Sports"), 3] },
   { id: "mecha",   jp: "機", nombre: "Piloto",               desc: "3 títulos de mecha",                  mide: (s) => [g(s, "Mecha"), 3] },
+  { id: "arcoiris",jp: "彩", nombre: "Arcoíris",             desc: "Títulos de 12 géneros distintos",     mide: (s) => [s.generos.size, 12] },
+  { id: "fiel",    jp: "社", nombre: "Fiel a un estudio",    desc: "5 títulos del mismo estudio",         mide: (s) => [s.maxEstudio, 5] },
+  { id: "trotam",  jp: "巡", nombre: "Trotamundos",          desc: "Títulos de 20 estudios distintos",    mide: (s) => [s.estudios.size, 20] },
+  // Hábitos
   { id: "soltar",  jp: "捨", nombre: "Sin miedo a soltar",   desc: "Abandona 5 títulos",                  mide: (s) => [s.porEstado.abandonado || 0, 5] },
   { id: "dejavu",  jp: "再", nombre: "Déjà vu",              desc: "Vuelve a ver 3 títulos",              mide: (s) => [s.porEstado.revisto || 0, 3] },
-  { id: "retro",   jp: "古", nombre: "Arqueólogo",           desc: "Ve algo estrenado antes del 2000",    mide: (s) => [s.retro && s.retro < 2000 ? 1 : 0, 1] },
-  { id: "aldia",   jp: "今", nombre: "Al día",               desc: "Sigue un anime mientras se emite",    mide: (s) => [s.enEmision.length, 1] },
-  { id: "lector",  jp: "読", nombre: "Lector",               desc: "Ten un manga en el archivo",          mide: (s) => [s.porTipo.manga || 0, 1] },
   { id: "monte",   jp: "山", nombre: "Montaña de pendientes",desc: "20 pendientes a la vez",              mide: (s) => [s.porEstado.pendiente || 0, 20] },
-  { id: "critico", jp: "評", nombre: "Crítico",              desc: "Escribe 50 comentarios",              mide: (s) => [s.comentarios, 50] },
-  { id: "contra",  jp: "逆", nombre: "A contracorriente",    desc: "Discrepa 1,5 puntos de AniList en 5", mide: (s) => [s.contra, 5] },
-  { id: "ojo",     jp: "眼", nombre: "Ojo clínico",          desc: "3 recomendaciones tuyas acaban con 9+", mide: (s) => [s.aciertos, 3] },
-  { id: "kami",    jp: "神", nombre: "Kami",                 desc: "Llega al nivel 45",                   mide: (s) => [Math.floor(Math.sqrt(s.xp / 25)), 45] },
+  // Nivel (sin contar la experiencia de los propios logros)
+  { id: "kami",    jp: "神", nombre: "Kami",                 desc: "Llega al nivel 45",                   mide: (s) => [nivelSinLogros(s), 45] },
+  { id: "trasc",   jp: "超", nombre: "Trascendencia",        desc: "Llega al nivel 60",                   mide: (s) => [nivelSinLogros(s), 60] },
 ];

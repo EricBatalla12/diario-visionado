@@ -163,7 +163,10 @@ function vigila() {
   let antes = null;
   try { antes = JSON.parse(localStorage.getItem(clave) || "null"); } catch {}
   const ahora = s.logros.filter((l) => l.hecho).map((l) => l.id);
-  if (antes) for (const l of s.logros) if (l.hecho && !antes.includes(l.id)) aviso(`Logro desbloqueado: ${l.jp} ${l.nombre}`, { tipo: "logro" });
+  // Varios de golpe (p. ej. al llegar logros nuevos con una actualización): un solo aviso
+  const nuevos = antes ? s.logros.filter((l) => l.hecho && !antes.includes(l.id)) : [];
+  if (nuevos.length > 2) aviso(`${nuevos.length} logros desbloqueados: ${nuevos.map((l) => l.jp).join(" ")}`, { tipo: "logro", accion: "Ver", alPulsar: () => { location.hash = "#/perfil"; } });
+  else for (const l of nuevos) aviso(`Logro desbloqueado: ${l.jp} ${l.nombre}`, { tipo: "logro" });
   try { localStorage.setItem(clave, JSON.stringify(ahora)); } catch {}
 }
 

@@ -187,6 +187,10 @@ export function anadeLote(lista, cambios = {}) {
   return nuevas;
 }
 
+// Cambios en varias entradas propias como una sola operación (arrastrar una
+// saga entera a otro estado): { uid: { campo: valor } }
+export const actualizaVarios = (cambios) => anadeLote([], cambios);
+
 // Con `agrupa`, varios cambios seguidos de la misma entrada (teclear el
 // comentario, pulsar +1) cuentan como uno solo para Deshacer.
 let ultimoAgrupado = null;

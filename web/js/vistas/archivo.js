@@ -4,6 +4,7 @@ import { esc, cartel, rango, fmtNota, ESTADOS, TIPOS, MESES, subtitulo, tinte, c
 import { entradas, esPropio, sujetoActual } from "../almacen.js";
 import { episodios, generosDe } from "../stats.js";
 import { esReciente } from "../terminados.js";
+import { conectaArrastre } from "../arrastre.js";
 
 const CLAVE_F = "kiroku:filtros";
 const def = { estado: "todos", tipo: "todos", anio: "todos", genero: "todos", orden: "fecha", texto: "", modo: "cartas", agrupa: true };
@@ -208,6 +209,11 @@ export function pinta(raiz, { stats, primera }) {
     c.insertAdjacentHTML("afterend", g.miembros.map((e, k) => carta(e, { indice: k, clase: `en-saga saga-${id}` })).join(""));
   };
   col.onclick = (ev) => { const c = ev.target.closest("[data-saga]"); if (c) despliega(c); };
+  // Mantener pulsada una carta para cambiarle el estado (solo en tu archivo)
+  conectaArrastre(col, { miembrosSaga: (id) => {
+    const l = filtra(todas).sort(ORDENES[f.orden]?.fn || ORDENES.fecha.fn);
+    return agrupa(l).find((x) => x.saga === id)?.miembros || [];
+  } });
   col.onkeydown = (ev) => { const c = ev.target.closest?.("[data-saga]"); if (c && (ev.key === "Enter" || ev.key === " ")) { ev.preventDefault(); despliega(c); } };
   raiz.querySelector("[data-limpia]")?.addEventListener("click", () => { f = { ...def, orden: f.orden, modo: f.modo }; guardaF(); repinta(); });
   const t = raiz.querySelector("#f-texto");

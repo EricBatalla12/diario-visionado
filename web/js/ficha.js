@@ -94,6 +94,7 @@ function plantilla(e, m) {
       ${m?.genres?.length ? `<div class="fi-gen">${m.genres.map((g) => `<span>${esc(genero(g))}</span>`).join("")}</div>` : ""}
     </div>
   </header>
+  ${m?.id ? `<div id="fi-saga-aviso"></div>` : ""}
   ${e && esMia(e.uid) ? registro(e) : e ? ajeno(e) + alta(m, e) : alta(m)}
   ${m?.id ? `<div id="fi-saga"></div><div id="fi-recomienda"></div><div id="fi-otros"></div>` : ""}
   <div id="fi-det">${m?.id ? `<div class="cargando"><span></span>Descargando expediente…</div>` : ""}</div>`;
@@ -513,6 +514,7 @@ async function cargaSaga(d, id) {
     formSaga(d, id, s, f);
     f.hidden = false;
   });
+  avisoSaga(d, s, tiene, caja);
   // La temporada abierta, a la vista dentro de la fila (sin mover la ficha)
   const lista = caja.querySelector(".sg-lista"), act = lista.querySelector(".actual");
   if (act) lista.scrollLeft = act.offsetLeft - lista.offsetLeft - (lista.clientWidth - act.offsetWidth) / 2;
@@ -535,6 +537,28 @@ async function cargaSaga(d, id) {
       cargaSaga(d, id);
     } catch (err) { aviso("AniList no responde: " + err.message); b.disabled = false; b.textContent = "＋"; }
   }));
+}
+
+// Aviso de saga arriba de la ficha, antes de tu registro: la gente no veía el
+// botón de la sección Temporadas (más abajo) y no se enteraba de que podía
+// añadir todas las temporadas de golpe. Solo si falta alguna.
+function avisoSaga(d, s, tiene, caja) {
+  const sitio = d.querySelector("#fi-saga-aviso");
+  if (!sitio) return;
+  const n = s.cadena.length;
+  if (tiene >= n) { sitio.innerHTML = ""; return; }
+  const portadas = s.cadena.filter((x) => x.coverImage?.large).slice(0, 4);
+  sitio.innerHTML = `<button class="sg-aviso" data-sg-aviso>
+    <span class="sg-aviso-pila" style="--n:${portadas.length}" aria-hidden="true">${portadas.map((x, i) => `<img src="${esc(x.coverImage.large)}" alt="" style="--i:${i}">`).join("")}</span>
+    <span class="sg-aviso-t"><b><i>⧉</i> Saga de ${n} temporadas</b>
+      <small>${tiene ? `Tienes ${tiene}. Añade ${n - tiene === 1 ? "la que falta" : `las ${n - tiene} que faltan`} de una vez` : "Añádelas todas de una vez"}, con una sola nota para la saga entera.</small></span>
+    <span class="sg-aviso-btn">Añadir la saga <i>▸</i></span>
+  </button>`;
+  sitio.querySelector("[data-sg-aviso]").addEventListener("click", () => {
+    const f = caja.querySelector(".sg-form");
+    if (f.hidden) caja.querySelector("[data-sg-todo]")?.click();
+    caja.querySelector(".fi-saga").scrollIntoView({ behavior: "smooth", block: "start" });
+  });
 }
 
 // Añadir la saga entera de una vez: pensado para quien empieza a apuntar desde

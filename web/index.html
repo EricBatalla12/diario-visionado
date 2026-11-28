@@ -46,7 +46,8 @@
         <button class="btn-icono" id="btn-menu" aria-label="Menú de datos" aria-haspopup="true">⋮</button>
         <div class="menu" id="menu" hidden>
           <button data-acc="exporta"><i>↓</i>Exportar copia (JSON)</button>
-          <button data-acc="importa"><i>↑</i>Importar archivo (JSON)</button>
+          <button data-acc="importa"><i>↑</i>Importar archivo (JSON o .txt)</button>
+          <button data-acc="lista"><i>≡</i>Importar una lista de títulos</button>
           <button data-acc="refresca"><i>↻</i>Actualizar fichas de AniList</button>
           <button data-acc="deshaz"><i>↶</i>Deshacer último cambio</button>
           <hr>
@@ -59,7 +60,7 @@
           <button data-acc="borra-cuenta" class="peligro"><i>⚠</i>Borrar mi cuenta y mi archivo</button>
         </div>
       </div>
-      <input type="file" id="fichero" accept="application/json,.json" hidden>
+      <input type="file" id="fichero" accept="application/json,.json,.txt,.csv,.md,text/plain" hidden>
     </div>
   </header>
 

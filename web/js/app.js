@@ -18,6 +18,7 @@ import * as gacha from "./vistas/gacha.js";
 import * as operadores from "./vistas/operadores.js";
 import * as buzon from "./vistas/buzon.js";
 import * as novedades from "./vistas/parches.js";
+import * as importar from "./importar.js";
 import * as parches from "./parches.js";
 import * as recos from "./recos.js";
 import * as tutorial from "./tutorial.js";
@@ -278,6 +279,7 @@ function conectaMenu() {
     const acc = b.dataset.acc;
     if (acc === "exporta") aviso(`Exportados ${A.exporta()} registros.`);
     if (acc === "importa") $("#fichero").click();
+    if (acc === "lista") importar.abre();
     if (acc === "refresca") refresca(true);
     if (acc === "deshaz") aviso(A.deshaz() ? "Último cambio deshecho." : "No hay nada que deshacer.");
     if (acc === "privacidad") {
@@ -293,6 +295,9 @@ function conectaMenu() {
     const f = ev.target.files[0];
     ev.target.value = "";
     if (!f) return;
+    // Una lista de texto (.txt) va al importador que busca en AniList
+    const texto = await f.text().catch(() => "");
+    if (!importar.pareceJson(f.name, texto)) return importar.abre(texto, `Leído de ${f.name}.`);
     try {
       const r = await A.importa(f);
       aviso(`Importados ${r.n} registros${r.saltadas ? ` (${r.saltadas} ya los tenías)` : ""}.`, r.n ? { accion: "Deshacer", alPulsar: () => A.deshaz() } : {});

@@ -1123,12 +1123,15 @@ dialog::backdrop { background: rgba(3, 3, 6, .78); backdrop-filter: blur(6px) sa
 #coleccion .carta { -webkit-touch-callout: none; }
 #coleccion img { -webkit-user-drag: none; }
 body.arrastrando { user-select: none; -webkit-user-select: none; cursor: grabbing; }
+/* Mientras arrastras, los avisos suben por encima de las cajas para no taparlas */
+.avisos { transition: transform .25s cubic-bezier(.2, .8, .2, 1); }
+body.arrastrando .avisos { transform: translateY(calc(-1 * var(--alto-soltar, 0px))); }
 /* La carta original se queda como un hueco mientras la otra flota */
 .carta.arrastrada { opacity: .22; filter: grayscale(1); transition: opacity .2s; }
 .carta.arrastrada .carta-marco { outline: 1px dashed var(--naranja); outline-offset: 3px; }
 @property --escala { syntax: "<number>"; inherits: false; initial-value: 1; }
 .carta-flotante {
-  --dx: 0px; --dy: 0px; --ox: 0px; --oy: 0px; --giro: 0deg; --escala: .6;
+  --dx: 0px; --dy: 0px; --ox: 0px; --oy: 0px; --giro: 0deg; --escala: var(--escala-flotante, .4);
   position: fixed; z-index: 300; margin: 0; pointer-events: none; transform-origin: 50% 100%;
   transform: translate(calc(var(--dx) + var(--ox)), calc(var(--dy) + var(--oy))) rotate(var(--giro)) scale(var(--escala));
   filter: drop-shadow(0 18px 30px rgba(0, 0, 0, .75)) drop-shadow(0 0 22px color-mix(in srgb, var(--tinte) 55%, transparent));
@@ -1152,7 +1155,7 @@ body.arrastrando { user-select: none; -webkit-user-select: none; cursor: grabbin
 .soltar-t small { margin-left: 8px; color: var(--naranja); letter-spacing: .08em; }
 .soltar-cajas { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
 .soltar-caja {
-  display: grid; justify-items: center; align-content: center; gap: 4px; height: 82px;
+  display: grid; justify-items: center; align-content: center; gap: 4px; height: 92px;
   border: 1px dashed color-mix(in srgb, var(--c) 60%, transparent); background: color-mix(in srgb, var(--c) 7%, transparent);
   transition: background .15s, transform .15s, box-shadow .15s, border-color .15s;
 }
@@ -1901,7 +1904,8 @@ body.visitando .vista { --naranja: var(--cian); }
   .imp-lista { max-height: 48vh; }
   .soltar { bottom: calc(70px + env(safe-area-inset-bottom)); padding: 8px; }
   .soltar-cajas { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
-  .soltar-caja { height: 62px; gap: 2px; }
+  .soltar-caja { height: 70px; gap: 2px; }
+  .carta-flotante { --escala-flotante: .6; }
   .soltar-caja i { font-size: 18px; }
   .soltar-caja b { font-size: 9.5px; letter-spacing: .06em; }
   #fi-saga-aviso { margin: 14px 10px 0; }

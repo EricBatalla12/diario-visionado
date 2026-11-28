@@ -65,7 +65,9 @@ export function conectaArrastre(col, { miembrosSaga }) {
     // La copia que flota, del mismo tamaño y en el mismo sitio que la carta
     const clon = carta.cloneNode(true);
     clon.classList.add("carta-flotante");
-    clon.classList.remove("abierta");
+    // Las temporadas de una saga desplegada llevan su propio transform y una
+    // animación de entrada que pisarían el movimiento: la copia va sin ellas
+    clon.classList.remove("abierta", "en-saga", ...[...clon.classList].filter((c) => c.startsWith("saga-")));
     clon.removeAttribute("tabindex");
     Object.assign(clon.style, { left: r.left + "px", top: r.top + "px", width: r.width + "px", height: r.height + "px" });
     // Encoge y se cuelga por encima del dedo (su borde de abajo en el puntero),
@@ -77,7 +79,7 @@ export function conectaArrastre(col, { miembrosSaga }) {
     clon.getBoundingClientRect();
     clon.style.removeProperty("--escala");
     clon.style.setProperty("--ox", x - (r.left + r.width / 2) + "px");
-    clon.style.setProperty("--oy", y - (r.top + r.height) - 46 + "px");
+    clon.style.setProperty("--oy", y - (r.top + r.height) - 34 + "px");
     setTimeout(() => clon.classList.remove("levantando"), 220);
     carta.classList.add("arrastrada");
     // Las cajas donde soltar; la del estado que ya tiene, apagada
@@ -91,6 +93,8 @@ export function conectaArrastre(col, { miembrosSaga }) {
         return `<div class="soltar-caja ${ya ? "ya" : ""}" data-soltar="${c.k}" style="--c:${c.color}"><i>${c.jp}</i><b>${c.nombre}</b></div>`;
       }).join("")}</div>`;
     document.body.append(cajas);
+    // Los avisos (el «Deshacer» de la carta de antes) suben por encima de las cajas
+    document.body.style.setProperty("--alto-soltar", cajas.getBoundingClientRect().height + 12 + "px");
     document.body.classList.add("arrastrando");
     document.addEventListener("touchmove", frena, { passive: false });
     arr = { carta, clon, cajas, uids, x0: x, y0: y, vx: 0, ultX: x, encima: null };
@@ -105,7 +109,7 @@ export function conectaArrastre(col, { miembrosSaga }) {
     arr.clon.style.setProperty("--dx", x - arr.x0 + "px");
     arr.clon.style.setProperty("--dy", y - arr.y0 + "px");
     arr.clon.style.setProperty("--giro", giro + "deg");
-    const caja = document.elementFromPoint(x, y)?.closest("[data-soltar]") || null;
+    const caja = cajaCerca(arr.cajas, x, y);
     if (caja !== arr.encima) {
       arr.encima?.classList.remove("encima");
       caja?.classList.add("encima");
@@ -167,6 +171,21 @@ export function conectaArrastre(col, { miembrosSaga }) {
       setTimeout(() => { clon.remove(); carta.classList.remove("arrastrada"); }, 280);
     }
   }
+}
+
+// La caja a la que apuntas: no hace falta acertar dentro. Desde que el
+// puntero está sobre el panel (o cerca, sobre todo por encima, que es por
+// donde se llega) vale la caja más cercana.
+function cajaCerca(panel, x, y) {
+  const p = panel.getBoundingClientRect();
+  if (x < p.left - 30 || x > p.right + 30 || y < p.top - 60 || y > p.bottom + 30) return null;
+  let mejor = null, dist = Infinity;
+  for (const b of panel.querySelectorAll("[data-soltar]")) {
+    const r = b.getBoundingClientRect();
+    const d = Math.hypot(Math.max(r.left - x, 0, x - r.right), Math.max(r.top - y, 0, y - r.bottom));
+    if (d < dist) { dist = d; mejor = b; }
+  }
+  return mejor;
 }
 
 // Las mismas reglas que al cambiar el estado en la ficha: Visto o Revisto

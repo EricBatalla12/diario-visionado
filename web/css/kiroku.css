@@ -845,7 +845,6 @@ dialog::backdrop { background: rgba(3, 3, 6, .78); backdrop-filter: blur(6px) sa
 #fn-num:hover { border-bottom-color: var(--linea-2); }
 #fn-num:focus { border-bottom-color: var(--naranja); }
 .fn-lectura i { font: 800 24px/1 var(--f-display); font-style: normal; color: var(--rc); text-shadow: 0 0 18px var(--rc); min-width: 1.2em; }
-.fi-nota.r-ex #fn-num { background: linear-gradient(135deg, #fff3c2, var(--oro), #c7860f); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .fn-paso {
   width: 36px; height: 40px; display: grid; place-items: center; touch-action: manipulation; user-select: none;
   font: 700 22px var(--f-mono); color: var(--naranja); background: var(--panel); border: 1px solid var(--linea-2);
@@ -941,7 +940,9 @@ dialog::backdrop { background: rgba(3, 3, 6, .78); backdrop-filter: blur(6px) sa
 }
 .reg #fn-num:focus { border-bottom-color: var(--rc); }
 .reg #fn-num::placeholder { color: var(--texto-3); }
-.reg-dial.r-ex #fn-num { background: linear-gradient(135deg, #fff3c2, var(--oro), #c7860f); -webkit-background-clip: text; background-clip: text; color: transparent; }
+/* El 10 en dorado. Sin degradado recortado al texto: dentro de un <input>
+   background-clip: text no funciona y el número se quedaba transparente */
+.reg-dial.r-ex #fn-num { color: #ffe08a; text-shadow: 0 0 18px rgba(255, 210, 63, .75), 0 0 2px #fff3c2; }
 .reg #fn-r { min-width: 1.4em; font: 800 22px/1 var(--f-display); font-style: normal; color: var(--rc); text-shadow: 0 0 16px var(--rc); }
 /* La barra centrada en la fila y «Quitar nota» a su derecha, en la misma línea */
 .dial-pista { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 16px; }

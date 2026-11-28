@@ -1,8 +1,8 @@
 # Diario de visionado / KIROKU 記録
 
 Lee esto antes de nada. Estado al 28-11-2026: todo lo hecho está publicado y no hay
-trabajo a medias en la web. Lo siguiente posible: más títulos de nivel y logros (ver
-Pendientes), música y personajes (`docs/ideas/musica-y-personajes.md`) y el enlace de donaciones.
+trabajo a medias en la web. Lo siguiente posible: música y personajes
+(`docs/ideas/musica-y-personajes.md`) y el enlace de donaciones.
 
 ## Qué es
 
@@ -114,6 +114,12 @@ Notas para usuarios en `web/js/parches.js` (parche "La consola de registro").
 - **Archivo en móvil**: 3 cartas por fila (reglas bajo `#coleccion`), los 6 estados en
   rejilla 3×2, y tipo/año/género/orden tras el botón ⚙ (`filtrosAbiertos`, solo en móvil).
 - **Caché de AniList** (`cache.js`, ver Arquitectura).
+- **Niveles y logros** (parche "Más niveles y logros"): 21 `RANGOS_OP` (hasta NV 100) y 54
+  `LOGROS` en `stats.js`; `calcula` añade `caps` (capítulos de manga), `largos`, `sagasCompletas`,
+  `maxMes`, `maxEstudio`. Cada logro da 100 de XP. En `app.js`, más de 2 logros nuevos de golpe
+  = un solo aviso. Los logros de nivel usan el nivel **sin** la XP de los logros.
+- **Trampa**: `#fn-num` es un `<input>`: `background-clip: text` no funciona dentro y recorta el
+  `text-shadow` a su caja. El brillo va en `.dial-centro` con `filter: drop-shadow`.
 - **Arreglos**: historial del Gacha y listas de Sincronía no se salen del panel
   (`min-width: 0` / `minmax(0, 1fr)`). **Trampa**: la clase `.mas` (cifra verde de
   Sincronía) chocaba con el contenedor de "Cargar más" de Temporada, que ahora es `.cargar-mas`.
@@ -231,8 +237,6 @@ tras 30 s y cada 3 min a la vista), sin tiempo real.
 
 ## Pendientes menores
 
-- **Más títulos de nivel** (`RANGOS_OP` en `stats.js`, ahora 9 hasta el nivel 60) y **más logros**
-  (pedido por Eric el 28-11).
 
 - Eric debería **rotar** la secret de Supabase y el secret de Discord (se pegaron en el chat).
 - Borrar en Supabase → Authentication → Users el usuario de Discord de "Estrella" (ya sin datos).

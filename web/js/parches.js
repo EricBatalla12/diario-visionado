@@ -7,6 +7,22 @@
 
 export const PARCHES = [
   {
+    id: "2026-11-28b",
+    fecha: "28 de noviembre de 2026",
+    titulo: "Más niveles y logros",
+    jp: "実績",
+    secciones: [
+      { titulo: "Novedades", ico: "✦", items: [
+        "**12 títulos de nivel nuevos**, de Curioso (NV 1) a **Dios del registro** (NV 100), pasando por Senpai, Maestro del maratón, Leyenda viva o Entidad multiversal.",
+        "**29 logros nuevos** (54 en total): capítulos de manga leídos, pelis, **sagas completas**, rachas del mes, más géneros, estudios, notas y el nivel 60.",
+        "Si desbloqueas varios logros a la vez, un solo aviso los junta todos. Cada logro da experiencia, así que es posible que subas algún nivel nada más entrar.",
+      ] },
+      { titulo: "Arreglos", ico: "✚", items: [
+        "El **10** de la nota volvía a verse transparente, y el brillo del número dibujaba una caja. Ahora brilla limpio, y el 10 en dorado.",
+      ] },
+    ],
+  },
+  {
     id: "2026-11-28",
     fecha: "28 de noviembre de 2026",
     titulo: "La consola de registro",

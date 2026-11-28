@@ -7,6 +7,22 @@
 
 export const PARCHES = [
   {
+    id: "2026-11-28d",
+    fecha: "28 de noviembre de 2026",
+    titulo: "El Gacha se pone serio",
+    jp: "ガチャ",
+    secciones: [
+      { titulo: "Novedades", ico: "✦", items: [
+        "**Banners temáticos**: además del pozo completo, cada semana hay dos temáticos (Algo corto, Noche de peli, Para leer, Joyas olvidadas, Lo mejor valorado…). **Cambian cada lunes.**",
+        "**SSR garantizado**: a la décima invocación sin SSR, la siguiente es SSR seguro. Lo que te falta sale debajo de Invocar.",
+        "**Tirada del día**: una invocación gratis al día con más suerte de SR y SSR, y una **racha 🔥** de días seguidos. Si un día no tiras, la racha vuelve a empezar.",
+      ] },
+      { titulo: "A saber", ico: "ℹ", items: [
+        "La racha y el SSR garantizado se guardan en cada dispositivo: en el móvil y en el ordenador van por separado.",
+      ] },
+    ],
+  },
+  {
     id: "2026-11-28c",
     fecha: "28 de noviembre de 2026",
     titulo: "Arrastrar, importar y sagas a la vista",

@@ -135,6 +135,11 @@ Notas para usuarios en `web/js/parches.js` (parche "La consola de registro").
 - **Aviso de saga** arriba de la ficha (`#fi-saga-aviso`, `avisoSaga`) si falta alguna temporada.
 - **Logros**: 61. Mano blanda/dura cuentan notas (antes media: se excluían). Que todos se
   puedan tener a la vez es un requisito de Eric.
+- **Gacha** (parche "El Gacha se pone serio", `vistas/gacha.js`): `BANNERS` temáticos (2 por
+  semana, rotan el lunes por `semana()`; solo los que tienen ≥ 2 pendientes) + `COMPLETO`;
+  piedad (`PIEDAD` = 10) y tirada del día con racha (pesos `PESO_DIARIA`) en `localStorage`
+  `kiroku:gacha:<id>`, por dispositivo. Para compartirlo entre dispositivos haría falta una
+  columna en Supabase.
 - **Trampa**: `#fn-num` es un `<input>`: `background-clip: text` no funciona dentro y recorta el
   `text-shadow` a su caja. El brillo va en `.dial-centro` con `filter: drop-shadow`.
 - **Arreglos**: historial del Gacha y listas de Sincronía no se salen del panel

@@ -2,7 +2,7 @@
 // progreso, fecha, comentario) debajo, que se guarda solo al tocarlo. También
 // sirve de vista previa para algo que aún no está en el archivo, y de ficha
 // en solo lectura cuando el registro es de otro operador.
-import { $, esc, cartel, rango, fmtNota, ESTADOS, TIPOS, MESES, FORMATOS, tituloApi, genero, aviso,
+import { $, esc, cartel, rango, RANGOS, fmtNota, ESTADOS, TIPOS, MESES, FORMATOS, tituloApi, genero, aviso,
   tarjetaTitulo, htmlSeguro, cuentaAtras, tinte, formato, nombreTipo, totalDe, unidad, seLee, infoTipo, tipoDe } from "./ui.js";
 import { entrada, actualiza, borra, anade, anadeLote, porMedia, deshaz, esMia, sujetoActual, yoMismo } from "./almacen.js";
 import { detalle, sagas, refrescar, marcaSaga } from "./anilist.js";
@@ -15,6 +15,8 @@ let alAbrirPaleta = null;   // lo inyecta app.js para "vincular con AniList"
 
 export const conectaPaleta = (fn) => (alAbrirPaleta = fn);
 
+// La escala de rangos bajo la barra de la nota, de menos a más (F empieza en 0)
+const ESCALA = [...RANGOS].reverse().map((x) => ({ ...x, min: Math.max(0, x.min) }));
 const ESTADO_AL = { visto: "Visto", viendo: "Viendo", pendiente: "Pendiente", revisto: "Revisto", abandonado: "Abandonado" };
 const STATUS = { FINISHED: "Finalizado", RELEASING: "En emisión", NOT_YET_RELEASED: "Próximamente", CANCELLED: "Cancelado", HIATUS: "En pausa" };
 const SEASON = { WINTER: "Invierno", SPRING: "Primavera", SUMMER: "Verano", FALL: "Otoño" };
@@ -113,8 +115,8 @@ function registro(e) {
         <i>${v.jp}</i>${ESTADO_AL[k]}</button>`).join("")}
     </div>
     <div class="fi-rejilla">
-      <div class="fi-nota ${r ? r.clase : "sin-nota"}">
-        <span class="etq">Nota</span>
+      <div class="fi-nota ${r ? r.clase : "sin-nota"}" data-r="${r ? r.r : ""}">
+        <div class="fn-cab"><span class="etq">Nota</span><small id="fn-rango-t">${r ? "Rango " + r.r : "Sin puntuar"}</small></div>
         <div class="fn-lectura">
           <button class="fn-paso" data-paso="-1" aria-label="Bajar una décima" title="Bajar 0,1 (mantén pulsado para seguir)">−</button>
           <span class="fn-centro"><input id="fn-num" inputmode="decimal" autocomplete="off" maxlength="4" aria-label="Nota, escríbela o usa − y ＋"
@@ -122,13 +124,15 @@ function registro(e) {
           <button class="fn-paso" data-paso="1" aria-label="Subir una décima" title="Subir 0,1 (mantén pulsado para seguir)">＋</button>
         </div>
         <input type="range" id="fn-rango" min="0" max="10" step="0.1" value="${e.nota ?? 7}" aria-label="Nota de 0 a 10" ${e.nota == null ? 'data-vacia="1"' : ""}>
-        <div class="fn-pie"><span>0</span><button class="enlace" data-sin-nota>${e.nota == null ? "Arrastra para puntuar" : "Quitar nota"}</button><span>10</span></div>
+        <div class="fn-escala" aria-hidden="true">${ESCALA.map((x) => `<span class="${x.clase} ${r?.r === x.r ? "on" : ""}" data-esc="${x.r}" style="left:${x.min * 10}%">${x.r}</span>`).join("")}</div>
+        <div class="fn-pie"><button class="enlace" data-sin-nota>${e.nota == null ? "Arrastra o escribe la nota" : "Quitar nota"}</button></div>
       </div>
       <div class="fi-campos">
         ${conProg ? `<label class="campo"><span>Progreso · ${seLee(e) ? "capítulos" : "episodios"}</span>
           <div class="paso"><button data-ep="-1" aria-label="Un ${cosa} menos">−</button>
           <input id="fi-prog" type="number" min="0" ${total ? `max="${total}"` : ""} value="${e.progreso || 0}" style="--d:${String(e.progreso || 0).length}">
-          <em>/ ${total || "?"}</em><button data-ep="1" aria-label="Un ${cosa} más">＋</button></div></label>` : ""}
+          <em>/ ${total || "?"}</em><button data-ep="1" aria-label="Un ${cosa} más">＋</button></div>
+          <span class="fi-barra" ${total ? "" : "hidden"} style="--p:${total ? Math.min(100, (e.progreso || 0) / total * 100) : 0}%; --c:${ESTADOS[e.estado].color}"><i></i></span></label>` : ""}
         <label class="campo"><span>Tipo</span><select id="fi-tipo">${Object.entries(TIPOS[e.tipo] ? TIPOS : { ...TIPOS, [e.tipo]: infoTipo(e.tipo) }).map(([k, v]) => `<option value="${k}" ${e.tipo === k ? "selected" : ""}>${v.nombre}</option>`).join("")}</select></label>
         ${cuando(e)}
         <label class="campo campo-ancho"><span>Tu título</span><input id="fi-titulo" value="${esc(e.titulo)}" maxlength="120"></label>
@@ -136,10 +140,10 @@ function registro(e) {
     </div>
     <label class="campo"><span>Comentario</span><textarea id="fi-com" rows="3" maxlength="600" placeholder="Lo que te pareció, sin spoilers… o con.">${esc(e.comentario || "")}</textarea></label>
     <div class="fi-acc">
-      <button class="btn" data-vincula>${m ? "↺ Cambiar vínculo de AniList" : "⌁ Vincular con AniList"}</button>
-      ${m?.siteUrl ? `<a class="btn" href="${esc(m.siteUrl)}" target="_blank" rel="noopener">Abrir en AniList ↗</a>` : ""}
+      <button class="btn" data-vincula>${m ? `↺ <span class="largo">Cambiar vínculo de AniList</span><span class="corto">Vínculo</span>` : `⌁ <span class="largo">Vincular con AniList</span><span class="corto">Vincular</span>`}</button>
+      ${m?.siteUrl ? `<a class="btn" href="${esc(m.siteUrl)}" target="_blank" rel="noopener"><span class="largo">Abrir en AniList</span><span class="corto">AniList</span> ↗</a>` : ""}
       <span class="hueco"></span>
-      <button class="btn peligro" data-borra>Borrar del archivo</button>
+      <button class="btn peligro" data-borra><span class="largo">Borrar del archivo</span><span class="corto">Borrar</span></button>
     </div>
   </section>`;
 }
@@ -226,7 +230,8 @@ function conectaRegistro(d, e0) {
     if (estado === "visto" && x.estado !== "visto") { const h = new Date(); cambios.mes = h.getMonth() + 1; cambios.anio = h.getFullYear(); }
     pon(cambios);
     d.querySelectorAll("[data-estado]").forEach((o) => { o.classList.toggle("on", o === b); o.setAttribute("aria-checked", o === b); });
-    if (cambios.progreso != null) { const p = d.querySelector("#fi-prog"); if (p) p.value = cambios.progreso; }
+    if (cambios.progreso != null) { const p = d.querySelector("#fi-prog"); if (p) { p.value = cambios.progreso; p.style.setProperty("--d", String(cambios.progreso).length); } }
+    pintaBarra();
     if (cambios.mes) pintaCuando();
   }));
 
@@ -240,8 +245,11 @@ function conectaRegistro(d, e0) {
     if (!tecleando) num.value = n == null ? "" : fmtNota(n);
     letra.textContent = r ? r.r : "";
     caja.className = "fi-nota " + (r ? r.clase : "sin-nota");
+    caja.dataset.r = r ? r.r : "";
+    d.querySelector("#fn-rango-t").textContent = r ? "Rango " + r.r : "Sin puntuar";
+    d.querySelectorAll("[data-esc]").forEach((x) => x.classList.toggle("on", x.dataset.esc === r?.r));
     if (n != null) { rg.value = n; rg.removeAttribute("data-vacia"); } else rg.setAttribute("data-vacia", "1");
-    d.querySelector("[data-sin-nota]").textContent = n == null ? "Arrastra para puntuar" : "Quitar nota";
+    d.querySelector("[data-sin-nota]").textContent = n == null ? "Arrastra o escribe la nota" : "Quitar nota";
   };
   const guardaNota = (n) => {
     const antes = e().nota;
@@ -296,8 +304,14 @@ function conectaRegistro(d, e0) {
     guardaNota(n);
   });
 
-  // Progreso
+  // Progreso, con una barra que se llena del color del estado
   const prog = d.querySelector("#fi-prog");
+  function pintaBarra() {
+    const b = d.querySelector(".fi-barra"), x = e(), total = totalDe(x);
+    if (!b || !total) return;
+    b.style.setProperty("--p", Math.min(100, (x.progreso || 0) / total * 100) + "%");
+    b.style.setProperty("--c", ESTADOS[x.estado].color);
+  }
   const ponProg = (v) => {
     const x = e(), total = totalDe(x);
     v = Math.max(0, total ? Math.min(total, v) : v);
@@ -310,6 +324,7 @@ function conectaRegistro(d, e0) {
       tarjetaTitulo({ jp: "完", linea1: seLee(x) ? "LEÍDO" : "TERMINADA", linea2: x.titulo });
     }
     pon(cambios, { agrupa: true });
+    pintaBarra();
     if (cambios.mes) pintaCuando();
     if (cambios.estado) d.querySelectorAll("[data-estado]").forEach((o) => { o.classList.toggle("on", o.dataset.estado === cambios.estado); o.setAttribute("aria-checked", o.dataset.estado === cambios.estado); });
   };

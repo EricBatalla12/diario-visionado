@@ -11,6 +11,10 @@ let f = { ...def };
 try { f = { ...def, ...JSON.parse(localStorage.getItem(CLAVE_F) || "{}"), texto: "" }; } catch {}
 const guardaF = () => { try { localStorage.setItem(CLAVE_F, JSON.stringify({ ...f, texto: "" })); } catch {} };
 
+// En móvil, los desplegables (tipo, año, género, orden) van recogidos detrás
+// del botón ⚙ para que las cartas asomen sin bajar; esto recuerda si los abriste
+let filtrosAbiertos = false;
+
 // Sagas desplegadas en esta visita (por id de la primera temporada)
 const abiertas = new Set();
 const sagaDe = (e) => e.media?.saga?.id || null;
@@ -134,6 +138,7 @@ export function pinta(raiz, { stats, primera }) {
   // Con ⧉ Sagas, los chips cuentan como las cartas: una saga es uno (si sus
   // temporadas están en estados distintos, cuenta en cada uno de ellos)
   const porSagas = f.agrupa && f.modo === "cartas";
+  const nActivos = ["tipo", "anio", "genero"].filter((k) => f[k] !== "todos").length + (f.orden !== "fecha" ? 1 : 0);
   const cuentaEst = (k) => { const l = todas.filter((e) => k === "todos" || e.estado === k); return porSagas ? cuentaTitulos(l) : l.length; };
 
   raiz.innerHTML = `
@@ -144,7 +149,7 @@ export function pinta(raiz, { stats, primera }) {
     ${cifra("NOTA MEDIA", "平均", stats.media ?? 0, 2, "")}
   </section>
 
-  <section class="filtros panel">
+  <section class="filtros panel ${filtrosAbiertos ? "abiertos" : ""}">
     <div class="chips" role="group" aria-label="Estado">
       ${["todos", ...Object.keys(ESTADOS)].map((k) => `<button class="chip ${f.estado === k ? "on" : ""}" data-f="estado" data-v="${k}"
         style="--c:${k === "todos" ? "var(--texto)" : ESTADOS[k].color}">${k === "todos" ? "Todos" : ESTADOS[k].nombre}<small>${cuentaEst(k)}</small></button>`).join("")}
@@ -160,6 +165,7 @@ export function pinta(raiz, { stats, primera }) {
         <button class="${f.modo === "dossier" ? "on" : ""}" data-f="modo" data-v="dossier" title="Dossier">☰</button>
       </div>
       ${f.modo === "cartas" ? `<button class="btn-sagas ${f.agrupa ? "on" : ""}" data-agrupa aria-pressed="${f.agrupa}" title="Agrupar las temporadas de un mismo anime en una carta">⧉ Sagas</button>` : ""}
+      <button class="btn-filtros ${filtrosAbiertos ? "on" : ""}" data-filtros aria-expanded="${filtrosAbiertos}" aria-label="Tipo, año, género y orden" title="Tipo, año, género y orden">⚙${nActivos ? `<b>${nActivos}</b>` : ""}</button>
     </div>
   </section>
 
@@ -176,6 +182,12 @@ export function pinta(raiz, { stats, primera }) {
   const repinta = () => { raiz.classList.remove("anima"); pinta(raiz, { stats }); };
   raiz.querySelectorAll("[data-f]").forEach((b) => b.addEventListener("click", () => { f[b.dataset.f] = b.dataset.v; guardaF(); repinta(); }));
   raiz.querySelectorAll("select[data-sel]").forEach((s) => s.addEventListener("change", () => { f[s.dataset.sel] = s.value; guardaF(); repinta(); }));
+  raiz.querySelector("[data-filtros]").addEventListener("click", (ev) => {
+    filtrosAbiertos = !filtrosAbiertos;
+    raiz.querySelector(".filtros").classList.toggle("abiertos", filtrosAbiertos);
+    ev.currentTarget.classList.toggle("on", filtrosAbiertos);
+    ev.currentTarget.setAttribute("aria-expanded", filtrosAbiertos);
+  });
   raiz.querySelector("[data-agrupa]")?.addEventListener("click", () => { f.agrupa = !f.agrupa; guardaF(); repinta(); });
   // Desplegar o plegar una saga: sus temporadas salen detrás de la carta
   const col = raiz.querySelector("#coleccion");

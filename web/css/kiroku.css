@@ -901,6 +901,13 @@ kbd {
    estallido del color de su rareza. Los tiempos (--giro, --fin) los pone
    vistas/gacha.js según lo que ha salido. */
 .altar.presagio .pt-nucleo { width: 120px; height: 120px; }
+/* Al invocar, todo el portal es del color de la rareza: anillos, runas y fondo */
+.altar.invocando { background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--rr) 12%, transparent), transparent 60%), var(--panel); }
+.altar.invocando .pt-anillo.a3 { background: conic-gradient(from 0deg, transparent, color-mix(in srgb, var(--rr) 55%, transparent), transparent 30%, transparent 50%, color-mix(in srgb, var(--rr) 55%, transparent), transparent 80%); }
+.altar.invocando .pt-runas text { fill: color-mix(in srgb, var(--rr) 80%, transparent); }
+/* El botón pulsado, mientras llegan las cartas */
+.btn-invocar.espera, .btn.diaria.espera { cursor: progress; }
+.btn-invocar.espera small, .btn.diaria.espera small { animation: parpadeo .7s ease-in-out infinite; }
 .altar.presagio.r-ssr .portal { animation: carga 1.5s cubic-bezier(.5, 0, .9, .4) forwards, tiembla-portal .09s linear infinite; }
 @keyframes tiembla-portal { 50% { translate: 2px -2px; } }
 .altar.presagio-brillo .pt-nucleo { background: radial-gradient(circle, #fff 0, #ff4f9a 30%, transparent 70%); animation: late .25s ease-in-out infinite, tono 1.2s linear infinite; }

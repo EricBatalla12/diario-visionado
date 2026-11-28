@@ -336,19 +336,25 @@ async function invoca(n, { diaria = false } = {}) {
   girando = true;
   const raiz = ctx.raiz, altar = raiz.querySelector("#altar");
   raiz.querySelectorAll("[data-invoca], [data-diaria]").forEach((b) => (b.disabled = true));
-  const t0 = Date.now(), anima = !reducido();
-  if (anima) { altar.className = "altar invocando"; raiz.querySelector("#revelada").innerHTML = ""; }
+  // Primero se piden las cartas y luego se anima el portal, ya del color de
+  // la rareza desde el principio (antes cargaba en naranja y cambiaba de
+  // color a mitad). Mientras tanto, solo el botón avisa de que está en ello.
+  const boton = raiz.querySelector(diaria ? "[data-diaria]" : `[data-invoca="${n}"]`);
+  boton?.classList.add("espera");
+  const rotulo = boton?.querySelector("small");
+  if (rotulo) rotulo.textContent = "Invocando…";
+  const anima = !reducido();
   try {
     const cartas = await G.tira(pozo, n, { banner, piedad: est[`piedad_${pozo}`] || 0, diaria,
       rachaPremio: diaria && rachaSig % G.RACHA_PREMIO === 0, tengo: new Set(col.cartas.map((c) => c.mediaId)) });
     const res = await invocaNube(pozo, cartas, diaria ? hoyClave() : null);
     if (anima) {
-      // Presagio: el portal se tiñe del color de la mejor carta (de arcoíris si
-      // hay una brillante) y espera un poco más cuanto mejor es
+      // El portal carga ya del color de la mejor carta (de arcoíris si hay una
+      // brillante) y espera un poco más cuanto mejor es
       const mejor = mejorDe(res.cartas).rareza, brillo = res.cartas.some((c) => c.brillante);
-      altar.classList.add("r-" + mejor, "presagio");
-      if (brillo) altar.classList.add("presagio-brillo");
-      await espera(Math.max(0, 1500 - (Date.now() - t0)) + (brillo ? 900 : mejor === "ssr" ? 600 : mejor === "sr" ? 250 : 0));
+      altar.className = `altar invocando presagio r-${mejor}${brillo ? " presagio-brillo" : ""}`;
+      raiz.querySelector("#revelada").innerHTML = "";
+      await espera(1500 + (brillo ? 900 : mejor === "ssr" ? 600 : mejor === "sr" ? 250 : 0));
       altar.classList.add("destello");
       await espera(350);
     }

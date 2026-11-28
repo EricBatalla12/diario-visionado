@@ -187,7 +187,7 @@ async function catalogo(caja, abreFicha) {
   if (!caja.isConnected) return;
   const c = cache.get(k);
   caja.innerHTML = `<div class="rejilla temp">${c.media.map(tarjeta).join("")}</div>
-    ${c.hayMas ? `<div class="mas"><button class="btn" data-mas>Cargar más</button></div>` : ""}`;
+    ${c.hayMas ? `<div class="cargar-mas"><button class="btn" data-mas>Cargar más</button></div>` : ""}`;
 
   // onclick (y no addEventListener) para que repintar no acumule manejadores
   caja.onclick = async (ev) => {

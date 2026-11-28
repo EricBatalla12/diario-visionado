@@ -106,8 +106,10 @@ function codigo(sem) {
 
 function sincronia(s) {
   if (!s.pares.length) return `<p class="tenue">Puntúa títulos vinculados a AniList para comparar.</p>`;
-  const W = 300, H = 220, P = 26;
-  const x = (v) => P + (v - 3) / 7 * (W - P - 8), y = (v) => H - P - (v - 3) / 7 * (H - P - 8);
+  // Márgenes propios para los rótulos de los ejes: «Tú» en vertical a la
+  // izquierda y «AniList» debajo de los números, sin pisar el 10 de ninguno
+  const W = 300, H = 236, L = 36, R = W - 10, T = 10, B = H - 34;
+  const x = (v) => L + (v - 3) / 7 * (R - L), y = (v) => B - (v - 3) / 7 * (B - T);
   const sinc = Math.max(0, 100 - s.pares.reduce((a, p) => a + Math.abs(p.tuya - p.ellos), 0) / s.pares.length * 20);
   const d = s.delta;
   const veredicto = Math.abs(d) < 0.15 ? "Puntúas igual que la comunidad." :
@@ -116,12 +118,13 @@ function sincronia(s) {
   const extremos = [...s.pares].sort((a, b) => (b.tuya - b.ellos) - (a.tuya - a.ellos));
   const pts = s.pares.map((p) => `<circle cx="${x(p.ellos).toFixed(1)}" cy="${y(Math.max(3, p.tuya)).toFixed(1)}" r="3.6"
       class="${p.tuya - p.ellos >= 0 ? "pt-mas" : "pt-menos"}" data-uid="${esc(p.e.uid)}"><title>${esc(p.e.titulo)} — tú ${fmtNota(p.tuya)} · AniList ${p.ellos.toFixed(1)}</title></circle>`).join("");
-  const ejes = [4, 6, 8, 10].map((v) => `<line x1="${x(v)}" y1="${y(3)}" x2="${x(v)}" y2="${y(10)}" class="rej"/><text x="${x(v)}" y="${H - 8}" class="eje">${v}</text>
-    <line x1="${x(3)}" y1="${y(v)}" x2="${x(10)}" y2="${y(v)}" class="rej"/><text x="6" y="${y(v) + 3}" class="eje">${v}</text>`).join("");
+  const ejes = [4, 6, 8, 10].map((v) => `<line x1="${x(v)}" y1="${y(3)}" x2="${x(v)}" y2="${y(10)}" class="rej"/><text x="${x(v)}" y="${B + 13}" class="eje">${v}</text>
+    <line x1="${x(3)}" y1="${y(v)}" x2="${x(10)}" y2="${y(v)}" class="rej"/><text x="${L - 7}" y="${y(v) + 3}" class="eje ini">${v}</text>`).join("");
   return `<div class="sinc-cifra"><b>${sinc.toFixed(1).replace(".", ",")}</b><span>%</span><small>tasa de sincronía con AniList</small></div>
     <svg viewBox="0 0 ${W} ${H}" class="graf disp" role="img" aria-label="Tu nota frente a la de AniList">
       ${ejes}<line x1="${x(3)}" y1="${y(3)}" x2="${x(10)}" y2="${y(10)}" class="diag"/>
-      ${pts}<text x="${W - 6}" y="${H - 8}" class="eje fin">AniList →</text><text x="${P + 4}" y="14" class="eje">↑ tú</text>
+      ${pts}<text x="${(L + R) / 2}" y="${H - 4}" class="eje-tit">AniList →</text>
+      <text x="10" y="${(T + B) / 2}" class="eje-tit" transform="rotate(-90 10 ${(T + B) / 2})">Tú →</text>
     </svg>
     <p class="veredicto">${veredicto}</p>
     <div class="extremos">

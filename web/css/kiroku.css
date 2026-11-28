@@ -573,6 +573,8 @@ kbd {
 .graf .diag { stroke: var(--naranja); stroke-dasharray: 4 4; opacity: .7; }
 .graf .eje { fill: var(--texto-3); font: 9.5px var(--f-mono); text-anchor: middle; }
 .graf .eje.fin { text-anchor: end; }
+.graf .eje.ini { text-anchor: end; }
+.graf .eje-tit { fill: var(--texto-2); font: 600 8.5px var(--f-mono); letter-spacing: .18em; text-transform: uppercase; text-anchor: middle; }
 .pt-mas { fill: var(--verde); } .pt-menos { fill: var(--rojo); }
 .disp circle { opacity: .8; cursor: pointer; transition: r .15s, opacity .15s; }
 .disp circle:hover { opacity: 1; r: 6; }
